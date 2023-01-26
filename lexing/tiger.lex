@@ -5,9 +5,20 @@ val lineNum = ErrorMsg.lineNum
 val linePos = ErrorMsg.linePos
 fun err(p1,p2) = ErrorMsg.error p1
 
-fun eof() = let val pos = hd(!linePos) in Tokens.EOF(pos,pos) end
-
 val commentDepth = ref 0
+
+fun eof() = 
+    let val pos = hd(!linePos)
+    in 
+        (
+            case (!commentDepth) of
+                0 =>() | _ => ErrorMsg.error pos ("unmatched comment ");
+
+            Tokens.EOF(pos,pos)
+        )
+    end
+
+
 
 %%
 
