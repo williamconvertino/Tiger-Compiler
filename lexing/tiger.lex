@@ -18,16 +18,33 @@ digit=[0-9];
 whitespace = [\ \t];
 
 %%
-(* Special Characters *)
-\n	                => (lineNum := !lineNum+1; linePos := yypos :: !linePos; continue());
-<INITIAL>{whitespace}       => (continue());
 
-(* Comments *)
+\n	                => (lineNum := !lineNum+1; linePos := yypos :: !linePos; continue());
+<INITIAL>
+    {whitespace}    => (continue());
+
 "/*"                => (commentDepth := !commentDepth+1; YYBEGIN COMMENT; continue());
 <COMMENT>"*/"       => (commentDepth := !commentDepth-1; case (!commentDepth) of 0 => YYBEGIN INITIAL | _ => (); continue());
 <COMMENT>.          => (continue());
 
-(* Operators *)
+<INITIAL>"type"     => (Tokens.TYPE (yypos, yypos + size(yytext)));
+<INITIAL>"var"      => (Tokens.VAR (yypos, yypos + size(yytext)));
+<INITIAL>"function" => (Tokens.FUNCTION (yypos, yypos + size(yytext)));
+<INITIAL>"break"    => (Tokens.BREAK (yypos, yypos + size(yytext)));
+<INITIAL>"of"       => (Tokens.OF (yypos, yypos + size(yytext)));
+<INITIAL>"end"      => (Tokens.END (yypos, yypos + size(yytext)));
+<INITIAL>"in"       => (Tokens.IN (yypos, yypos + size(yytext)));
+<INITIAL>"nil"      => (Tokens.NIL (yypos, yypos + size(yytext)));
+<INITIAL>"let"      => (Tokens.LET (yypos, yypos + size(yytext)));
+<INITIAL>"do"       => (Tokens.DO (yypos, yypos + size(yytext)));
+<INITIAL>"to"       => (Tokens.TO (yypos, yypos + size(yytext)));
+<INITIAL>"for"      => (Tokens.FOR (yypos, yypos + size(yytext)));
+<INITIAL>"while"    => (Tokens.WHILE (yypos, yypos + size(yytext)));
+<INITIAL>"else"     => (Tokens.ELSE (yypos, yypos + size(yytext)));
+<INITIAL>"then"     => (Tokens.THEN (yypos, yypos + size(yytext)));
+<INITIAL>"if"       => (Tokens.IF (yypos, yypos + size(yytext)));
+<INITIAL>"array"    => (Tokens.ARRAY (yypos, yypos + size(yytext)));
+
 <INITIAL>":="       => (Tokens.ASSIGN (yypos, yypos + size(yytext)));
 <INITIAL>"|"        => (Tokens.OR (yypos, yypos + size(yytext)));
 <INITIAL>"<>"       => (Tokens.NEQ (yypos, yypos + size(yytext)));
@@ -44,12 +61,4 @@ whitespace = [\ \t];
 <INITIAL>"+"        => (Tokens.PLUS (yypos, yypos + size(yytext)));
 <INITIAL>"."        => (Tokens.DOT (yypos, yypos + size(yytext)));
 
-(* Identifiers *)
-
-<INITIAL>"array"    => (Tokens.ARRAY (yypos, yypos + size(yytext)));
-
-(* Errors *)
 <INITIAL>.          => (ErrorMsg.error yypos ("illegal character " ^ yytext); continue());
-
-
-
