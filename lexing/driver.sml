@@ -14,4 +14,3 @@ struct
       end
 
 end
-

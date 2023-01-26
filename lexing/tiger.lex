@@ -15,14 +15,19 @@ val commentDepth = ref 0
 
 alpha=[A-Za-z];
 digit=[0-9];
-ws = [\ \t];
+whitespace = [\ \t];
 
 %%
-
+(* Special Characters *)
 \n	                => (lineNum := !lineNum+1; linePos := yypos :: !linePos; continue());
+<INITIAL>{whitespace}       => (continue());
+
+(* Comments *)
 "/*"                => (commentDepth := !commentDepth+1; YYBEGIN COMMENT; continue());
-<INITIAL>{ws}       => (continue());
-<INITIAL>"array"    => (Tokens.ARRAY (yypos, yypos + size(yytext)));
+<COMMENT>"*/"       => (commentDepth := !commentDepth-1; case (!commentDepth) of 0 => YYBEGIN INITIAL | _ => (); continue());
+<COMMENT>.          => (continue());
+
+(* Operators *)
 <INITIAL>":="       => (Tokens.ASSIGN (yypos, yypos + size(yytext)));
 <INITIAL>"|"        => (Tokens.OR (yypos, yypos + size(yytext)));
 <INITIAL>"<>"       => (Tokens.NEQ (yypos, yypos + size(yytext)));
@@ -38,7 +43,13 @@ ws = [\ \t];
 <INITIAL>"-"        => (Tokens.MINUS (yypos, yypos + size(yytext)));
 <INITIAL>"+"        => (Tokens.PLUS (yypos, yypos + size(yytext)));
 <INITIAL>"."        => (Tokens.DOT (yypos, yypos + size(yytext)));
+
+(* Identifiers *)
+
+<INITIAL>"array"    => (Tokens.ARRAY (yypos, yypos + size(yytext)));
+
+(* Errors *)
 <INITIAL>.          => (ErrorMsg.error yypos ("illegal character " ^ yytext); continue());
-<COMMENT>"*/"       => (commentDepth := !commentDepth-1; case (!commentDepth) of 0 => YYBEGIN INITIAL | _ => (); continue());
-<COMMENT>.          => (continue());
+
+
 
