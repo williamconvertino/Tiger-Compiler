@@ -16,9 +16,9 @@ fun eof() =
     in 
         (
             case (!commentDepth) of
-                0 => () | _ => ErrorMsg.error pos ("unmatched comment ");
-	    case  (!strActive) of
-                false => () | true => ErrorMsg.error pos ("unclosed string ");
+                0 => () | _ => ErrorMsg.error pos ("unmatched comment");
+	        case  (!strActive) of
+                false => () | true => ErrorMsg.error pos ("unclosed string");
             Tokens.EOF(pos,pos)
         )
     end
@@ -90,7 +90,7 @@ whitespace = [\ \t];
 <INITIAL>{alpha}({digit}|{alpha}|"_")*
                         => (Tokens.ID (yytext,yypos, yypos + size(yytext)));
 
-<STRING>\\[\t\n\f ]+\\      => (continue());
+<STRING>\\[\t\n\f ]+\\  => (continue());
 
 <STRING>"\n"            => (strText := !strText ^ yytext; continue());
 <STRING>"\t"            => (strText := !strText ^ yytext; continue());
@@ -101,7 +101,7 @@ whitespace = [\ \t];
 
 <STRING>\\.             => (ErrorMsg.error yypos ("illegal character " ^ yytext); strText := !strText ^ yytext; continue());
 
-<INITIAL>\"             => (strActive := true; YYBEGIN COMMENT; strText := ""; strStart := yypos; continue());
+<INITIAL>\"             => (strActive := true; YYBEGIN STRING; strText := ""; strStart := yypos; continue());
 <STRING>\"              => (strActive := false; YYBEGIN INITIAL; Tokens.STRING (!strText, !strStart, yypos));
 <STRING>.               => (strText := !strText ^ yytext; continue());
 
