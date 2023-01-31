@@ -1,0 +1,3 @@
+val myString1 = "Five slashes: \\\\\"
+val myString2 = "This is some text."
+

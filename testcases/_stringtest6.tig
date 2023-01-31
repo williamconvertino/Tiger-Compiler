@@ -1,0 +1,3 @@
+val myString1 = "Four slashes: \\\\"
+val myString1 = "Multiple slashes and characters: \\\t\n\n\t\123\\\"\\"
+

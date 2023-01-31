@@ -1,0 +1,19 @@
+
+val testString = "  New line should be here
+
+
+
+and
+    there
+        are
+            tabs
+                here
+" 
+
+val testString2 = "
+anotherNewline
+    and
+            tabs
+"
+
+val testString3 = ""

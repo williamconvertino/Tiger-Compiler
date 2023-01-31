@@ -1,0 +1,7 @@
+let
+    val myString1 = "hello"
+    val myString2 = "world"
+    val myString3 = "testing"
+in
+    myString1
+end

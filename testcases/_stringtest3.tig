@@ -1,0 +1,6 @@
+
+val testString = "\tNew line should be here\nand\n\tthere\n\tare\n\t\ttabs\n\t\t\t\there\n" 
+
+val testString2 = "\nanotherNewline\n\tand\n\t\ttabs\n"
+
+val testString3 = ""
