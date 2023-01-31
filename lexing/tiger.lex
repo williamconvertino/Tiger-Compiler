@@ -23,6 +23,7 @@ fun eof() =
         )
     end
 
+
 %%
 %s STRING COMMENT;
 
@@ -92,12 +93,14 @@ whitespace = [\ \t];
 
 <STRING>\\[\t\n\f ]+\\  => (continue());
 
-<STRING>"\n"            => (strText := !strText ^ yytext; continue());
-<STRING>"\t"            => (strText := !strText ^ yytext; continue());
-<STRING>\\{digit}{3}    => (strText := !strText ^ (Char.toString (chr (valOf(Int.fromString yytext)))); continue());
+<STRING>\\n             => (strText := !strText ^ yytext; continue());
+<STRING>\\t             => (strText := !strText ^ yytext; continue());
+<STRING>\\{digit}{3}    => (strText := !strText ^ yytext; continue());
 <STRING>\\\"            => (strText := !strText ^ yytext; continue());
 <STRING>\\\\            => (strText := !strText ^ yytext; continue());
 
+
+<STRING>\n	            => (strText := !strText ^ yytext; lineNum := !lineNum+1; linePos := yypos :: !linePos; continue());
 
 <STRING>\\.             => (ErrorMsg.error yypos ("illegal character " ^ yytext); strText := !strText ^ yytext; continue());
 
