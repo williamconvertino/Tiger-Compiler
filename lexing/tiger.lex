@@ -95,7 +95,7 @@ whitespace = [\ \t];
 
 <STRING>\\n             => (strText := !strText ^ "\n"; continue());
 <STRING>\\t             => (strText := !strText ^ "\t"; continue());
-<STRING>\\{digit}{3}    => (strText := !strText ^ yytext; continue());
+<STRING>\\{digit}{3}    => (strText := !strText ^ Char.toString (chr (valOf(Int.fromString(String.extract (yytext, 1, NONE))))); continue());
 <STRING>\\\"            => (strText := !strText ^ "\""; continue());
 <STRING>\\\\            => (strText := !strText ^ "\\"; continue());
 
