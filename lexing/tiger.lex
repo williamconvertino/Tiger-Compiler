@@ -93,11 +93,11 @@ whitespace = [\ \t];
 
 <STRING>\\[\t\n\f ]+\\  => (continue());
 
-<STRING>\\n             => (strText := !strText ^ yytext; continue());
-<STRING>\\t             => (strText := !strText ^ yytext; continue());
+<STRING>\\n             => (strText := !strText ^ "\n"; continue());
+<STRING>\\t             => (strText := !strText ^ "\t"; continue());
 <STRING>\\{digit}{3}    => (strText := !strText ^ yytext; continue());
-<STRING>\\\"            => (strText := !strText ^ yytext; continue());
-<STRING>\\\\            => (strText := !strText ^ yytext; continue());
+<STRING>\\\"            => (strText := !strText ^ "\""; continue());
+<STRING>\\\\            => (strText := !strText ^ "\\"; continue());
 
 
 <STRING>\n	            => (strText := !strText ^ yytext; lineNum := !lineNum+1; linePos := yypos :: !linePos; continue());
