@@ -16,12 +16,22 @@ fun eof() =
     in 
         (
             case (!commentDepth) of
-                0 => () | _ => ErrorMsg.error pos ("unmatched comment");
+                0 => () | _ => (commentDepth := 0; ErrorMsg.error pos ("unmatched comment"));
 	        case  (!strActive) of
-                false => () | true => ErrorMsg.error pos ("unclosed string");
+                false => () | true => (strActive := false; ErrorMsg.error pos ("unclosed string"));
             Tokens.EOF(pos,pos)
         )
     end
+
+fun stringToDec str = 
+    let val dec = valOf(Int.fromString(String.extract (str, 1, NONE)))
+        val pos = hd(!linePos)
+    in
+        case ((dec < 256)) of
+            true => (strText := !strText ^ Char.toString (chr dec)) |
+            false => ErrorMsg.error pos ("invalid ascii character: " ^ Int.toString(dec))
+    end
+    
 
 
 %%
@@ -95,7 +105,7 @@ whitespace = [\ \t];
 
 <STRING>\\n             => (strText := !strText ^ "\n"; continue());
 <STRING>\\t             => (strText := !strText ^ "\t"; continue());
-<STRING>\\{digit}{3}    => (strText := !strText ^ Char.toString (chr (valOf(Int.fromString(String.extract (yytext, 1, NONE))))); continue());
+<STRING>\\{digit}{3}    => (stringToDec yytext; continue());
 <STRING>\\\"            => (strText := !strText ^ "\""; continue());
 <STRING>\\\\            => (strText := !strText ^ "\\"; continue());
 
