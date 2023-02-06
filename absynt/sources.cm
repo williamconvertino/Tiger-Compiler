@@ -1,5 +1,8 @@
 Group is 
 
+$/basis.cm
+$/smlnj-lib.cm
+$/ml-yacc-lib.cm
 absyn.sml
 errormsg.sml
 table.sig
@@ -8,6 +11,4 @@ symbol.sml
 parse.sml
 tiger.lex
 tiger.grm
-smlnj-lib.cm
-ml-yacc-lib.cm
 
