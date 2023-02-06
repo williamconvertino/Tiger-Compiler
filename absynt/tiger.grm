@@ -13,7 +13,7 @@ structure A = Absyn
   | BREAK | NIL
   | FUNCTION | VAR | TYPE 
 
-%nonterm  exp of A.exp | program of A.exp
+%nonterm  exp of A.exp | program of A.exp | decs of A.dec list | dec of A.dec
 
 %pos int
 %verbose
@@ -34,7 +34,14 @@ structure A = Absyn
 
 %%
 
-program	: exp				(exp)
+program:  exp                   (exp)
 
+exp:      LET decs IN exp END   (A.LetExp {decs=decs, body=exp, pos=LETleft})     
 	
-exp: NIL		(A.NilExp)
+exp:      NIL		                (A.NilExp)
+exp:      INT                   (A.IntExp(INT))
+exp:      ID                    (A.VarExp (A.SimpleVar(Symbol.symbol ID, IDleft)))
+
+decs:     dec                   (dec :: nil)
+
+dec:      VAR ID ASSIGN exp     (A.VarDec {name=(Symbol.symbol ID), escape=(ref false), typ=NONE, init=exp, pos=VARleft})
