@@ -1,5 +1,7 @@
+type svalue = Tokens.svalue
 type pos = int
-type lexresult = Tokens.token
+type ('a, 'b) token = ('a, 'b) Tokens.token
+type lexresult = (svalue, pos) token
 
 val lineNum = ErrorMsg.lineNum
 val linePos = ErrorMsg.linePos
@@ -35,6 +37,8 @@ fun stringToDec str =
 
 
 %%
+%header (functor TigerLexFun(structure Tokens: Tiger_TOKENS));
+
 %s STRING COMMENT;
 
 alpha=[A-Za-z];
