@@ -47,5 +47,6 @@ exps:     exp                               ((exp, expleft) :: nil)
 exps:     exp SEMICOLON exps                ((exp, expleft) :: exps)
 
 decs:     dec                               (dec :: nil)
+decs:     dec decs                          (dec :: decs)
 
 dec:      VAR ID ASSIGN exp                 (A.VarDec {name=(Symbol.symbol ID), escape=(ref false), typ=NONE, init=exp, pos=VARleft})
