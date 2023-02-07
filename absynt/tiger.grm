@@ -49,38 +49,38 @@ structure A = Absyn
 
 %%
 
-program:  exp                               (exp)
+program:        exp                                       (exp)
 
-exp:      no_val_exp                        (no_val_exp)
-exp:      val_exp                           (val_exp)
+exp:            no_val_exp                                (no_val_exp)
+exp:            val_exp                                   (val_exp)
 	
-exp:      NIL		                            (A.NilExp)
-val_exp:  INT                               (A.IntExp(INT))
+exp:            NIL		                                    (A.NilExp)
+val_exp:        INT                                       (A.IntExp(INT))
 
-exp:      ID                                (A.VarExp (A.SimpleVar(Symbol.symbol ID, IDleft)))
-exp:      lval'                             (A.VarExp lval')
+exp:            ID                                        (A.VarExp (A.SimpleVar(Symbol.symbol ID, IDleft)))
+exp:            lval'                                     (A.VarExp lval')
 
-lval:     ID                                (A.SimpleVar(Symbol.symbol ID, IDleft))
-lval:     lval'                             (lval')
-lval':    lval DOT ID                       (A.FieldVar(lval, Symbol.symbol ID, lvalleft))
-lval':    ID LBRACK exp RBRACK              (A.SubscriptVar((A.SimpleVar(Symbol.symbol ID, IDleft)), exp, IDleft))
-lval':    lval' LBRACK exp RBRACK           (A.SubscriptVar(lval', exp, lval'left))
+lval:           ID                                        (A.SimpleVar(Symbol.symbol ID, IDleft))
+lval:           lval'                                     (lval')
+lval':          lval DOT ID                               (A.FieldVar(lval, Symbol.symbol ID, lvalleft))
+lval':          ID LBRACK exp RBRACK                      (A.SubscriptVar((A.SimpleVar(Symbol.symbol ID, IDleft)), exp, IDleft))
+lval':          lval' LBRACK exp RBRACK                   (A.SubscriptVar(lval', exp, lval'left))
 
 
 
-exp:      LPAREN exps RPAREN                (A.SeqExp exps)
-exps:     exp                               ((exp, expleft) :: nil)
-exps:     exp SEMICOLON exps                ((exp, expleft) :: exps)
+exp:            LPAREN exps RPAREN                        (A.SeqExp exps)
+exps:           exp                                       ((exp, expleft) :: nil)
+exps:           exp SEMICOLON exps                        ((exp, expleft) :: exps)
 
-no_val_exp: ID LBRACK exp RBRACK OF exp       (A.ArrayExp {typ=(Symbol.symbol ID), size=exp1, init=exp2, pos=IDleft})
+no_val_exp:     ID LBRACK exp RBRACK OF exp               (A.ArrayExp {typ=(Symbol.symbol ID), size=exp1, init=exp2, pos=IDleft})
 
-exp:        LET decs IN exp END               (A.LetExp {decs=decs, body=exp, pos=LETleft})   
-decs:       dec                               (dec :: nil)
-decs:       dec decs                          (dec :: decs)
+exp:            LET decs IN exp END                       (A.LetExp {decs=decs, body=exp, pos=LETleft})   
+decs:           dec                                       (dec :: nil)
+decs:           dec decs                                  (dec :: decs)
 
-dec:        VAR ID ASSIGN exp                 (A.VarDec {name=(Symbol.symbol ID), escape=(ref false), typ=NONE, init=exp, pos=VARleft})
+dec:            VAR ID ASSIGN exp                         (A.VarDec {name=(Symbol.symbol ID), escape=(ref false), typ=NONE, init=exp, pos=VARleft})
 
-val_exp:        MINUS val_exp            %prec UMINUS (A.OpExp {left=A.IntExp(0), oper=A.MinusOp, right=val_exp, pos=MINUSleft})
+val_exp:        MINUS val_exp                %prec UMINUS (A.OpExp {left=A.IntExp(0), oper=A.MinusOp, right=val_exp, pos=MINUSleft})
 val_exp:        val_exp TIMES val_exp                     (A.OpExp {left=val_exp1, oper=A.TimesOp, right=val_exp2, pos=val_exp1left})
 val_exp:        val_exp DIVIDE val_exp                    (A.OpExp {left=val_exp1, oper=A.DivideOp, right=val_exp2, pos=val_exp1left})
 val_exp:        val_exp PLUS val_exp                      (A.OpExp {left=val_exp1, oper=A.PlusOp, right=val_exp2, pos=val_exp1left})
