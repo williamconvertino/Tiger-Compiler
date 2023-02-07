@@ -54,11 +54,11 @@ program:        exp                                       (exp)
 exp:            no_val_exp                                (no_val_exp)
 exp:            val_exp                                   (val_exp)
 	
-exp:            NIL		                                    (A.NilExp)
+val_exp:         NIL		                                  (A.NilExp)
 val_exp:        INT                                       (A.IntExp(INT))
 
-exp:            ID                                        (A.VarExp (A.SimpleVar(Symbol.symbol ID, IDleft)))
-exp:            lval'                                     (A.VarExp lval')
+val_exp:        ID                                        (A.VarExp (A.SimpleVar(Symbol.symbol ID, IDleft)))
+val_exp:        lval'                                     (A.VarExp lval')
 
 lval:           ID                                        (A.SimpleVar(Symbol.symbol ID, IDleft))
 lval:           lval'                                     (lval')
@@ -68,13 +68,13 @@ lval':          lval' LBRACK exp RBRACK                   (A.SubscriptVar(lval',
 
 
 
-exp:            LPAREN exps RPAREN                        (A.SeqExp exps)
+val_exp:        LPAREN exps RPAREN                        (A.SeqExp exps)
 exps:           exp                                       ((exp, expleft) :: nil)
 exps:           exp SEMICOLON exps                        ((exp, expleft) :: exps)
 
-no_val_exp:     ID LBRACK exp RBRACK OF exp               (A.ArrayExp {typ=(Symbol.symbol ID), size=exp1, init=exp2, pos=IDleft})
+no_val_exp:     ID LBRACK val_exp RBRACK OF exp           (A.ArrayExp {typ=(Symbol.symbol ID), size=val_exp, init=exp, pos=IDleft})
 
-exp:            LET decs IN exp END                       (A.LetExp {decs=decs, body=exp, pos=LETleft})   
+no_val_exp:     LET decs IN exp END                       (A.LetExp {decs=decs, body=exp, pos=LETleft})   
 decs:           dec                                       (dec :: nil)
 decs:           dec decs                                  (dec :: decs)
 
