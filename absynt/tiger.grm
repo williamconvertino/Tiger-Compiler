@@ -9,7 +9,7 @@ structure A = Absyn
   | LBRACE | RBRACE | DOT 
   | PLUS | UMINUS | MINUS | TIMES | DIVIDE | EQ | NEQ | LT | LE | GT | GE
   | AND | OR | ASSIGN
-  | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF 
+  | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF
   | BREAK | NIL
   | FUNCTION | VAR | TYPE 
 
@@ -26,7 +26,6 @@ structure A = Absyn
 %left PLUS MINUS
 %left TIMES DIVIDE
 %left UMINUS
-%right LBRACK
 
 
 
@@ -70,7 +69,7 @@ exp:      LPAREN exps RPAREN                (A.SeqExp exps)
 exps:     exp                               ((exp, expleft) :: nil)
 exps:     exp SEMICOLON exps                ((exp, expleft) :: exps)
 
-exp:      ID LBRACK exp RBRACK OF exp        (A.ArrayExp {typ=(Symbol.symbol ID), size=exp1, init=exp2, pos=IDleft})
+exp:      ID LBRACK exp RBRACK OF exp       (A.ArrayExp {typ=(Symbol.symbol ID), size=exp1, init=exp2, pos=IDleft})
 
 exp:      LET decs IN exp END               (A.LetExp {decs=decs, body=exp, pos=LETleft})   
 decs:     dec                               (dec :: nil)
@@ -79,14 +78,13 @@ decs:     dec decs                          (dec :: decs)
 dec:      VAR ID ASSIGN exp                 (A.VarDec {name=(Symbol.symbol ID), escape=(ref false), typ=NONE, init=exp, pos=VARleft})
 
 exp:      MINUS exp            %prec UMINUS (A.OpExp {left=A.IntExp(0), oper=A.MinusOp, right=exp, pos=MINUSleft})
-exp:      exp oper exp                      (A.OpExp {left=exp1, oper=oper, right=exp2, pos=exp1left})
-oper:     TIMES                             (A.TimesOp)
-oper:     DIVIDE                            (A.DivideOp)
-oper:     PLUS                              (A.PlusOp)
-oper:     MINUS                             (A.MinusOp)
-oper:     EQ                                (A.EqOp)
-oper:     NEQ                               (A.NeqOp)
-oper:     LT                                (A.LtOp)
-oper:     LE                                (A.LeOp)
-oper:     GT                                (A.GtOp)
-oper:     GE                                (A.GeOp)
+exp:      exp TIMES exp                     (A.OpExp {left=exp1, oper=A.TimesOp, right=exp2, pos=exp1left})
+exp:      exp DIVIDE exp                    (A.OpExp {left=exp1, oper=A.DivideOp, right=exp2, pos=exp1left})
+exp:      exp PLUS exp                      (A.OpExp {left=exp1, oper=A.PlusOp, right=exp2, pos=exp1left})
+exp:      exp MINUS exp                     (A.OpExp {left=exp1, oper=A.MinusOp, right=exp2, pos=exp1left})
+exp:      exp EQ exp                        (A.OpExp {left=exp1, oper=A.EqOp, right=exp2, pos=exp1left})
+exp:      exp NEQ exp                       (A.OpExp {left=exp1, oper=A.NeqOp, right=exp2, pos=exp1left})
+exp:      exp LT exp                        (A.OpExp {left=exp1, oper=A.LtOp, right=exp2, pos=exp1left})
+exp:      exp LE exp                        (A.OpExp {left=exp1, oper=A.LeOp, right=exp2, pos=exp1left})
+exp:      exp GT exp                        (A.OpExp {left=exp1, oper=A.GtOp, right=exp2, pos=exp1left})
+exp:      exp GE exp                        (A.OpExp {left=exp1, oper=A.GeOp, right=exp2, pos=exp1left})
