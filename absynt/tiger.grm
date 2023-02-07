@@ -7,13 +7,28 @@ structure A = Absyn
   | INT of int | STRING of string 
   | COMMA | COLON | SEMICOLON | LPAREN | RPAREN | LBRACK | RBRACK 
   | LBRACE | RBRACE | DOT 
-  | PLUS | MINUS | TIMES | DIVIDE | EQ | NEQ | LT | LE | GT | GE
+  | PLUS | UMINUS | MINUS | TIMES | DIVIDE | EQ | NEQ | LT | LE | GT | GE
   | AND | OR | ASSIGN
   | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF 
   | BREAK | NIL
   | FUNCTION | VAR | TYPE 
 
-%nonterm  exp of A.exp | exps of (A.exp * A.pos) list | program of A.exp | decs of A.dec list | dec of A.dec | oper of A.oper | lval of A.var
+%nonterm  program of A.exp |
+  exp of A.exp | exps of (A.exp * A.pos) list | 
+  decs of A.dec list | dec of A.dec | 
+  oper of A.oper | 
+  lval of A.var | lval' of A.var
+
+%nonassoc EQ NEQ LT LE GT GE
+%right SEMICOLON
+%left OR
+%left AND
+%left PLUS MINUS
+%left TIMES DIVIDE
+%left UMINUS
+%right LBRACK
+
+
 
 %pos int
 %verbose
@@ -40,18 +55,22 @@ program:  exp                               (exp)
 exp:      NIL		                            (A.NilExp)
 exp:      INT                               (A.IntExp(INT))
 
-exp:      lval                              (A.VarExp lval)
+exp:      ID                                (A.VarExp (A.SimpleVar(Symbol.symbol ID, IDleft)))
+exp:      lval'                             (A.VarExp lval')
 
 lval:     ID                                (A.SimpleVar(Symbol.symbol ID, IDleft))
-lval:     lval DOT ID                       (A.FieldVar(lval, Symbol.symbol ID, lvalleft))
-lval:     lval LBRACK exp RBRACK            (A.SubscriptVar(lval, exp, lvalleft))
+lval:     lval'                             (lval')
+lval':    lval DOT ID                       (A.FieldVar(lval, Symbol.symbol ID, lvalleft))
+lval':    ID LBRACK exp RBRACK              (A.SubscriptVar((A.SimpleVar(Symbol.symbol ID, IDleft)), exp, IDleft))
+lval':    lval' LBRACK exp RBRACK           (A.SubscriptVar(lval', exp, lval'left))
+
 
 
 exp:      LPAREN exps RPAREN                (A.SeqExp exps)
 exps:     exp                               ((exp, expleft) :: nil)
 exps:     exp SEMICOLON exps                ((exp, expleft) :: exps)
 
-exp:     ID LBRACK exp RBRACK OF exp        (A.ArrayExp {typ=(Symbol.symbol ID), size=exp1, init=exp2, pos=IDleft})
+exp:      ID LBRACK exp RBRACK OF exp        (A.ArrayExp {typ=(Symbol.symbol ID), size=exp1, init=exp2, pos=IDleft})
 
 exp:      LET decs IN exp END               (A.LetExp {decs=decs, body=exp, pos=LETleft})   
 decs:     dec                               (dec :: nil)
@@ -59,12 +78,12 @@ decs:     dec decs                          (dec :: decs)
 
 dec:      VAR ID ASSIGN exp                 (A.VarDec {name=(Symbol.symbol ID), escape=(ref false), typ=NONE, init=exp, pos=VARleft})
 
-exp:      MINUS exp                         (A.OpExp {left=A.IntExp(0), oper=A.MinusOp, right=exp, pos=MINUSleft})
+exp:      MINUS exp            %prec UMINUS (A.OpExp {left=A.IntExp(0), oper=A.MinusOp, right=exp, pos=MINUSleft})
 exp:      exp oper exp                      (A.OpExp {left=exp1, oper=oper, right=exp2, pos=exp1left})
-oper:     PLUS                              (A.PlusOp)
-oper:     MINUS                             (A.MinusOp)
 oper:     TIMES                             (A.TimesOp)
 oper:     DIVIDE                            (A.DivideOp)
+oper:     PLUS                              (A.PlusOp)
+oper:     MINUS                             (A.MinusOp)
 oper:     EQ                                (A.EqOp)
 oper:     NEQ                               (A.NeqOp)
 oper:     LT                                (A.LtOp)
