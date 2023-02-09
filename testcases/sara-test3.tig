@@ -1,0 +1,5 @@
+let var a := 5
+    function fun1(a: int): int = a + a
+    function fun2(b: int): int = a + b
+in f(a)
+end
