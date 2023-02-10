@@ -12,6 +12,7 @@ structure A = Absyn
   | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF
   | BREAK | NIL
   | FUNCTION | VAR | TYPE 
+  | LOWER_THAN_FUNCTION | LOWER_THAN_TYPE | LOWER_THAN_ELSE
 
 %nonterm  program of A.exp |
   val_exp of A.exp | no_val_exp of A.exp |
@@ -26,6 +27,8 @@ structure A = Absyn
   fundec of A.fundec | fundec_params of A.field list | fundec_type of {exp: A.exp, result: (A.symbol * pos) option} |
   callParams of A.exp list
   
+%nonassoc LOWER_THAN_FUNCTION LOWER_THAN_TYPE LOWER_THAN_ELSE
+%nonassoc FUNCTION TYPE ELSE OF
 %nonassoc EQ NEQ LT LE GT GE
 %right SEMICOLON
 %left OR
@@ -68,7 +71,7 @@ val_exp:        lval'                                     (A.VarExp lval')
 
 
 callParams:     exp                                       (exp::nil)
-callParams:     exp callParams                            (exp :: callParams)
+callParams:     exp COMMA callParams                      (exp :: callParams)
 no_val_exp:     ID LPAREN callParams RPAREN               (A.CallExp{func=(Symbol.symbol ID), args=callParams, pos=IDleft})
 
 lval:           ID                                        (A.SimpleVar(Symbol.symbol ID, IDleft))
@@ -96,9 +99,8 @@ vardec:         VAR ID ASSIGN exp                         (A.VarDec {name=(Symbo
 vardec:         VAR ID COLON ID ASSIGN exp                (A.VarDec {name=(Symbol.symbol ID1), escape=(ref false), typ=SOME(Symbol.symbol ID2, ID2left), init=exp, pos=VARleft})
 
 fundec_wrap:		fundecs					                          (A.FunctionDec fundecs)
-
 fundecs: 	      fundec fundecs				                    (fundec :: fundecs)
-fundecs:	      fundec					                          (fundec :: nil)
+fundecs:	      fundec					%prec LOWER_THAN_FUNCTION (fundec :: nil)
 
 
 fundec:         FUNCTION ID fundec_params fundec_type		      ({name=(Symbol.symbol ID), params=fundec_params, result=(#result fundec_type), body=(#exp fundec_type), pos=FUNCTIONleft})
@@ -109,8 +111,8 @@ fundec_type:    COLON ID EQ exp                               ({exp=exp, result=
 
 
 tydec_wrap:     tydecs                                    (A.TypeDec tydecs)
-tydecs:		      tydec		 			                            (tydec :: nil)
 tydecs:		      tydec tydecs				                      (tydec :: tydecs)
+tydecs:		      tydec		 			     %prec LOWER_THAN_TYPE  (tydec :: nil)
 
 tydec:		      TYPE ID EQ ty				                      ({name=(Symbol.symbol ID), ty=ty, pos=TYPEleft})
 
