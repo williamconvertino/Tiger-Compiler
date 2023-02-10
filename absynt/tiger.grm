@@ -22,7 +22,8 @@ structure A = Absyn
   vardec of A.dec |
   ty of A.ty | tyfield of A.field | tyfields of A.field list | 
   tydec of {name: A.symbol, ty: A.ty, pos: A.pos} | tydecs of {name: A.symbol, ty: A.ty, pos: A.pos} list | tydec_wrap of A.dec |
-  fundec of A.fundec | fundecs of A.fundec list | fundec_wrap of A.dec |
+  fundecs of A.fundec list | fundec_wrap of A.dec |
+  fundec of A.fundec | fundec_params of A.field list | fundec_type of {exp: A.exp, result: (A.symbol * pos) option} |
   callParams of A.exp list
   
 %nonassoc EQ NEQ LT LE GT GE
@@ -95,15 +96,20 @@ vardec:         VAR ID ASSIGN exp                         (A.VarDec {name=(Symbo
 vardec:         VAR ID COLON ID ASSIGN exp                (A.VarDec {name=(Symbol.symbol ID1), escape=(ref false), typ=SOME(Symbol.symbol ID2, ID2left), init=exp, pos=VARleft})
 
 fundec_wrap:		fundecs					                          (A.FunctionDec fundecs)
-fundecs:	      fundec					                          (fundec::nil)
-fundecs: 	      fundec fundecs				                    (fundec::fundecs)
 
-fundec:         FUNCTION ID LPAREN tyfields RPAREN EQ exp 		      ({name=(Symbol.symbol ID), params=tyfields, result=NONE, body=exp, pos=FUNCTIONleft})
-fundec:         FUNCTION ID LPAREN tyfields RPAREN COLON ID EQ exp 	({name=(Symbol.symbol ID1), params=tyfields, result=SOME(Symbol.symbol ID2, ID2left), body=exp, pos=FUNCTIONleft})
+fundecs: 	      fundec fundecs				                    (fundec :: fundecs)
+fundecs:	      fundec					                          (fundec :: nil)
+
+
+fundec:         FUNCTION ID fundec_params fundec_type		      ({name=(Symbol.symbol ID), params=fundec_params, result=(#result fundec_type), body=(#exp fundec_type), pos=FUNCTIONleft})
+fundec_params:  LPAREN tyfields RPAREN                        (tyfields)
+fundec_params:  LPAREN RPAREN                                 ([])
+fundec_type:    EQ exp                                        ({exp=exp, result=NONE})
+fundec_type:    COLON ID EQ exp                               ({exp=exp, result=SOME((Symbol.symbol ID), IDleft)})
 
 
 tydec_wrap:     tydecs                                    (A.TypeDec tydecs)
-tydecs:		      tydec		 			                            (tydec::nil)
+tydecs:		      tydec		 			                            (tydec :: nil)
 tydecs:		      tydec tydecs				                      (tydec :: tydecs)
 
 tydec:		      TYPE ID EQ ty				                      ({name=(Symbol.symbol ID), ty=ty, pos=TYPEleft})
@@ -115,7 +121,6 @@ ty:		          LBRACE tyfields RBRACE			              (A.RecordTy (tyfields))
 tyfield: 	      ID COLON ID				                        ({name=(Symbol.symbol ID1), escape=(ref false), typ=(Symbol.symbol ID2), pos=ID1left})
 tyfields: 	    tyfield					                          (tyfield :: nil)
 tyfields:	      tyfield COMMA tyfields	 		              (tyfield :: tyfields)
-tyfields:       NIL                                       ([])
 
 val_exp:        MINUS val_exp                %prec UMINUS (A.OpExp {left=A.IntExp(0), oper=A.MinusOp, right=val_exp, pos=MINUSleft})
 val_exp:        val_exp TIMES val_exp                     (A.OpExp {left=val_exp1, oper=A.TimesOp, right=val_exp2, pos=val_exp1left})
