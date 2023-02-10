@@ -18,7 +18,12 @@ structure A = Absyn
   exp of A.exp | exps of (A.exp * A.pos) list | 
   decs of A.dec list | dec of A.dec | 
   oper of A.oper | 
-  lval of A.var | lval' of A.var 
+  lval of A.var | lval' of A.var |
+  vardec of A.dec |
+  ty of A.ty | tyfield of A.field | tyfields of A.field list | 
+  tydec of {name: A.symbol, ty: A.ty, pos: A.pos} | tydecs of {name: A.symbol, ty: A.ty, pos: A.pos} list | tydec_wrap of A.dec |
+  fundec of A.fundec | fundecs of A.fundec list | fundec_wrap of A.dec |
+  callParams of A.exp list
   
 %nonassoc EQ NEQ LT LE GT GE
 %right SEMICOLON
@@ -60,25 +65,57 @@ val_exp:        INT                                       (A.IntExp(INT))
 val_exp:        ID                                        (A.VarExp (A.SimpleVar(Symbol.symbol ID, IDleft)))
 val_exp:        lval'                                     (A.VarExp lval')
 
+
+callParams:     exp                                       (exp::nil)
+callParams:     exp callParams                            (exp :: callParams)
+no_val_exp:     ID LPAREN callParams RPAREN               (A.CallExp{func=(Symbol.symbol ID), args=callParams, pos=IDleft})
+
 lval:           ID                                        (A.SimpleVar(Symbol.symbol ID, IDleft))
 lval:           lval'                                     (lval')
 lval':          lval DOT ID                               (A.FieldVar(lval, Symbol.symbol ID, lvalleft))
 lval':          ID LBRACK exp RBRACK                      (A.SubscriptVar((A.SimpleVar(Symbol.symbol ID, IDleft)), exp, IDleft))
 lval':          lval' LBRACK exp RBRACK                   (A.SubscriptVar(lval', exp, lval'left))
 
-
-
 val_exp:        LPAREN exps RPAREN                        (A.SeqExp exps)
 exps:           exp                                       ((exp, expleft) :: nil)
 exps:           exp SEMICOLON exps                        ((exp, expleft) :: exps)
 
-no_val_exp:     ID LBRACK val_exp RBRACK OF exp           (A.ArrayExp {typ=(Symbol.symbol ID), size=val_exp, init=exp, pos=IDleft})
+val_exp:        ID LBRACK val_exp RBRACK OF val_exp       (A.ArrayExp {typ=(Symbol.symbol ID), size=val_exp1, init=val_exp2, pos=IDleft})
 
-no_val_exp:     LET decs IN exp END                       (A.LetExp {decs=decs, body=exp, pos=LETleft})   
-decs:           dec                                       (dec :: nil)
-decs:           dec decs                                  (dec :: decs)
+val_exp:        LET decs IN exps END                      (A.LetExp {decs=decs, body=(A.SeqExp exps), pos=LETleft})   
 
-dec:            VAR ID ASSIGN exp                         (A.VarDec {name=(Symbol.symbol ID), escape=(ref false), typ=NONE, init=exp, pos=IDleft})
+decs:		        dec						                            (dec::nil)
+decs:		        dec decs					                        (dec::decs)
+
+dec:            vardec                                    (vardec)
+dec:            fundec_wrap                               (fundec_wrap)
+dec:            tydec_wrap                                (tydec_wrap)
+
+vardec:         VAR ID ASSIGN exp                         (A.VarDec {name=(Symbol.symbol ID), escape=(ref false), typ=NONE, init=exp, pos=VARleft})
+vardec:         VAR ID COLON ID ASSIGN exp                (A.VarDec {name=(Symbol.symbol ID1), escape=(ref false), typ=SOME(Symbol.symbol ID2, ID2left), init=exp, pos=VARleft})
+
+fundec_wrap:		fundecs					                          (A.FunctionDec fundecs)
+fundecs:	      fundec					                          (fundec::nil)
+fundecs: 	      fundec fundecs				                    (fundec::fundecs)
+
+fundec:         FUNCTION ID LPAREN tyfields RPAREN EQ exp 		      ({name=(Symbol.symbol ID), params=tyfields, result=NONE, body=exp, pos=FUNCTIONleft})
+fundec:         FUNCTION ID LPAREN tyfields RPAREN COLON ID EQ exp 	({name=(Symbol.symbol ID1), params=tyfields, result=SOME(Symbol.symbol ID2, ID2left), body=exp, pos=FUNCTIONleft})
+
+
+tydec_wrap:     tydecs                                    (A.TypeDec tydecs)
+tydecs:		      tydec		 			                            (tydec::nil)
+tydecs:		      tydec tydecs				                      (tydec :: tydecs)
+
+tydec:		      TYPE ID EQ ty				                      ({name=(Symbol.symbol ID), ty=ty, pos=TYPEleft})
+
+ty:		          ID					                              (A.NameTy (Symbol.symbol ID, IDleft))
+ty: 		        ARRAY OF ID				                        (A.ArrayTy (Symbol.symbol ID, IDleft))
+ty:		          LBRACE tyfields RBRACE			              (A.RecordTy (tyfields))
+
+tyfield: 	      ID COLON ID				                        ({name=(Symbol.symbol ID1), escape=(ref false), typ=(Symbol.symbol ID2), pos=ID1left})
+tyfields: 	    tyfield					                          (tyfield :: nil)
+tyfields:	      tyfield COMMA tyfields	 		              (tyfield :: tyfields)
+tyfields:       NIL                                       ([])
 
 val_exp:        MINUS val_exp                %prec UMINUS (A.OpExp {left=A.IntExp(0), oper=A.MinusOp, right=val_exp, pos=MINUSleft})
 val_exp:        val_exp TIMES val_exp                     (A.OpExp {left=val_exp1, oper=A.TimesOp, right=val_exp2, pos=val_exp1left})
@@ -95,7 +132,7 @@ val_exp:        val_exp GE val_exp                        (A.OpExp {left=val_exp
 val_exp:        IF val_exp THEN val_exp ELSE val_exp      (A.IfExp {test=val_exp1, then'=val_exp2, else'=(SOME val_exp3), pos=IFleft})
 no_val_exp:     IF val_exp THEN no_val_exp                (A.IfExp {test=val_exp, then'=no_val_exp, else'=NONE, pos=IFleft})
 
-no_val_exp:     WHILE val_exp DO no_val_exp               (A.WhileExp {test=val_exp, body=no_val_exp, pos=WHILEleft})
-no_val_exp:     FOR ID ASSIGN val_exp TO val_exp DO no_val_exp   (A.ForExp {var=(Symbol.symbol ID), escape=(ref false), lo=val_exp1, hi=val_exp2, body=no_val_exp, pos=FORleft})
+no_val_exp:     WHILE val_exp DO no_val_exp                       (A.WhileExp {test=val_exp, body=no_val_exp, pos=WHILEleft})
+no_val_exp:     FOR ID ASSIGN val_exp TO val_exp DO no_val_exp    (A.ForExp {var=(Symbol.symbol ID), escape=(ref false), lo=val_exp1, hi=val_exp2, body=no_val_exp, pos=FORleft})
 
 no_val_exp:     BREAK                                     (A.BreakExp BREAKleft)
