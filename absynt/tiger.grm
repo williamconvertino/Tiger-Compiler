@@ -70,6 +70,7 @@ exp:            lval'                                     (A.VarExp lval')
 callParams:     exp                                       (exp::nil)
 callParams:     exp COMMA callParams                      (exp :: callParams)
 exp:            ID LPAREN callParams RPAREN               (A.CallExp{func=(Symbol.symbol ID), args=callParams, pos=IDleft})
+exp:            ID LPAREN RPAREN                          (A.CallExp{func=(Symbol.symbol ID), args=nil, pos=IDleft})
 
 lval:           ID                                        (A.SimpleVar(Symbol.symbol ID, IDleft))
 lval:           lval'                                     (lval')
