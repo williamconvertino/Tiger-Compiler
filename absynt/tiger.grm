@@ -30,6 +30,7 @@ structure A = Absyn
 %nonassoc FUNCTION TYPE ELSE OF DO
 %nonassoc EQ NEQ LT LE GT GE
 %right SEMICOLON
+%left ASSIGN
 %left OR
 %left AND
 %left PLUS MINUS
@@ -79,7 +80,6 @@ lval':          ID LBRACK exp RBRACK                      (A.SubscriptVar((A.Sim
 lval':          lval' LBRACK exp RBRACK                   (A.SubscriptVar(lval', exp, lval'left))
 
 exp:            LPAREN exps RPAREN                        (A.SeqExp exps)
-exp:            LPAREN RPAREN exp                         (exp)                             
 exp:            LPAREN RPAREN                             (A.SeqExp nil)                             
 exps:           exp                                       ((exp, expleft) :: nil)
 exps:           exp SEMICOLON exps                        ((exp, expleft) :: exps)
