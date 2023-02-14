@@ -65,7 +65,7 @@ exp:            INT                                       (A.IntExp(INT))
 
 exp:            ID                                        (A.VarExp (A.SimpleVar(Symbol.symbol ID, IDleft)))
 exp:            lval'                                     (A.VarExp lval')
-
+exp:		STRING					  (A.StringExp (STRING, STRINGleft))
 
 callParams:     exp                                       (exp::nil)
 callParams:     exp COMMA callParams                      (exp :: callParams)
