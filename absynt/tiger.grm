@@ -24,7 +24,7 @@ structure A = Absyn
   tydec of {name: A.symbol, ty: A.ty, pos: A.pos} | tydecs of {name: A.symbol, ty: A.ty, pos: A.pos} list | tydec_wrap of A.dec |
   fundecs of A.fundec list | fundec_wrap of A.dec |
   fundec of A.fundec | fundec_params of A.field list | fundec_type of {exp: A.exp, result: (A.symbol * pos) option} |
-  callParams of A.exp list | recexp of (A.symbol * A.exp * A.pos) | recexps of (A.symbol * A.exp * A.pos) list 
+  callParams of A.exp list
  
   
 %nonassoc LOWER_THAN_FUNCTION LOWER_THAN_TYPE LOWER_THAN_ELSE
@@ -79,7 +79,6 @@ lval:          lval'                                      (lval')
 lval':          lval DOT ID                               (A.FieldVar(lval, Symbol.symbol ID, lvalleft))
 lval':          ID LBRACK exp RBRACK                      (A.SubscriptVar((A.SimpleVar(Symbol.symbol ID, IDleft)), exp, IDleft))
 lval':          lval' LBRACK exp RBRACK                   (A.SubscriptVar(lval', exp, lval'left))
-exp:            lval ASSIGN exp                         (A.AssignExp {var=lval, exp=exp, pos=lvalleft})
 
 
 exp:            LPAREN exps RPAREN                        (A.SeqExp exps)
@@ -88,11 +87,6 @@ exps:           exp                                       ((exp, expleft) :: nil
 exps:           exp SEMICOLON exps                        ((exp, expleft) :: exps)
 
 exp:            ID LBRACK exp RBRACK OF exp               (A.ArrayExp {typ=(Symbol.symbol ID), size=exp1, init=exp2, pos=IDleft})
-
-recexp:		ID EQ exp				 (((Symbol.symbol ID),exp,IDleft))
-recexps:	recexp					 (recexp::nil)
-recexps:	recexp COMMA recexps			 (recexp::recexps)
-exp:		ID LBRACE recexps RBRACE		 (A.RecordExp {fields=recexps, typ=(Symbol.symbol ID), pos=IDleft})
 
 
 exp:            LET decs IN exps END                      (A.LetExp {decs=decs, body=(A.SeqExp exps), pos=LETleft})   
