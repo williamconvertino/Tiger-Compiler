@@ -1,0 +1,882 @@
+
+C:\Users\willi\Desktop\553\553-compiler\absynt>REM sml.bat 
+
+C:\Users\willi\Desktop\553\553-compiler\absynt>REM
+
+C:\Users\willi\Desktop\553\553-compiler\absynt>REM Copyright 2020 The Fellowship of SML/NJ (http://www.smlnj.org) 
+
+C:\Users\willi\Desktop\553\553-compiler\absynt>REM All rights reserved. 
+
+C:\Users\willi\Desktop\553\553-compiler\absynt>REM
+
+C:\Users\willi\Desktop\553\553-compiler\absynt>REM The standard driver for SML/NJ under the new runtime system 
+
+C:\Users\willi\Desktop\553\553-compiler\absynt>REM
+Standard ML of New Jersey (32-bit) v110.99.3 [built: Thu Jul 28 00:45:02 2022]
+[opening autotest.sml]
+[autoloading]
+[library $smlnj/cm/cm.cm is stable]
+[library $smlnj/internal/cm-sig-lib.cm is stable]
+[library $/pgraph.cm is stable]
+[library $smlnj/internal/srcpath-lib.cm is stable]
+[library $SMLNJ-BASIS/basis.cm is stable]
+[library $SMLNJ-BASIS/(basis.cm):basis-common.cm is stable]
+[autoloading done]
+[scanning sources.cm]
+[library $/ml-yacc-lib.cm is stable]
+[attempting to load plugin $/lex-ext.cm]
+[library $/lex-ext.cm is stable]
+[library $smlnj/cm/tools.cm is stable]
+[library $smlnj/internal/cm-lib.cm is stable]
+[plugin $/lex-ext.cm loaded successfully]
+[attempting to load plugin $/mllex-tool.cm]
+[library $/mllex-tool.cm is stable]
+[plugin $/mllex-tool.cm loaded successfully]
+[attempting to load plugin $/grm-ext.cm]
+[library $/grm-ext.cm is stable]
+[plugin $/grm-ext.cm loaded successfully]
+[attempting to load plugin $/mlyacc-tool.cm]
+[library $/mlyacc-tool.cm is stable]
+[plugin $/mlyacc-tool.cm loaded successfully]
+[library $SMLNJ-LIB/Util/smlnj-lib.cm is stable]
+[library $SMLNJ-ML-YACC-LIB/ml-yacc-lib.cm is stable]
+[loading (sources.cm):table.sig]
+[loading (sources.cm):table.sml]
+[loading (sources.cm):symbol.sml]
+[loading (sources.cm):absyn.sml]
+[loading (sources.cm):errormsg.sml]
+[loading (sources.cm):tiger.grm.sig]
+[loading (sources.cm):prabsyn.sml]
+[loading (sources.cm):tiger.grm.sml]
+[loading (sources.cm):tiger.lex.sml]
+[loading (sources.cm):parse.sml]
+[New bindings added.]
+val it = true : bool
+[autoloading]
+[autoloading done]
+../testcases/test49.tig:5.18:syntax error: inserting  PLUS
+LetExp([
+ TypeDec[
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(a,false,NONE,
+  OpExp(PlusOp,
+   VarExp(
+    SimpleVar(rectype)),
+   NilExp))],
+ SeqExp[
+  VarExp(
+   SimpleVar(a))])
+LetExp([
+ FunctionDec[
+  (g,[
+   (a,false,int)],
+SOME(int),
+   VarExp(
+    SimpleVar(a)))],
+ TypeDec[
+  (t,
+   NameTy(int))],
+ FunctionDec[
+  (g,[
+   (a,false,int)],
+SOME(int),
+   VarExp(
+    SimpleVar(a)))]],
+ SeqExp[
+  IntExp(0)])
+LetExp([
+ TypeDec[
+  (a,
+   NameTy(int))],
+ VarDec(b,false,NONE,
+  IntExp(4)),
+ TypeDec[
+  (a,
+   NameTy(string))]],
+ SeqExp[
+  IntExp(0)])
+LetExp([
+ TypeDec[
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(b,false,SOME(rectype),
+  NilExp)],
+ SeqExp[
+  OpExp(EqOp,
+   VarExp(
+    SimpleVar(b)),
+   NilExp),
+  OpExp(NeqOp,
+   VarExp(
+    SimpleVar(b)),
+   NilExp)])
+LetExp([
+ TypeDec[
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(a,false,NONE,
+  NilExp)],
+ SeqExp[
+  VarExp(
+   SimpleVar(a))])
+LetExp([
+ TypeDec[
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(b,false,SOME(rectype),
+  NilExp)],
+ SeqExp[
+  AssignExp(
+   SimpleVar(b),
+   NilExp)])
+LetExp([
+ VarDec(a,false,NONE,
+  SeqExp[])],
+ SeqExp[
+  OpExp(PlusOp,
+   VarExp(
+    SimpleVar(a)),
+   IntExp(3))])
+../testcases/test42.tig:12.39:syntax error: replacing  LBRACE with  LPAREN
+../testcases/test42.tig:12.44:syntax error: deleting  EQ STRING
+../testcases/test42.tig:12.62:syntax error: replacing  STRING with  BREAK
+../testcases/test42.tig:12.86:syntax error: replacing  RBRACE with  RPAREN
+../testcases/test42.tig:13.37:syntax error: deleting  OF STRING
+../testcases/test42.tig:15.22:syntax error: replacing  LBRACE with  LPAREN
+../testcases/test42.tig:15.27:syntax error: deleting  EQ STRING
+../testcases/test42.tig:15.47:syntax error: replacing  STRING with  BREAK
+../testcases/test42.tig:15.72:syntax error: replacing  RBRACE with  RPAREN
+../testcases/test42.tig:16.22:syntax error: replacing  LBRACE with  LPAREN
+../testcases/test42.tig:16.28:syntax error: replacing  STRING with  BREAK
+../testcases/test42.tig:16.64:syntax error: replacing  RBRACE with  RPAREN
+../testcases/test42.tig:20.9:syntax error: replacing  ASSIGN with  SEMICOLON
+../testcases/test42.tig:21.9:syntax error: replacing  ASSIGN with  SEMICOLON
+../testcases/test42.tig:22.14:syntax error: deleting  ASSIGN STRING
+../testcases/test42.tig:23.8:syntax error: replacing  DOT with  SEMICOLON
+../testcases/test42.tig:24.10:syntax error: deleting  ASSIGN STRING
+../testcases/test42.tig:26.11:syntax error: deleting  ASSIGN STRING
+../testcases/test42.tig:27.15:syntax error: replacing  ASSIGN with  SEMICOLON
+../testcases/test42.tig:28.15:syntax error: replacing  ASSIGN with  SEMICOLON
+LetExp([
+ TypeDec[
+  (arrtype1,
+   ArrayTy(int)),
+  (rectype1,
+   RecordTy[
+    (name,false,string),
+    (address,false,string),
+    (id,false,int),
+    (age,false,int)]),
+  (arrtype2,
+   ArrayTy(rectype1)),
+  (rectype2,
+   RecordTy[
+    (name,false,string),
+    (dates,false,arrtype1)]),
+  (arrtype3,
+   ArrayTy(string))],
+ VarDec(arr1,false,NONE,
+  ArrayExp(arrtype1,
+   IntExp(10),
+   IntExp(0))),
+ VarDec(arr2,false,NONE,
+  ArrayExp(arrtype2,
+   IntExp(5),
+   CallExp(rectype1,[
+    VarExp(
+     SimpleVar(name)),
+    OpExp(EqOp,
+     VarExp(
+      SimpleVar(address)),
+     BreakExp),
+    OpExp(EqOp,
+     VarExp(
+      SimpleVar(id)),
+     IntExp(0)),
+    OpExp(EqOp,
+     VarExp(
+      SimpleVar(age)),
+     IntExp(0))]))),
+ VarDec(arr3,false,SOME(arrtype3),
+  VarExp(
+   SubscriptVar(
+    SimpleVar(arrtype3),
+    IntExp(100)))),
+ VarDec(rec1,false,NONE,
+  CallExp(rectype1,[
+   VarExp(
+    SimpleVar(name)),
+   OpExp(EqOp,
+    VarExp(
+     SimpleVar(address)),
+    BreakExp),
+   OpExp(EqOp,
+    VarExp(
+     SimpleVar(id)),
+    IntExp(2432)),
+   OpExp(EqOp,
+    VarExp(
+     SimpleVar(age)),
+    IntExp(44))])),
+ VarDec(rec2,false,NONE,
+  CallExp(rectype2,[
+   OpExp(EqOp,
+    VarExp(
+     SimpleVar(name)),
+    BreakExp),
+   OpExp(EqOp,
+    VarExp(
+     SimpleVar(dates)),
+    ArrayExp(arrtype1,
+     IntExp(3),
+     IntExp(1900)))]))],
+ SeqExp[
+  VarExp(
+   SubscriptVar(
+    SimpleVar(arr1),
+    IntExp(0))),
+  IntExp(1),
+  VarExp(
+   SubscriptVar(
+    SimpleVar(arr1),
+    IntExp(9))),
+  IntExp(3),
+  VarExp(
+   FieldVar(
+    SubscriptVar(
+     SimpleVar(arr2),
+     IntExp(3)),
+    name)),
+  VarExp(
+   SubscriptVar(
+    SimpleVar(arr2),
+    IntExp(1))),
+  AssignExp(
+   SimpleVar(age),
+   IntExp(23)),
+  VarExp(
+   SubscriptVar(
+    SimpleVar(arr3),
+    IntExp(34))),
+  VarExp(
+   FieldVar(
+    SimpleVar(rec1),
+    name)),
+  VarExp(
+   SubscriptVar(
+    FieldVar(
+     SimpleVar(rec2),
+     dates),
+    IntExp(0))),
+  IntExp(2323),
+  VarExp(
+   SubscriptVar(
+    FieldVar(
+     SimpleVar(rec2),
+     dates),
+    IntExp(2))),
+  IntExp(2323)])
+LetExp([
+ TypeDec[
+  (a,
+   NameTy(int))]],
+ SeqExp[
+  LetExp([
+   TypeDec[
+    (a,
+     NameTy(string))]],
+   SeqExp[
+    IntExp(0)])])
+LetExp([
+ FunctionDec[
+  (g,[
+   (a,false,int)],
+NONE,
+   VarExp(
+    SimpleVar(a)))]],
+ SeqExp[
+  CallExp(g,[
+   IntExp(2)])])
+LetExp([
+ FunctionDec[
+  (g,[
+   (a,false,int)],
+SOME(int),
+   VarExp(
+    SimpleVar(a))),
+  (g,[
+   (a,false,int)],
+SOME(int),
+   VarExp(
+    SimpleVar(a)))]],
+ SeqExp[
+  IntExp(0)])
+LetExp([
+ TypeDec[
+  (a,
+   NameTy(int)),
+  (a,
+   NameTy(string))]],
+ SeqExp[
+  IntExp(0)])
+../testcases/test37.tig:5.11:syntax error: replacing  STRING with  BREAK
+LetExp([
+ VarDec(a,false,NONE,
+  IntExp(0)),
+ VarDec(a,false,NONE,
+  BreakExp)],
+ SeqExp[
+  IntExp(0)])
+../testcases/test36.tig:5.6:syntax error: replacing  STRING with  BREAK
+LetExp([
+ FunctionDec[
+  (g,[
+   (a,false,int),
+   (b,false,string)],
+SOME(int),
+   VarExp(
+    SimpleVar(a)))]],
+ SeqExp[
+  CallExp(g,[
+   IntExp(3),
+   BreakExp,
+   IntExp(5)])])
+../testcases/test35.tig:5.4:syntax error: replacing  STRING with  BREAK
+LetExp([
+ FunctionDec[
+  (g,[
+   (a,false,int),
+   (b,false,string)],
+SOME(int),
+   VarExp(
+    SimpleVar(a)))]],
+ SeqExp[
+  CallExp(g,[
+   BreakExp])])
+../testcases/test34.tig:5.4:syntax error: deleting  STRING COMMA STRING
+LetExp([
+ FunctionDec[
+  (g,[
+   (a,false,int),
+   (b,false,string)],
+SOME(int),
+   VarExp(
+    SimpleVar(a)))]],
+ SeqExp[
+  CallExp(g,[])])
+../testcases/test33.tig:3.18:syntax error: deleting  LBRACE RBRACE
+LetExp([
+ VarDec(a,false,NONE,
+  VarExp(
+   SimpleVar(rectype)))],
+ SeqExp[
+  IntExp(0)])
+../testcases/test32.tig:6.27:syntax error: replacing  STRING with  BREAK
+LetExp([
+ TypeDec[
+  (arrayty,
+   ArrayTy(int))],
+ VarDec(a,false,NONE,
+  ArrayExp(arrayty,
+   IntExp(10),
+   BreakExp))],
+ SeqExp[
+  IntExp(0)])
+../testcases/test31.tig:3.15:syntax error: replacing  STRING with  BREAK
+LetExp([
+ VarDec(a,false,SOME(int),
+  BreakExp)],
+ SeqExp[
+  VarExp(
+   SimpleVar(a))])
+LetExp([
+ TypeDec[
+  (a,
+   ArrayTy(int)),
+  (b,
+   NameTy(a))],
+ VarDec(arr1,false,SOME(a),
+  ArrayExp(b,
+   IntExp(10),
+   IntExp(0)))],
+ SeqExp[
+  VarExp(
+   SubscriptVar(
+    SimpleVar(arr1),
+    IntExp(2)))])
+LetExp([
+ TypeDec[
+  (arrtype1,
+   ArrayTy(int)),
+  (arrtype2,
+   ArrayTy(int))],
+ VarDec(arr1,false,SOME(arrtype1),
+  ArrayExp(arrtype2,
+   IntExp(10),
+   IntExp(0)))],
+ SeqExp[
+  VarExp(
+   SimpleVar(arr1))])
+../testcases/test28.tig:7.33:syntax error: replacing  LBRACE with  LPAREN
+../testcases/test28.tig:7.38:syntax error: deleting  EQ STRING
+../testcases/test28.tig:7.51:syntax error: replacing  RBRACE with  RPAREN
+LetExp([
+ TypeDec[
+  (rectype1,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)]),
+  (rectype2,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(rec1,false,SOME(rectype1),
+  CallExp(rectype2,[
+   VarExp(
+    SimpleVar(name)),
+   OpExp(EqOp,
+    VarExp(
+     SimpleVar(id)),
+    IntExp(0))]))],
+ SeqExp[
+  VarExp(
+   SimpleVar(rec1))])
+LetExp([
+ VarDec(a,false,NONE,
+  IntExp(0)),
+ FunctionDec[
+  (g,[
+   (a,false,int)],
+SOME(int),
+   VarExp(
+    SimpleVar(a)))]],
+ SeqExp[
+  CallExp(g,[
+   IntExp(2)])])
+../testcases/test26.tig:3.5:syntax error found at STRING
+
+Error in test26
+LetExp([
+ VarDec(d,false,NONE,
+  IntExp(0))],
+ SeqExp[
+  VarExp(
+   FieldVar(
+    SimpleVar(d),
+    f))])
+LetExp([
+ VarDec(d,false,NONE,
+  IntExp(0))],
+ SeqExp[
+  VarExp(
+   SubscriptVar(
+    SimpleVar(d),
+    IntExp(3)))])
+../testcases/test23.tig:5.22:syntax error: replacing  LBRACE with  LPAREN
+../testcases/test23.tig:5.27:syntax error: deleting  EQ STRING
+../testcases/test23.tig:5.41:syntax error: replacing  RBRACE with  RPAREN
+../testcases/test23.tig:7.6:syntax error: replacing  DOT with  SEMICOLON
+../testcases/test23.tig:8.10:syntax error: deleting  ASSIGN STRING
+LetExp([
+ TypeDec[
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(rec1,false,NONE,
+  CallExp(rectype,[
+   VarExp(
+    SimpleVar(name)),
+   OpExp(EqOp,
+    VarExp(
+     SimpleVar(id)),
+    IntExp(0))]))],
+ SeqExp[
+  VarExp(
+   SimpleVar(rec1)),
+  AssignExp(
+   SimpleVar(name),
+   IntExp(3)),
+  VarExp(
+   FieldVar(
+    SimpleVar(rec1),
+    id))])
+../testcases/test22.tig:5.22:syntax error: replacing  LBRACE with  LPAREN
+../testcases/test22.tig:5.27:syntax error: deleting  EQ STRING
+../testcases/test22.tig:5.40:syntax error: replacing  RBRACE with  RPAREN
+../testcases/test22.tig:7.11:syntax error: deleting  ASSIGN STRING
+LetExp([
+ TypeDec[
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(rec1,false,NONE,
+  CallExp(rectype,[
+   VarExp(
+    SimpleVar(name)),
+   OpExp(EqOp,
+    VarExp(
+     SimpleVar(id)),
+    IntExp(0))]))],
+ SeqExp[
+  VarExp(
+   FieldVar(
+    SimpleVar(rec1),
+    nam))])
+LetExp([
+ FunctionDec[
+  (nfactor,[
+   (n,false,int)],
+NONE,
+   IfExp(
+    OpExp(EqOp,
+     VarExp(
+      SimpleVar(n)),
+     IntExp(0)),
+    IntExp(1),
+    OpExp(TimesOp,
+     VarExp(
+      SimpleVar(n)),
+     CallExp(nfactor,[
+      OpExp(MinusOp,
+       VarExp(
+        SimpleVar(n)),
+       IntExp(1))]))))]],
+ SeqExp[
+  CallExp(nfactor,[
+   IntExp(10)])])
+WhileExp(
+ OpExp(GtOp,
+  IntExp(10),
+  IntExp(5)),
+ SeqExp[
+  OpExp(PlusOp,
+   VarExp(
+    SimpleVar(i)),
+   IntExp(1)),
+  SeqExp[]])
+../testcases/test19.tig:8.17:syntax error: deleting  COMMA STRING
+../testcases/test19.tig:8.26:syntax error: replacing  STRING with  BREAK
+../testcases/test19.tig:11.17:syntax error: replacing  STRING with  BREAK
+LetExp([
+ FunctionDec[
+  (do_nothing1,[
+   (a,false,int),
+   (b,false,string)],
+SOME(int),
+   SeqExp[
+    CallExp(do_nothing2,[
+     OpExp(PlusOp,
+      VarExp(
+       SimpleVar(a)),
+      IntExp(1))]),
+    IntExp(0)]),
+  (do_nothing2,[
+   (d,false,int)],
+SOME(string),
+   SeqExp[
+    CallExp(do_nothing1,[
+     VarExp(
+      SimpleVar(a))]),
+    BreakExp])]],
+ SeqExp[
+  CallExp(do_nothing1,[
+   IntExp(0),
+   BreakExp])])
+../testcases/test18.tig:10.17:syntax error: deleting  COMMA STRING
+../testcases/test18.tig:10.26:syntax error: replacing  STRING with  BREAK
+../testcases/test18.tig:13.17:syntax error: replacing  STRING with  BREAK
+LetExp([
+ FunctionDec[
+  (do_nothing1,[
+   (a,false,int),
+   (b,false,string)],
+SOME(int),
+   SeqExp[
+    CallExp(do_nothing2,[
+     OpExp(PlusOp,
+      VarExp(
+       SimpleVar(a)),
+      IntExp(1))]),
+    IntExp(0)])],
+ VarDec(d,false,NONE,
+  IntExp(0)),
+ FunctionDec[
+  (do_nothing2,[
+   (d,false,int)],
+SOME(string),
+   SeqExp[
+    CallExp(do_nothing1,[
+     VarExp(
+      SimpleVar(d))]),
+    BreakExp])]],
+ SeqExp[
+  CallExp(do_nothing1,[
+   IntExp(0),
+   BreakExp])])
+LetExp([
+ TypeDec[
+  (tree,
+   RecordTy[
+    (key,false,int),
+    (children,false,treelist)])],
+ VarDec(d,false,SOME(int),
+  IntExp(0)),
+ TypeDec[
+  (treelist,
+   RecordTy[
+    (hd,false,tree),
+    (tl,false,treelist)])]],
+ SeqExp[
+  VarExp(
+   SimpleVar(d))])
+../testcases/test16.tig:10.2:syntax error: replacing  STRING with  BREAK
+LetExp([
+ TypeDec[
+  (a,
+   NameTy(c)),
+  (b,
+   NameTy(a)),
+  (c,
+   NameTy(d)),
+  (d,
+   NameTy(a))]],
+ SeqExp[
+  BreakExp])
+IfExp(
+ IntExp(20),
+ IntExp(3))
+../testcases/test14.tig:8.21:syntax error: replacing  LBRACE with  LPAREN
+../testcases/test14.tig:8.26:syntax error: deleting  EQ STRING
+../testcases/test14.tig:8.40:syntax error: replacing  RBRACE with  RPAREN
+LetExp([
+ TypeDec[
+  (arrtype,
+   ArrayTy(int)),
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(rec,false,NONE,
+  CallExp(rectype,[
+   VarExp(
+    SimpleVar(name)),
+   OpExp(EqOp,
+    VarExp(
+     SimpleVar(id)),
+    IntExp(0))])),
+ VarDec(arr,false,NONE,
+  ArrayExp(arrtype,
+   IntExp(3),
+   IntExp(0)))],
+ SeqExp[
+  IfExp(
+   OpExp(NeqOp,
+    VarExp(
+     SimpleVar(rec)),
+    VarExp(
+     SimpleVar(arr))),
+   IntExp(3),
+   IntExp(4))])
+../testcases/test13.tig:3.5:syntax error found at STRING
+
+Error in test13
+LetExp([
+ VarDec(a,false,NONE,
+  IntExp(0))],
+ SeqExp[
+  ForExp(
+i,false,
+   IntExp(0),
+   IntExp(100),
+   SeqExp[
+    AssignExp(
+     SimpleVar(a),
+     OpExp(PlusOp,
+      VarExp(
+       SimpleVar(a)),
+      IntExp(1))),
+    SeqExp[]])])
+../testcases/test11.tig:2.14:syntax error: replacing  STRING with  BREAK
+ForExp(
+i,false,
+ IntExp(10),
+ BreakExp,
+ AssignExp(
+  SimpleVar(i),
+  OpExp(MinusOp,
+   VarExp(
+    SimpleVar(i)),
+   IntExp(1))))
+WhileExp(
+ SeqExp[
+  OpExp(GtOp,
+   IntExp(10),
+   IntExp(5))],
+ OpExp(PlusOp,
+  IntExp(5),
+  IntExp(6)))
+../testcases/test9.tig:3.24:syntax error found at STRING
+
+Error in test9
+IfExp(
+ SeqExp[
+  OpExp(GtOp,
+   IntExp(10),
+   IntExp(20))],
+ IntExp(30),
+ IntExp(40))
+../testcases/test7.tig:8.17:syntax error: deleting  COMMA STRING
+../testcases/test7.tig:8.26:syntax error: replacing  STRING with  BREAK
+../testcases/test7.tig:11.17:syntax error: replacing  STRING with  BREAK
+LetExp([
+ FunctionDec[
+  (do_nothing1,[
+   (a,false,int),
+   (b,false,string)],
+SOME(int),
+   SeqExp[
+    CallExp(do_nothing2,[
+     OpExp(PlusOp,
+      VarExp(
+       SimpleVar(a)),
+      IntExp(1))]),
+    IntExp(0)]),
+  (do_nothing2,[
+   (d,false,int)],
+SOME(string),
+   SeqExp[
+    CallExp(do_nothing1,[
+     VarExp(
+      SimpleVar(d))]),
+    BreakExp])]],
+ SeqExp[
+  CallExp(do_nothing1,[
+   IntExp(0),
+   BreakExp])])
+../testcases/test6.tig:8.18:syntax error: replacing  STRING with  BREAK
+../testcases/test6.tig:11.17:syntax error: replacing  STRING with  BREAK
+LetExp([
+ FunctionDec[
+  (do_nothing1,[
+   (a,false,int),
+   (b,false,string)],
+NONE,
+   CallExp(do_nothing2,[
+    OpExp(PlusOp,
+     VarExp(
+      SimpleVar(a)),
+     IntExp(1))])),
+  (do_nothing2,[
+   (d,false,int)],
+NONE,
+   CallExp(do_nothing1,[
+    VarExp(
+     SimpleVar(d)),
+    BreakExp]))]],
+ SeqExp[
+  CallExp(do_nothing1,[
+   IntExp(0),
+   BreakExp])])
+../testcases/test5.tig:10.28:syntax error: replacing  LBRACE with  LPAREN
+../testcases/test5.tig:10.44:syntax error: replacing  RBRACE with  RPAREN
+LetExp([
+ TypeDec[
+  (intlist,
+   RecordTy[
+    (hd,false,int),
+    (tl,false,intlist)]),
+  (tree,
+   RecordTy[
+    (key,false,int),
+    (children,false,treelist)]),
+  (treelist,
+   RecordTy[
+    (hd,false,tree),
+    (tl,false,treelist)])],
+ VarDec(lis,false,SOME(intlist),
+  CallExp(intlist,[
+   OpExp(EqOp,
+    VarExp(
+     SimpleVar(hd)),
+    IntExp(0)),
+   OpExp(EqOp,
+    VarExp(
+     SimpleVar(tl)),
+    NilExp)]))],
+ SeqExp[
+  VarExp(
+   SimpleVar(lis))])
+LetExp([
+ FunctionDec[
+  (nfactor,[
+   (n,false,int)],
+SOME(int),
+   IfExp(
+    OpExp(EqOp,
+     VarExp(
+      SimpleVar(n)),
+     IntExp(0)),
+    IntExp(1),
+    OpExp(TimesOp,
+     VarExp(
+      SimpleVar(n)),
+     CallExp(nfactor,[
+      OpExp(MinusOp,
+       VarExp(
+        SimpleVar(n)),
+       IntExp(1))]))))]],
+ SeqExp[
+  CallExp(nfactor,[
+   IntExp(10)])])
+../testcases/test3.tig:4.30:syntax error: replacing  LBRACE with  LPAREN
+../testcases/test3.tig:4.35:syntax error: deleting  EQ STRING
+../testcases/test3.tig:4.54:syntax error: replacing  RBRACE with  RPAREN
+../testcases/test3.tig:6.12:syntax error: deleting  ASSIGN STRING
+LetExp([
+ TypeDec[
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (age,false,int)])],
+ VarDec(rec1,false,SOME(rectype),
+  CallExp(rectype,[
+   VarExp(
+    SimpleVar(name)),
+   OpExp(EqOp,
+    VarExp(
+     SimpleVar(age)),
+    IntExp(1000))]))],
+ SeqExp[
+  VarExp(
+   FieldVar(
+    SimpleVar(rec1),
+    name)),
+  VarExp(
+   SimpleVar(rec1))])
+LetExp([
+ TypeDec[
+  (myint,
+   NameTy(int)),
+  (arrtype,
+   ArrayTy(myint))],
+ VarDec(arr1,false,SOME(arrtype),
+  ArrayExp(arrtype,
+   IntExp(10),
+   IntExp(0)))],
+ SeqExp[
+  VarExp(
+   SimpleVar(arr1))])
+val runLoop = fn : int -> int
+val x = 0 : int
+- 

@@ -1,0 +1,1 @@
+sml autotest.sml > autotest_results.log
