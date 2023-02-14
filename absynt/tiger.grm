@@ -67,7 +67,7 @@ exp:            INT                                       (A.IntExp(INT))
 
 exp:            ID                                        (A.VarExp (A.SimpleVar(Symbol.symbol ID, IDleft)))
 exp:            lval'                                     (A.VarExp lval')
-exp:		        STRING					                          (A.StringExp (STRING, STRINGleft))
+exp:            STRING					                          (A.StringExp (STRING, STRINGleft))
 
 callParams:     exp                                       (exp::nil)
 callParams:     exp COMMA callParams                      (exp :: callParams)
@@ -75,7 +75,7 @@ exp:            ID LPAREN callParams RPAREN               (A.CallExp{func=(Symbo
 exp:            ID LPAREN RPAREN                          (A.CallExp{func=(Symbol.symbol ID), args=nil, pos=IDleft})
 
 lval:           ID                                        (A.SimpleVar(Symbol.symbol ID, IDleft))
-lval:          lval'                                      (lval')
+lval:           lval'                                     (lval')
 lval':          lval DOT ID                               (A.FieldVar(lval, Symbol.symbol ID, lvalleft))
 lval':          ID LBRACK exp RBRACK                      (A.SubscriptVar((A.SimpleVar(Symbol.symbol ID, IDleft)), exp, IDleft))
 lval':          lval' LBRACK exp RBRACK                   (A.SubscriptVar(lval', exp, lval'left))
