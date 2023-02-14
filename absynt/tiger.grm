@@ -92,6 +92,8 @@ exp:            ID LBRACK exp RBRACK OF exp               (A.ArrayExp {typ=(Symb
 recexp:         ID EQ exp                                (((Symbol.symbol ID),exp,IDleft))
 recexps:        recexp                                   (recexp::nil)
 recexps:        recexp COMMA recexps                     (recexp::recexps)
+exp:            ID NIL                         (A.RecordExp {fields=[], typ=(Symbol.symbol ID), pos=IDleft})
+exp:		ID LBRACE RBRACE			 (A.RecordExp {fields=[], typ=(Symbol.symbol ID), pos=IDleft})
 exp:            ID LBRACE recexps RBRACE                 (A.RecordExp {fields=recexps, typ=(Symbol.symbol ID), pos=IDleft})
 
 exp:            LET decs IN exps END                      (A.LetExp {decs=decs, body=(A.SeqExp exps), pos=LETleft})   
