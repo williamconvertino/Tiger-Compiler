@@ -98,6 +98,7 @@ exp:            ID LBRACE recexps RBRACE                 (A.RecordExp {fields=re
 
 exp:            LET IN END                                (A.SeqExp [])
 exp:            LET IN exps END                           (A.SeqExp exps)
+exp:            LET decs IN END                           (A.LetExp {decs=decs, body=(A.SeqExp []), pos=LETleft})
 exp:            LET decs IN exps END                      (A.LetExp {decs=decs, body=(A.SeqExp exps), pos=LETleft})   
 
 decs:		        dec						                            (dec::nil)
