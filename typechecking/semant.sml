@@ -5,8 +5,8 @@ sig
     
     type expty = {exp: Translate.exp, ty: Types.ty}
 
-    val transVar: venv * tenv * Absyn.var -> expty
-    val transExp: venv * tenv * Absyn.exp -> expty
+    (* Don't think this is needed -- included in transExp val transVar: venv * tenv * Absyn.var -> expty *)
+    val transExp: venv * tenv -> Absyn.exp -> expty
     val transDec: venv * tenv * Absyn.dec -> {venv: venv, tenv: tenv}
     val transTy:  tenv * Absyn.ty -> Types.ty
 
@@ -21,9 +21,33 @@ struct
     
     type expty = {exp: Translate.exp, ty: Types.ty}
 
+    structure A = Absyn
+    structure E = Env
+    structure S = Symbol
 
-    fun transVar (venv, tenv, var) = {exp = (), ty = Types.IMPOSSIBILITY}
-    fun transExp (venv, tenv, exp) = {exp = (), ty = Types.IMPOSSIBILITY}
+    fun checkInt ({exp, ty=Types.INT}, pos) = () |
+        checkInt (_, pos) = ErrorMsg.error pos "integer required"
+
+    fun actual_ty Types.NAME (_, ty) = !ty |
+        actual_ty ty = ty
+
+    (* Don't know if this is needed -- fun transVar (venv, tenv, var) = {exp = (), ty = Types.IMPOSSIBILITY} *)
+    
+    fun transExp (venv, tenv) = 
+        let fun trexp (A.OpExp{left, oper=A.PlusOp, right, pos}) =
+                (checkInt(trexp left, pos); checkInt(trexp right, pos); {exp=(), ty=Types.INT})
+            and trvar (A.SimpleVar(id, pos)) = (
+                case Symbol.look(venv, id)
+                    of SOME(E.VarEntry{ty}) => {exp=(), ty=actual_ty ty}
+                    |  SOME(E.FunEntry _) => (ErrorMsg.error pos ("undefined variable " ^ S.name id);
+                                                {exp=(), ty=Types.INT})
+                    |  NONE                 => (ErrorMsg.error pos ("undefined variable " ^ S.name id);
+                                                {exp=(), ty=Types.INT})
+            )
+    in
+        trexp
+    end
+
     fun transDec (venv, tenv, dec) = {venv = venv, tenv = tenv}
     fun transTy  (tenv, ty)        = Types.IMPOSSIBILITY
 
