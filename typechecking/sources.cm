@@ -15,4 +15,5 @@ tiger.grm
 types.sml
 env.sml
 main.sml
+translate.sml
 semant.sml
