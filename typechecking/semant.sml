@@ -28,8 +28,11 @@ struct
     fun checkInt ({exp, ty=Types.INT}, pos) = () |
         checkInt (_, pos) = ErrorMsg.error pos "integer required"
 
-    fun actual_ty Types.NAME (_, ty) = !ty |
-        actual_ty ty = ty
+    fun actual_ty ty = case ty of
+        Types.NAME(_, tyref) => (case !tyref of
+            NONE     => Types.IMPOSSIBILITY |
+            SOME(ty) => ty) |
+        _            => ty
 
     (* Don't know if this is needed -- fun transVar (venv, tenv, var) = {exp = (), ty = Types.IMPOSSIBILITY} *)
     
