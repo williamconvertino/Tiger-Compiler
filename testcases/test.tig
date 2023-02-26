@@ -1,5 +1,5 @@
 let
     var i := 0
 in
-    test [7] of 1 + 2 * 3 + 4
+    test [7] of if 5 & 7 then 6 else 8
 end
