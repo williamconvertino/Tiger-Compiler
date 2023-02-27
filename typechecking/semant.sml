@@ -109,6 +109,6 @@ struct
         trexp
     end
 
-    fun transProg exp = () (* TODO *)
+    fun transProg exp = (transExp (Env.base_venv, Env.base_tenv) exp; ())
 
 end
