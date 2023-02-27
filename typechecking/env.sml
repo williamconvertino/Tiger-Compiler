@@ -15,7 +15,18 @@ struct
     datatype enventry = VarEntry of {ty: ty}
                       | FunEntry of {formals: ty list, result: ty} (* formals = parameter types, result = return type *)
 
-    val base_tenv = Symbol.enter (Symbol.enter (Symbol.empty, Symbol.symbol "int", Types.INT), Symbol.symbol "string", Types.STRING)
+    val base_tenv = 
+    Symbol.enter (
+    Symbol.enter (
+        Symbol.empty, 
+        Symbol.symbol "int", 
+        Types.INT
+    ), 
+        Symbol.symbol "string", 
+        Types.STRING
+    )
+    
+    
     val base_venv = 
     Symbol.enter (
     Symbol.enter (
