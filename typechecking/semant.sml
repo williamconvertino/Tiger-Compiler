@@ -58,11 +58,27 @@ struct
 
     
     and transExp (venv, tenv) = 
-                (* -- Expressions -- *)
-                (* Ops *)
-        let fun trexp (A.OpExp{left, oper=A.PlusOp, right, pos}) =
+            (* -- Expressions -- *)
+            (* Constants *)
+        let fun trexp (A.IntExp (int)) = {exp=(), ty=Types.INT}
+            |   trexp (A.StringExp (str, pos)) = {exp=(), ty=Types.STRING}
+        
+            (* Ops *)
+            |   trexp (A.OpExp{left, oper=A.PlusOp, right, pos}) =
                 (checkInt(trexp left, pos); checkInt(trexp right, pos); {exp=(), ty=Types.INT})
             
+            (* SeqExps *)
+            |   trexp (A.SeqExp (exps)) =
+                    let fun trseq [] = {exp=(), ty=Types.UNIT}
+                        |   trseq ((exp, pos)::[]) = trexp exp
+                        |   trseq ((exp, pos)::seq) = (trexp exp; trseq seq)
+                    in
+                        trseq exps
+                    end
+
+            (* VarExp *)
+            |   trexp (A.VarExp (var)) = trvar var
+
             (* Let *)
             |   trexp (A.LetExp{decs, body, pos}) =
                     let val {venv=venv', tenv=tenv'} = transDecs(venv, tenv, decs)

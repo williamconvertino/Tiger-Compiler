@@ -1,5 +1,5 @@
 let
-    var i := 0
+    var i := 4
 in
-    test [7] of if 5 & 7 then 6 else 8
+   4 + (i + "test")
 end
