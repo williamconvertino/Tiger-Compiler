@@ -82,7 +82,8 @@ struct
                 let val tyref = ref NONE
                     val {venv=venv', tenv=tenv'} = setupHeaders (venv, S.enter(tenv, decname, Types.NAME(decname, tyref)), tydecs)
                 in
-                    (tyref := SOME(transTy (tenv', decty)); {tenv=tenv', venv=venv'})
+                    (tyref := SOME(transTy (tenv', decty)); 
+                    {tenv=tenv', venv=venv'})
                 end
                 |   setupHeaders (venv, tenv, []) = {venv=venv, tenv=tenv}
             in

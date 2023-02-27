@@ -31,7 +31,15 @@ struct
         RECORD(syms, uniq) => unpack_record (syms, "{")
     end
 
-  fun checkType (RECORD(symlist, uniq), RECORD(_, uniq'), pos) = 
+  fun checkType (NAME(sym, tyop), ty', pos) = (case !tyop of
+        NONE => (ErrorMsg.error pos ("type " ^ Symbol.name (sym) ^ " has not been declared"); IMPOSSIBILITY) |
+        SOME(ty) => checkType (ty, ty', pos)
+      )
+    | checkType (ty, NAME(sym, tyop), pos) = (case !tyop of
+        NONE => (ErrorMsg.error pos ("type " ^ Symbol.name (sym) ^ " has not been declared"); IMPOSSIBILITY) |
+        SOME(ty') => checkType (ty, ty', pos)
+      )
+    | checkType (RECORD(symlist, uniq), RECORD(_, uniq'), pos) = 
       if (uniq = uniq')
         then RECORD(symlist, uniq)
         else (ErrorMsg.error pos "record types do not match"; NIL) 

@@ -1,7 +1,6 @@
 let
-    type coolint = int
-    type rec = {a: int, b: coolint}
-    var i := rec {a= 5, b=3}
+    type rec = {a: int, b: rec}
+    var i := rec {a= 5, b=3, c=5}
 in
    5 + 4
 end
