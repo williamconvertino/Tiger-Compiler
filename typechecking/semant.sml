@@ -5,7 +5,6 @@ sig
     
     type expty = {exp: Translate.exp, ty: Types.ty}
 
-    (* Don't think this is needed -- included in transExp val transVar: venv * tenv * Absyn.var -> expty *)
     val transExp: venv * tenv -> Absyn.exp -> expty
     val transDec: venv * tenv * Absyn.dec -> {venv: venv, tenv: tenv}
     val transTy:  tenv * Absyn.ty -> Types.ty
@@ -39,6 +38,7 @@ struct
             let val {venv=venv', tenv=tenv'} = transDec(venv, tenv, dec)
             in transDecs (venv', tenv', l) end
 
+        (* -- Types -- *)
     and transTy  (tenv, ty)        = Types.IMPOSSIBILITY
 
         (* -- Var Decs -- *)
@@ -51,15 +51,15 @@ struct
         (* var x: type := exp *)
         (* TODO *)
 
-        (* -- Var Decs -- *)
+        (* -- Type Decs -- *)
         (* type t = ty *)
         transDec (venv, tenv, A.TypeDec[{name, ty, pos}]) =
             {venv=venv, tenv=S.enter(tenv, name, transTy(tenv, ty))}
 
     
     and transExp (venv, tenv) = 
-            (* -- Expressions -- *)
-            (* Ops *)
+                (* -- Expressions -- *)
+                (* Ops *)
         let fun trexp (A.OpExp{left, oper=A.PlusOp, right, pos}) =
                 (checkInt(trexp left, pos); checkInt(trexp right, pos); {exp=(), ty=Types.INT})
             
