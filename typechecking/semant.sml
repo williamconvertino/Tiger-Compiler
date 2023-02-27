@@ -41,7 +41,7 @@ struct
 
     fun lookupTypeDec (tenv, id, pos) =
         case Symbol.look(tenv, id)
-            of SOME(ty) => actual_ty ty
+            of SOME(ty) => ty
             |  NONE     => (ErrorMsg.error pos ("undefined type " ^ S.name id); Types.IMPOSSIBILITY)
     
     fun transDecs (venv, tenv, []) = {venv=venv, tenv=tenv} |
@@ -77,8 +77,17 @@ struct
 
         (* -- Type Decs -- *)
         (* type t = ty *)
-        transDec (venv, tenv, A.TypeDec[{name, ty, pos}]) =
-            {venv=venv, tenv=S.enter(tenv, name, transTy(tenv, ty))}
+        transDec (venv, tenv, A.TypeDec(tydecs)) =
+            let fun setupHeaders (venv, tenv, {name=decname, ty=decty, pos=decpos}::tydecs) = 
+                let val tyref = ref NONE
+                    val {venv=venv', tenv=tenv'} = setupHeaders (venv, S.enter(tenv, decname, Types.NAME(decname, tyref)), tydecs)
+                in
+                    (tyref := SOME(transTy (tenv', decty)); {tenv=tenv', venv=venv'})
+                end
+                |   setupHeaders (venv, tenv, []) = {venv=venv, tenv=tenv}
+            in
+                setupHeaders (venv, tenv, tydecs)
+            end
 
     
     and transExp (venv, tenv) = 
@@ -129,7 +138,7 @@ struct
                             end
                         |   checkType _ = (ErrorMsg.error pos ("declared type not record type: " ^ Symbol.name tysym); {exp=(), ty=Types.IMPOSSIBILITY})
                         in
-                            checkType (lookupTypeDec (tenv, tysym, pos))
+                            checkType (actual_ty (lookupTypeDec (tenv, tysym, pos)))
                         end
 
             (* Let *)
