@@ -115,6 +115,9 @@ struct
             (* VarExp *)
             |   trexp (A.VarExp (var)) = trvar var
 
+            (* NilExp *)
+            |   trexp (A.NilExp) = {exp=(), ty=Types.NIL}
+
 
             (* RecordExp *)
             (* A.RecordExp{fields: (symbol * exp * pos) list, typ: symbol, pos: pos} *)

@@ -1,5 +1,6 @@
 let
     type rec = {a: rec, b: int}
+    var inst := rec {a=nil, b=10}
 in
    5 + 4
 end
