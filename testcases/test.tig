@@ -1,6 +1,5 @@
 let
-    type rec = {a: int, b: rec}
-    var i := rec {a= 5, b=3, c=5}
+    type rec = {a: rec, b: int}
 in
    5 + 4
 end

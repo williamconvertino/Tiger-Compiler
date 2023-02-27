@@ -14,21 +14,26 @@ struct
           | IMPOSSIBILITY
 
   fun toString ty = 
-    let fun unpack_record ([], recstr) = recstr ^ "}" |
-            unpack_record ((sym, ty)::[], recstr)  = unpack_record([], recstr ^ (Symbol.name sym) ^ ":" ^ (toString ty)) |
-            unpack_record ((sym, ty)::l, recstr)  = unpack_record(l, recstr ^ (Symbol.name sym) ^ ":" ^ (toString ty) ^ ", ")
+    let fun unpack_record ([], recstr, _) = recstr ^ "}" |
+            unpack_record ((sym, ty)::[], recstr, cnt)  = unpack_record([], recstr ^ (Symbol.name sym) ^ ":" ^ (toStr (ty, cnt)), cnt) |
+            unpack_record ((sym, ty)::l, recstr, cnt)  = unpack_record(l, recstr ^ (Symbol.name sym) ^ ":" ^ (toStr (ty, cnt)) ^ ", ", cnt)
+        
+        and unravel_name (sym, NONE, _) = (print("ERROR: type ref of " ^ Symbol.name sym ^ " not properly set by compiler\n") ; "impossibility")
+        |   unravel_name (sym, SOME(ty), 0) = Symbol.name sym ^ ":... (depth exceeded)"
+        |   unravel_name (sym, SOME(ty), cnt) = Symbol.name sym ^ ":" ^ toStr (ty, (cnt-1))
+    
+        and toStr (ty, cnt) =
+          case ty of
+            NIL             => "nil" |
+            INT             => "int" |
+            STRING          => "string" |
+            UNIT            =>  "unit"  |
+            IMPOSSIBILITY   => "impossibility" |
+            ARRAY(ty, uniq) =>  toString ty  |
+            NAME(sym, tyop)   =>  unravel_name(sym, !tyop, cnt) |
+            RECORD(syms, uniq) => unpack_record (syms, "{", cnt)
     in
-      case ty of
-        NIL             => "nil" |
-        INT             => "int" |
-        STRING          => "string" |
-        UNIT            =>  "unit"  |
-        IMPOSSIBILITY   => "impossibility" |
-        ARRAY(ty, uniq) =>  toString ty  |
-        NAME(sym, tyop)   =>  (case !tyop of
-          NONE => (print("ERROR: type ref of " ^ Symbol.name sym ^ " not properly set by compiler\n") ;"impossibility") |
-          SOME(ty)  => Symbol.name sym ^ ":" ^ toString ty ) |
-        RECORD(syms, uniq) => unpack_record (syms, "{")
+      toStr (ty, 2)
     end
 
   fun checkType (NAME(sym, tyop), ty', pos) = (case !tyop of
