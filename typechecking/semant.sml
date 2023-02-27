@@ -116,11 +116,13 @@ struct
                                         let val fieldty = List.find (fn (tysym, tyty) => Symbol.eq(tysym, fieldsym)) tylist
                                             val filteredtylist = List.filter (fn (tysym, tyty) => not (Symbol.eq(tysym, fieldsym))) tylist
                                             val {exp, ty=trfieldty} = (trexp fieldexp)
+                                            fun checkElementType (Types.IMPOSSIBILITY) = checkElements ({exp=exp, ty=Types.IMPOSSIBILITY}, l, filteredtylist) |
+                                                checkElementType (ty) = checkElements ({exp=exp, ty=Types.RECORD(symtyps, uniq)}, l, filteredtylist)
                                         in
                                             case fieldty of
-                                                SOME((tysym, tyty)) => checkElements ({exp=exp, ty= (Types.checkType (trfieldty, tyty, fieldpos))}, l, filteredtylist) |
-                                                NONE           => (ErrorMsg.error pos ("field " ^ Symbol.name fieldsym ^ " does not exist on type " ^  Types.toString (Types.RECORD(symtyps, uniq))); 
-                                                                    checkElements ({exp=exp, ty=Types.IMPOSSIBILITY}, l, filteredtylist))
+                                                SOME((tysym, tyty)) => checkElementType (Types.checkType (trfieldty, tyty, fieldpos)) |
+                                                NONE                => (ErrorMsg.error pos ("field " ^ Symbol.name fieldsym ^ " does not exist on type " ^  Types.toString (Types.RECORD(symtyps, uniq))); 
+                                                                        checkElements ({exp=exp, ty=Types.IMPOSSIBILITY}, l, filteredtylist))
                                         end
                             in
                                 checkElements ({exp=(), ty=(Types.RECORD(symtyps, uniq))}, fields, symtyps)
