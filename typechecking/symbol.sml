@@ -8,6 +8,7 @@ sig
   val empty : 'a table
   val enter : 'a table * symbol * 'a -> 'a table
   val look  : 'a table * symbol -> 'a option
+  val eq    : symbol * symbol -> bool
 end
 
 structure Symbol :> SYMBOL =
@@ -31,6 +32,8 @@ struct
 		      H.insert hashtable (name,i);
 		      (name,i)
 		  end
+
+  fun eq ((_, id1), (_, id2)) = if id1 = id2 then true else false
 
   fun name(s,n) = s
 
