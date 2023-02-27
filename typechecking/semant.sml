@@ -24,14 +24,25 @@ struct
     structure E = Env
     structure S = Symbol
 
-    fun checkInt ({exp, ty=Types.INT}, pos) = () |
-        checkInt (_, pos) = ErrorMsg.error pos "integer required"
+    fun checkInt ({exp, ty}, pos) = Types.checkType(ty, Types.INT, pos)
+
 
     fun actual_ty ty = case ty of
         Types.NAME(_, tyref) => (case !tyref of
             NONE     => Types.IMPOSSIBILITY |
             SOME(ty) => actual_ty ty) |
         _            => ty
+
+    fun lookupVarType (venv, id, pos) = 
+        case Symbol.look(venv, id)
+            of SOME(E.VarEntry{ty}) => actual_ty ty
+            |  SOME(E.FunEntry _)   => (ErrorMsg.error pos ("undefined variable " ^ S.name id); Types.IMPOSSIBILITY)
+            |  NONE                 => (ErrorMsg.error pos ("undefined variable " ^ S.name id); Types.IMPOSSIBILITY)
+
+    fun lookupTypeDec (tenv, id, pos) =
+        case Symbol.look(tenv, id)
+            of SOME(ty) => actual_ty ty
+            |  NONE     => (ErrorMsg.error pos ("undefined type " ^ S.name id); Types.IMPOSSIBILITY)
     
     fun transDecs (venv, tenv, []) = {venv=venv, tenv=tenv} |
         transDecs (venv, tenv, dec::l) =
@@ -39,17 +50,30 @@ struct
             in transDecs (venv', tenv', l) end
 
         (* -- Types -- *)
-    and transTy  (tenv, ty)        = Types.IMPOSSIBILITY
+    and transTy (tenv, A.NameTy(sym, pos)) = lookupTypeDec (tenv, sym, pos) |
+        transTy (tenv, A.ArrayTy(sym, pos)) = Types.ARRAY(lookupTypeDec (tenv, sym, pos), ref ()) |
+        transTy (tenv, A.RecordTy(fieldlist)) =
+            let fun buildRec (recty, []) = recty |
+                    buildRec ((symlst, uniq), {name, typ, escape=_, pos}::l) = buildRec (((name, lookupTypeDec (tenv, typ, pos)) :: symlst, uniq), l)
+            in
+                Types.RECORD (buildRec (([], ref ()), fieldlist))
+            end
 
         (* -- Var Decs -- *)
         (* var x := exp *)
     and transDec (venv, tenv, A.VarDec{name, typ=NONE, init, escape, pos}) = 
-        let val {exp, ty} = transExp (venv, tenv) init
-        in 
-            {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=ty})}
-        end |
+            let val {exp, ty} = transExp (venv, tenv) init
+            in 
+                {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=ty})}
+            end |
         (* var x: type := exp *)
-        (* TODO *)
+        transDec (venv, tenv, A.VarDec{name, typ=SOME((tysym, typos)), init, escape, pos}) =
+            let val {exp, ty=initty} = transExp (venv, tenv) init
+                val decty = lookupTypeDec (tenv, tysym, typos)
+                val evalty = Types.checkType(initty, decty, pos)
+            in
+                {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=evalty})}
+            end |
 
         (* -- Type Decs -- *)
         (* type t = ty *)
@@ -88,14 +112,7 @@ struct
 
                 (* -- Vars -- *)
                 (* foo *)
-            and trvar (A.SimpleVar(id, pos)) = (
-                case Symbol.look(venv, id)
-                    of SOME(E.VarEntry{ty}) => {exp=(), ty=actual_ty ty}
-                    |  SOME(E.FunEntry _) => (ErrorMsg.error pos ("undefined variable " ^ S.name id);
-                                                {exp=(), ty=Types.IMPOSSIBILITY})
-                    |  NONE                 => (ErrorMsg.error pos ("undefined variable " ^ S.name id);
-                                                {exp=(), ty=Types.IMPOSSIBILITY})
-            )
+            and trvar (A.SimpleVar(id, pos)) = {exp=(), ty=lookupVarType (venv, id, pos)}
                 (* foo[bar] *)
             |   trvar (A.SubscriptVar(var, exp, pos)) =
                     let fun tycheck ({exp=varexp, ty=Types.ARRAY(arrty, _)}, {exp=expexp, ty=Types.INT}) = 

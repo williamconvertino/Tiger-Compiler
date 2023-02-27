@@ -1,5 +1,6 @@
 let
-    var i := 4
+    type rec = {a: int, b: string}
+    var i: rec := rec {a: 5, b: 1}
 in
-   4 + (i + "test")
+   5 + 4
 end
