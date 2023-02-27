@@ -36,6 +36,7 @@ struct
         then RECORD(symlist, uniq)
         else (ErrorMsg.error pos "record types do not match"; NIL) 
     | checkType (NIL, RECORD(symlist, uniq), _) = RECORD(symlist, uniq)
+    | checkType (IMPOSSIBILITY, RECORD(symlist, uniq), _) = RECORD(symlist, uniq)
     | checkType (INT, INT, _) = INT
     | checkType (IMPOSSIBILITY, INT, _) = INT
     | checkType (STRING, STRING, _) = STRING
@@ -44,6 +45,7 @@ struct
       if (uniq = uniq')
         then ARRAY(arrty, uniq)
         else (ErrorMsg.error pos "array types do not match"; IMPOSSIBILITY) 
+    | checkType (IMPOSSIBILITY, ARRAY(arrty, uniq), _) = ARRAY(arrty, uniq)
     | checkType (ty, reqty, pos) = (ErrorMsg.error pos ("type " ^ (toString ty) ^ " does not match required type " ^ (toString reqty)); IMPOSSIBILITY)
 
 
