@@ -33,7 +33,7 @@ struct
 		      (name,i)
 		  end
 
-  fun eq ((_, id1), (_, id2)) = if id1 = id2 then true else false
+  fun eq ((_, id1), (_, id2)) = (id1 = id2)
 
   fun name(s,n) = s
 
