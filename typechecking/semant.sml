@@ -56,7 +56,7 @@ struct
             let fun buildRec (recty, []) = recty |
                     buildRec ((symlst, uniq), {name, typ, escape=_, pos}::l) = buildRec (((name, lookupTypeDec (tenv, typ, pos)) :: symlst, uniq), l)
             in
-                Types.RECORD (buildRec (([], ref ()), fieldlist))
+                (print("hi there\n"); Types.RECORD (buildRec (([], ref ()), fieldlist)))
             end
 
         (* -- Var Decs -- *)
@@ -72,7 +72,7 @@ struct
                 val decty = lookupTypeDec (tenv, tysym, typos)
                 val evalty = Types.checkType(initty, decty, pos)
             in
-                {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=evalty})}
+                (print("hello world\n"); {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=evalty})})
             end |
 
         (* -- Type Decs -- *)
@@ -89,7 +89,7 @@ struct
         
             (* Ops *)
             |   trexp (A.OpExp{left, oper=A.PlusOp, right, pos}) =
-                (checkInt(trexp left, pos); checkInt(trexp right, pos); {exp=(), ty=Types.INT})
+                {exp=(), ty=Types.closestDescendant (checkInt(trexp left, pos), checkInt(trexp right, pos))}
             
             (* SeqExps *)
             |   trexp (A.SeqExp (exps)) =
@@ -102,6 +102,26 @@ struct
 
             (* VarExp *)
             |   trexp (A.VarExp (var)) = trvar var
+
+
+            (* RecordExp *)
+            (* A.RecordExp{fields: (symbol * exp * pos) list, typ: symbol, pos: pos} *)
+            (* RECORD of (Symbol.symbol * ty) list * unique *)
+            (* |   trexp (A.RecordExp{fields, typ=tysym, pos}) =
+                    let fun checkType (Types.RECORD(symtyps, uniq)) = 
+                            let fun checkElements (ret, [], []) = ret |
+                                    checkElements (ret, [], tylist) = (ErrorMsg.error pos ("missing required fields from type " ^ Types.toString (Types.RECORD(symtyps, uniq))); ret) |
+                                    checkElements ({exp, ty}, ((_, symid), fieldexp, fieldpos)::l, tylist) = 
+                                        if List.exists (fn ((_, id), _) => id = symid) tylist
+                                        then checkElements ({exp=exp, ty=ty}, l, tylist)
+                                        else checkElements ({exp=exp, ty=ty}, l, tylist)
+                            in
+                                checkElements ({exp=(), ty=(Types.RECORD(symtyps, uniq))}, fields, symtyps)
+                            end
+                        |   checkType _ = (ErrorMsg.error pos ("declared type not record type: " ^ Symbol.name tysym); {exp=(), ty=Types.IMPOSSIBILITY})
+                        in
+                            checkType (lookupTypeDec (tenv, tysym, pos))
+                        end *)
 
             (* Let *)
             |   trexp (A.LetExp{decs, body, pos}) =
