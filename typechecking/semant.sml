@@ -176,7 +176,7 @@ struct
             (* StringExp *)
             |   trexp (A.StringExp (str, pos)) = {exp=(), ty=Types.STRING}
         
-            (* Ops *)
+            (* Arithmetic Ops *)
             |   trexp (A.OpExp{left, oper=A.PlusOp, right, pos}) =
                 {exp=(), ty=Types.closestDescendant (checkInt(trexp left, pos), checkInt(trexp right, pos))}
             |   trexp (A.OpExp{left, oper=A.MinusOp, right, pos}) =
@@ -186,19 +186,32 @@ struct
             |   trexp (A.OpExp{left, oper=A.DivideOp, right, pos}) =
                 {exp=(), ty=Types.closestDescendant (checkInt(trexp left, pos), checkInt(trexp right, pos))}
             
-            |   trexp (A.OpExp{left, oper=A.EqOp, right, pos}) =
-                {exp=(), ty=(checkComparisonOp (trexp left, trexp right, A.EqOp, pos))}
-            |   trexp (A.OpExp{left, oper=A.NeqOp, right, pos}) =
-                {exp=(), ty=(checkComparisonOp (trexp left, trexp right, A.NeqOp, pos))}
-            |   trexp (A.OpExp{left, oper=A.LtOp, right, pos}) =
-                {exp=(), ty=(checkComparisonOp (trexp left, trexp right, A.LtOp, pos))}
-            |   trexp (A.OpExp{left, oper=A.LeOp, right, pos}) =
-                {exp=(), ty=(checkComparisonOp (trexp left, trexp right, A.LeOp, pos))}
-            |   trexp (A.OpExp{left, oper=A.GtOp, right, pos}) =
-                {exp=(), ty=(checkComparisonOp (trexp left, trexp right, A.GtOp, pos))}
-            |   trexp (A.OpExp{left, oper=A.GeOp, right, pos}) =
-                {exp=(), ty=(checkComparisonOp (trexp left, trexp right, A.GeOp, pos))}
-
+            (* Comparison Ops *)
+            |   trexp (A.OpExp{left, oper=A.EqOp, right, pos}) = (
+                    checkComparisonOp (trexp left, trexp right, A.EqOp, pos);
+                    {exp=(), ty=Types.INT}
+                )
+            |   trexp (A.OpExp{left, oper=A.NeqOp, right, pos}) = (
+                    checkComparisonOp (trexp left, trexp right, A.NeqOp, pos);
+                    {exp=(), ty=Types.INT}
+                )
+            |   trexp (A.OpExp{left, oper=A.LtOp, right, pos}) = (
+                    checkComparisonOp (trexp left, trexp right, A.LtOp, pos);
+                    {exp=(), ty=Types.INT}
+                )
+            |   trexp (A.OpExp{left, oper=A.LeOp, right, pos}) = (
+                    checkComparisonOp (trexp left, trexp right, A.LeOp, pos);
+                    {exp=(), ty=Types.INT}
+                )
+            |   trexp (A.OpExp{left, oper=A.GtOp, right, pos}) = (
+                    checkComparisonOp (trexp left, trexp right, A.GtOp, pos);
+                    {exp=(), ty=Types.INT}
+                )
+            |   trexp (A.OpExp{left, oper=A.GeOp, right, pos}) = (
+                    checkComparisonOp (trexp left, trexp right, A.GeOp, pos);
+                    {exp=(), ty=Types.INT}
+                )
+            
             (* SeqExps *)
             |   trexp (A.SeqExp (exps)) =
                     let fun trseq [] = {exp=(), ty=Types.UNIT}

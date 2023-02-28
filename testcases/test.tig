@@ -18,5 +18,5 @@ let
     var timestest := plustest * minustest
     var divtest := timestest / 5
 in
-   5 + 4
+   "string" = 5
 end
