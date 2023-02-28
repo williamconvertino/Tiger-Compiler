@@ -33,7 +33,7 @@ struct
             |   checkOp (Types.ARRAY(lty), rty, A.NeqOp) = Types.checkType(rty, Types.ARRAY(lty), pos)
             |   checkOp (Types.RECORD(lty), rty, A.EqOp) = Types.checkType(rty, Types.RECORD(lty), pos)
             |   checkOp (Types.RECORD(lty), rty, A.NeqOp) = Types.checkType(rty, Types.RECORD(lty), pos)
-            |   checkOp (lty, rty, _) = (ErrorMsg.error pos ("types " ^ (Types.toString lty) ^ " and " ^ (Types.toString rty) ^ " cannot be compared using comparison operators"); Types.IMPOSSIBILITY)
+            |   checkOp (lty, rty, _) = (ErrorMsg.error pos ("types " ^ (Types.toString lty) ^ " and " ^ (Types.toString rty) ^ " cannot be compared using this comparison operator"); Types.IMPOSSIBILITY)
         in
             checkOp(lty, rty, check_op)
         end
@@ -275,28 +275,26 @@ struct
                         end
 
             (* ArrayExp *)
-            (* ArrayExp of {typ: symbol, size: exp, init: exp, pos: pos} *)
             | trexp (A.ArrayExp{typ, size, init, pos}) =
-                let val arrty = case S.look(tenv, typ) of
-                            SOME(dectyp) => (
-                                case actual_ty dectyp of 
+                let val dectyp = case S.look(tenv, typ) of
+                            SOME(ty) => ty |
+                            NONE => (
+                                ErrorMsg.error pos ("type " ^ Symbol.name typ ^ " has not been declared"); 
+                                Types.IMPOSSIBILITY
+                            )
+                    val valty = case actual_ty dectyp of 
                                     Types.ARRAY(ty, _) => ty |
                                     _ => (
                                         ErrorMsg.error pos ("declared type not array type: " ^ Symbol.name typ ^ " is " ^ Types.toString (dectyp) ); 
                                         Types.IMPOSSIBILITY
                                     )
-                            ) |
-                            NONE => (
-                                ErrorMsg.error pos ("type " ^ Symbol.name typ ^ " has not been declared"); 
-                                Types.IMPOSSIBILITY
-                            )
                     val {exp=initexp, ty=initty} = trexp init
                     val {exp=sizeexp, ty=sizety} = trexp size
                 in 
                     (
-                        Types.checkType(initty, arrty, pos);
+                        Types.checkType(initty, valty, pos);
                         Types.checkType(sizety, Types.INT, pos);
-                        {exp=(), ty=Types.IMPOSSIBILITY}
+                        {exp=(), ty=dectyp}
                     )
                 end
 
