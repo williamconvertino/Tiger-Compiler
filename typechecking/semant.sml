@@ -5,7 +5,7 @@ sig
     
     type expty = {exp: Translate.exp, ty: Types.ty}
 
-    val transExp: venv * tenv -> Absyn.exp -> expty
+    val transExp: venv * tenv * bool -> Absyn.exp -> expty
     val transDec: venv * tenv * Absyn.dec -> {venv: venv, tenv: tenv}
     val transTy:  tenv * Absyn.ty -> Types.ty
 
@@ -74,13 +74,13 @@ struct
         (* -- Var Decs -- *)
         (* var x := exp *)
     and transDec (venv, tenv, A.VarDec{name, typ=NONE, init, escape, pos}) = 
-            let val {exp, ty} = transExp (venv, tenv) init
+            let val {exp, ty} = transExp (venv, tenv, false) init
             in 
                 {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=ty})}
             end |
         (* var x: type := exp *)
         transDec (venv, tenv, A.VarDec{name, typ=SOME((tysym, typos)), init, escape, pos}) =
-            let val {exp, ty=initty} = transExp (venv, tenv) init
+            let val {exp, ty=initty} = transExp (venv, tenv, false) init
                 val decty = lookupTypeDec (tenv, tysym, typos)
                 val evalty = Types.checkType(initty, decty, pos)
             in
@@ -153,7 +153,7 @@ struct
 
                         val {venv=venv'', tenv} = trFun (venv', tenv, fundecs)
                         val venv''' = enterparams (venv'', params')
-                        val {exp=bodyexp, ty=bodyty} = transExp(venv''', tenv) body
+                        val {exp=bodyexp, ty=bodyty} = transExp(venv''', tenv, false) body
                     in 
                         ( 
                             Types.checkType(bodyty, result_ty, pos);
@@ -168,7 +168,7 @@ struct
             end
 
     
-    and transExp (venv, tenv) = 
+    and transExp (venv, tenv, in_loop) = 
             (* -- Expressions -- *)
             (* IntExp *)
         let fun trexp (A.IntExp (int)) = {exp=(), ty=Types.INT}
@@ -327,13 +327,13 @@ struct
             (* LetExp *)
             |   trexp (A.LetExp{decs, body, pos}) =
                     let val {venv=venv', tenv=tenv'} = transDecs(venv, tenv, decs)
-                    in transExp (venv', tenv') body
+                    in transExp (venv', tenv', in_loop) body
                 end
 
             (* WhileExp *)
             |   trexp (A.WhileExp{test, body, pos}) =
-                    let val {exp=testexp, ty=testty} = trexp test
-                        val {exp=bodyexp, ty=bodyty} = trexp body
+                    let val {exp=testexp, ty=testty} = transExp (venv, tenv, true) test
+                        val {exp=bodyexp, ty=bodyty} = transExp (venv, tenv, true) body
                     in
                         Types.checkType(testty, Types.INT, pos);
                         {exp=(), ty=Types.UNIT}
@@ -344,7 +344,7 @@ struct
                     let val venv' = S.enter (venv, var, E.VarEntry{ty=Types.INT})
                         val {exp=loexp, ty=loty} = trexp lo
                         val {exp=hiexp, ty=hity} = trexp hi
-                        val {exp=bodyexp, ty=bodyty} = transExp (venv', tenv) body
+                        val {exp=bodyexp, ty=bodyty} = transExp (venv', tenv, true) body
                     in
                         Types.checkType(loty, Types.INT, pos);
                         Types.checkType(hity, Types.INT, pos);
@@ -353,8 +353,10 @@ struct
 
 
             (* BreakExp *)
-            | trexp (A.BreakExp (pos)) = {exp=(), ty=Types.IMPOSSIBILITY}
-
+            | trexp (A.BreakExp (pos)) = (
+                if not (in_loop) then (ErrorMsg.error pos ("break not contained within loop")) else ();
+                {exp=(), ty=Types.IMPOSSIBILITY}
+            )
 
                 (* -- Vars -- *)
                 (* foo *)
@@ -388,6 +390,6 @@ struct
         trexp
     end
 
-    fun transProg exp = (transExp (Env.base_venv, Env.base_tenv) exp; ())
+    fun transProg exp = (transExp (Env.base_venv, Env.base_tenv, false) exp; ())
 
 end
