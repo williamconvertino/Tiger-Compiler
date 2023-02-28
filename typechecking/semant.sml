@@ -124,11 +124,13 @@ struct
                         fun enterparams (venv, {name, ty}::params) = S.enter(enterparams (venv, params), name, E.VarEntry{ty=ty})
                         |   enterparams (venv, []) = venv
                         
-                        val venv'' = enterparams (venv', params')
+
+                        val {venv=venv'', tenv} = trFun (venv', tenv, fundecs)
+                        val venv''' = enterparams (venv'', params')
                     in 
                         (
-                            transExp(venv'', tenv) body;
-                            {venv=venv', tenv=tenv}
+                            transExp(venv''', tenv) body;
+                            {venv=venv'', tenv=tenv}
                         )
                     end
 

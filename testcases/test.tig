@@ -5,6 +5,9 @@ let
     type a = c
     type b = string
     type c = int
+    function f(a: int, b: int): int = g()
+    function g(): int = f(3, 4)
+
 in
    5 + 4
 end
