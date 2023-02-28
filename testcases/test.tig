@@ -21,5 +21,5 @@ let
 
     type rec2 = {a: int, b: int}
 in
-   3 + 4
+   while 1 do 3 + 4
 end

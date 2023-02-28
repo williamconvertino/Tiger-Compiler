@@ -308,7 +308,6 @@ struct
                 end
 
             (* IfExp *)
-            (* IfExp of {test: exp, then': exp, else': exp option, pos: pos} *)
             | trexp (A.IfExp{test, then', else'=NONE, pos}) = 
                 let val {exp=testexp, ty=testty} = trexp test
                 in
@@ -330,6 +329,31 @@ struct
                     let val {venv=venv', tenv=tenv'} = transDecs(venv, tenv, decs)
                     in transExp (venv', tenv') body
                 end
+
+            (* WhileExp *)
+            |   trexp (A.WhileExp{test, body, pos}) =
+                    let val {exp=testexp, ty=testty} = trexp test
+                        val {exp=bodyexp, ty=bodyty} = trexp body
+                    in
+                        Types.checkType(testty, Types.INT, pos);
+                        {exp=(), ty=Types.UNIT}
+                    end
+
+            (* ForExp *)
+            |   trexp (A.ForExp{var, escape, lo, hi, body, pos}) =
+                    let val venv' = S.enter (venv, var, E.VarEntry{ty=Types.INT})
+                        val {exp=loexp, ty=loty} = trexp lo
+                        val {exp=hiexp, ty=hity} = trexp hi
+                        val {exp=bodyexp, ty=bodyty} = transExp (venv', tenv) body
+                    in
+                        Types.checkType(loty, Types.INT, pos);
+                        Types.checkType(hity, Types.INT, pos);
+                        {exp=(), ty=Types.UNIT}
+                    end
+
+
+            (* BreakExp *)
+            | trexp (A.BreakExp (pos)) = {exp=(), ty=Types.IMPOSSIBILITY}
 
 
                 (* -- Vars -- *)
