@@ -2,9 +2,8 @@ let
     type rec = {a: rec, b: int}
     var inst := rec {a=nil, b=10}
     var inst2: rec := rec {a=inst, b=15}
-    type d = string
-    type a = b
-    type b = a
+    type a = c
+    type b = string
     type c = int
 in
    5 + 4

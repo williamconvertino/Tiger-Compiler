@@ -107,6 +107,35 @@ struct
                     end
             in
                 cyclicGuard (setupHeaders (venv, tenv, tydecs))
+            end |
+        
+        (* -- Function Decs -- *)
+        (* function f(a: ta, b: tb) : rt *)
+        transDec (venv, tenv, A.FunctionDec(fundecs)) =
+            let fun trFun (venv, tenv, {name, params, body, pos, result=SOME(rt, respos)}::fundecs) =
+                    let val SOME(result_ty) = S.look(tenv, rt)
+                        fun transparam{name, typ, pos, escape} =
+                            (
+                                case S.look(tenv, typ)
+                                    of SOME t => {name=name, ty=t}
+                            )
+                        val params' = List.map transparam params
+                        val venv' = S.enter(venv, name, E.FunEntry{formals= List.map #ty params', result=result_ty})
+                        fun enterparams (venv, {name, ty}::params) = S.enter(enterparams (venv, params), name, E.VarEntry{ty=ty})
+                        |   enterparams (venv, []) = venv
+                        
+                        val venv'' = enterparams (venv', params')
+                    in 
+                        (
+                            transExp(venv'', tenv) body;
+                            {venv=venv', tenv=tenv}
+                        )
+                    end
+
+                |   trFun (venv, tenv, []) = {venv=venv, tenv=tenv}
+
+            in
+                trFun (venv, tenv, fundecs)
             end
 
     
