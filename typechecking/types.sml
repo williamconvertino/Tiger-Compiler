@@ -59,6 +59,7 @@ struct
         then ARRAY(arrty, uniq)
         else (ErrorMsg.error pos "array types do not match"; IMPOSSIBILITY) 
     | checkType (IMPOSSIBILITY, ARRAY(arrty, uniq), _) = ARRAY(arrty, uniq)
+    | checkType (_, UNIT, _) = UNIT
     | checkType (ty, reqty, pos) = (ErrorMsg.error pos ("type " ^ (toString ty) ^ " does not match required type " ^ (toString reqty)); IMPOSSIBILITY)
 
 

@@ -113,11 +113,20 @@ struct
         (* function f(a: ta, b: tb) : rt *)
         transDec (venv, tenv, A.FunctionDec(fundecs)) =
             let fun trFun (venv, tenv, {name, params, body, pos, result=SOME(rt, respos)}::fundecs) =
-                    let val SOME(result_ty) = S.look(tenv, rt)
+                    let val result_ty = case S.look(tenv, rt) of
+                            SOME(resty) => resty |
+                            NONE => (
+                                ErrorMsg.error pos ("result type " ^ Symbol.name rt ^ " has not been declared");
+                                Types.IMPOSSIBILITY
+                            )
                         fun transparam{name, typ, pos, escape} =
                             (
                                 case S.look(tenv, typ)
-                                    of SOME t => {name=name, ty=t}
+                                    of  SOME t => {name=name, ty=t} |
+                                        NONE => (
+                                            ErrorMsg.error pos ("param type " ^ Symbol.name typ ^ " has not been declared");
+                                            {name=name, ty=Types.IMPOSSIBILITY}
+                                        )
                             )
                         val params' = List.map transparam params
                         val venv' = S.enter(venv, name, E.FunEntry{formals= List.map #ty params', result=result_ty})
@@ -127,9 +136,10 @@ struct
 
                         val {venv=venv'', tenv} = trFun (venv', tenv, fundecs)
                         val venv''' = enterparams (venv'', params')
+                        val {exp=bodyexp, ty=bodyty} = transExp(venv''', tenv) body
                     in 
-                        (
-                            transExp(venv''', tenv) body;
+                        ( 
+                            Types.checkType(bodyty, result_ty, pos);
                             {venv=venv'', tenv=tenv}
                         )
                     end

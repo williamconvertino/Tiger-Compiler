@@ -6,7 +6,7 @@ let
     type b = string
     type c = int
     function f(a: int, b: int): int = g()
-    function g(): int = f("test")
+    function g(): string = f(3, 5)
 
 in
    5 + 4
