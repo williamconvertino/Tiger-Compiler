@@ -167,6 +167,27 @@ struct
             |   trexp (A.NilExp) = {exp=(), ty=Types.NIL}
 
 
+            (* CallExp *)
+            (* CallExp of {func: symbol, args: exp list, pos: pos} *)
+            |   trexp (A.CallExp{func, args, pos}) = 
+                    let fun checkParams ([], []) = ()
+                        |   checkParams (args, []) = (ErrorMsg.error pos ("too many args provided: " ^ Int.toString (List.length args)))
+                        |   checkParams ([], formals) = (ErrorMsg.error pos ("missing params: " ^ (List.foldr (fn (ty, str) => str ^ Types.toString ty ^ " ") "" formals)))
+                        |   checkParams (exp::args, ty::formals) = 
+                                let val {exp=argexp, ty=argty} = trexp exp
+                                in 
+                                    (
+                                        Types.checkType(argty, ty, pos); 
+                                        checkParams(args, formals)
+                                    )
+                                end
+                in
+                    case Symbol.look(venv, func) of
+                        SOME(E.FunEntry ({formals, result})) => (checkParams (args, formals); {exp=(), ty=result}) |
+                        SOME(E.VarEntry _) => (ErrorMsg.error pos ("symbol " ^ Symbol.name func ^ " declared as a var not a function"); {exp=(), ty=Types.IMPOSSIBILITY}) |
+                        NONE => (ErrorMsg.error pos ("function " ^ Symbol.name func ^ " not declared"); {exp=(), ty=Types.IMPOSSIBILITY})
+                end
+
             (* RecordExp *)
             (* A.RecordExp{fields: (symbol * exp * pos) list, typ: symbol, pos: pos} *)
             (* RECORD of (Symbol.symbol * ty) list * unique *)
