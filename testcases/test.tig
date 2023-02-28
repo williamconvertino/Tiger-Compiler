@@ -6,7 +6,9 @@ let
     type b = string
     type c = int
     function f(a: int, b: int) = a + b
-    function g(): int = f(3, 5)
+    function g(): int = (f(3, 5); 4)
+    type arrty = array of int
+    var intarr := arrty [5] of 0
 
 in
    5 + 4

@@ -110,7 +110,8 @@ struct
             end |
         
         (* -- Function Decs -- *)
-        (* function f(a: ta, b: tb) : rt *)
+        (* function f(a: ta, b: tb) : rt = body *)
+        (* function f(a: ta, b: tb) = body *)
         transDec (venv, tenv, A.FunctionDec(fundecs)) =
             let fun trFun (venv, tenv, {name, params, body, pos, result}::fundecs) =
                     let val result_ty = case result of
@@ -182,7 +183,6 @@ struct
 
 
             (* CallExp *)
-            (* CallExp of {func: symbol, args: exp list, pos: pos} *)
             |   trexp (A.CallExp{func, args, pos}) = 
                     let fun checkParams ([], []) = ()
                         |   checkParams (args, []) = (ErrorMsg.error pos ("too many args provided: " ^ Int.toString (List.length args)))
@@ -203,8 +203,6 @@ struct
                 end
 
             (* RecordExp *)
-            (* A.RecordExp{fields: (symbol * exp * pos) list, typ: symbol, pos: pos} *)
-            (* RECORD of (Symbol.symbol * ty) list * unique *)
             |   trexp (A.RecordExp{fields, typ=tysym, pos}) =
                     let fun checkType (Types.RECORD(symtyps, uniq)) = 
                             let fun checkElements (ret, [], []) = ret |
@@ -229,6 +227,32 @@ struct
                         in
                             checkType (actual_ty (lookupTypeDec (tenv, tysym, pos)))
                         end
+
+            (* ArrayExp *)
+            (* ArrayExp of {typ: symbol, size: exp, init: exp, pos: pos} *)
+            | trexp (A.ArrayExp{typ, size, init, pos}) =
+                let val arrty = case S.look(tenv, typ) of
+                            SOME(dectyp) => (
+                                case dectyp of 
+                                    Types.ARRAY(ty, uniq) => ty |
+                                    _ => (
+                                        ErrorMsg.error pos ("declared type not array type: " ^ Symbol.name typ ^ " is " ^ Types.toString (dectyp) ); 
+                                        Types.IMPOSSIBILITY
+                                    )
+                            ) |
+                            NONE => (
+                                ErrorMsg.error pos ("type " ^ Symbol.name typ ^ " has not been declared"); 
+                                Types.IMPOSSIBILITY
+                            )
+                    val {exp=initexp, ty=initty} = trexp init
+                    val {exp=sizeexp, ty=sizety} = trexp size
+                in 
+                    (
+                        Types.checkType(initty, arrty, pos);
+                        Types.checkType(sizety, Types.INT, pos);
+                        {exp=(), ty=Types.IMPOSSIBILITY}
+                    )
+                end
 
             (* Let *)
             |   trexp (A.LetExp{decs, body, pos}) =

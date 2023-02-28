@@ -29,7 +29,7 @@ struct
             STRING          => "string" |
             UNIT            =>  "unit"  |
             IMPOSSIBILITY   => "impossibility" |
-            ARRAY(ty, uniq) =>  toString ty  |
+            ARRAY(ty, uniq) =>  "array of " ^ toString ty  |
             NAME(sym, tyop)   =>  unravel_name(sym, !tyop, cnt) |
             RECORD(syms, uniq) => unpack_record (syms, "{", cnt)
     in
