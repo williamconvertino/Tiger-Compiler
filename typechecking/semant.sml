@@ -112,13 +112,17 @@ struct
         (* -- Function Decs -- *)
         (* function f(a: ta, b: tb) : rt *)
         transDec (venv, tenv, A.FunctionDec(fundecs)) =
-            let fun trFun (venv, tenv, {name, params, body, pos, result=SOME(rt, respos)}::fundecs) =
-                    let val result_ty = case S.look(tenv, rt) of
-                            SOME(resty) => resty |
-                            NONE => (
-                                ErrorMsg.error pos ("result type " ^ Symbol.name rt ^ " has not been declared");
-                                Types.IMPOSSIBILITY
-                            )
+            let fun trFun (venv, tenv, {name, params, body, pos, result}::fundecs) =
+                    let val result_ty = case result of
+                            SOME(rt, respos) => (case S.look(tenv, rt) of
+                                SOME(resty) => resty |
+                                NONE => (
+                                    ErrorMsg.error respos ("result type " ^ Symbol.name rt ^ " has not been declared");
+                                    Types.IMPOSSIBILITY
+                                )
+                            ) |
+                            NONE => Types.UNIT
+                        
                         fun transparam{name, typ, pos, escape} =
                             (
                                 case S.look(tenv, typ)
