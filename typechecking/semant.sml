@@ -233,8 +233,8 @@ struct
             | trexp (A.ArrayExp{typ, size, init, pos}) =
                 let val arrty = case S.look(tenv, typ) of
                             SOME(dectyp) => (
-                                case dectyp of 
-                                    Types.ARRAY(ty, uniq) => ty |
+                                case actual_ty dectyp of 
+                                    Types.ARRAY(ty, _) => ty |
                                     _ => (
                                         ErrorMsg.error pos ("declared type not array type: " ^ Symbol.name typ ^ " is " ^ Types.toString (dectyp) ); 
                                         Types.IMPOSSIBILITY

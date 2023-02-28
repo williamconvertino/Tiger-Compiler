@@ -8,7 +8,11 @@ let
     function f(a: int, b: int) = a + b
     function g(): int = (f(3, 5); 4)
     type arrty = array of int
-    var intarr := arrty [5] of 0
+    type nestedarr = array of arrty
+
+    var intarr := arrty [5] of 3
+    var bigarr := nestedarr [2] of arrty [5] of 3
+
 
 in
    5 + 4
