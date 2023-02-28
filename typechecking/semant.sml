@@ -88,8 +88,25 @@ struct
                     )
                 end
                 |   setupHeaders (venv, tenv, []) = {venv=venv, tenv=tenv}
+
+                fun cyclicGuard ({tenv, venv}) =
+                    let fun checkTyDec ({name=decname, ty=decty, pos=decpos}::tydecs) =
+                            let fun cycle (Types.NAME(sym, tyop), cnt) = 
+                                if cnt > (Symbol.numItems tenv) 
+                                then ErrorMsg.error decpos ("cycle detected in type dec " ^ Symbol.name sym)
+                                else (case !tyop of
+                                        SOME(ty) => cycle(ty, cnt + 1) |
+                                        NONE     => ErrorMsg.error decpos ("type " ^ Symbol.name sym ^ " has not been declared"))
+                                |   cycle (_, cnt) = ()
+                            in
+                                (cycle((transTy (tenv, decty)), 0); checkTyDec(tydecs))
+                            end
+                        |   checkTyDec ([]) = ()
+                    in
+                        (checkTyDec(tydecs); {tenv=tenv, venv=venv})
+                    end
             in
-                setupHeaders (venv, tenv, tydecs)
+                cyclicGuard (setupHeaders (venv, tenv, tydecs))
             end
 
     

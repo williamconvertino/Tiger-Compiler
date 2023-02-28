@@ -9,6 +9,7 @@ sig
   val enter : 'a table * symbol * 'a -> 'a table
   val look  : 'a table * symbol -> 'a option
   val eq    : symbol * symbol -> bool
+  val numItems : 'a table -> int
 end
 
 structure Symbol :> SYMBOL =
@@ -42,4 +43,6 @@ struct
   val empty = IntRedBlackMap.empty
   fun enter(t: 'a table, (s,n): symbol, a: 'a) = IntRedBlackMap.insert(t,n,a)
   fun look(t: 'a table, (s,n): symbol) = IntRedBlackMap.find(t,n)
+
+  fun numItems (t: 'a table) = IntRedBlackMap.numItems t
 end
