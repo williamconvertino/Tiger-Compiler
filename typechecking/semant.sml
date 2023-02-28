@@ -26,6 +26,18 @@ struct
 
     fun checkInt ({exp, ty}, pos) = Types.checkType(ty, Types.INT, pos)
 
+    fun checkComparisonOp ({exp=lexp, ty=lty}, {exp=rexp, ty=rty}, check_op, pos) =
+        let fun checkOp (Types.INT, rty, _) = Types.checkType(rty, Types.INT, pos)
+            |   checkOp (Types.STRING, rty, _) = Types.checkType(rty, Types.STRING, pos)
+            |   checkOp (Types.ARRAY(lty), rty, A.EqOp) = Types.checkType(rty, Types.ARRAY(lty), pos)
+            |   checkOp (Types.ARRAY(lty), rty, A.NeqOp) = Types.checkType(rty, Types.ARRAY(lty), pos)
+            |   checkOp (Types.RECORD(lty), rty, A.EqOp) = Types.checkType(rty, Types.RECORD(lty), pos)
+            |   checkOp (Types.RECORD(lty), rty, A.NeqOp) = Types.checkType(rty, Types.RECORD(lty), pos)
+            |   checkOp (lty, rty, _) = (ErrorMsg.error pos ("types " ^ (Types.toString lty) ^ " and " ^ (Types.toString rty) ^ " cannot be compared using comparison operators"); Types.IMPOSSIBILITY)
+        in
+            checkOp(lty, rty, check_op)
+        end
+
 
     fun actual_ty ty = case ty of
         Types.NAME(_, tyref) => (case !tyref of
@@ -158,14 +170,35 @@ struct
     
     and transExp (venv, tenv) = 
             (* -- Expressions -- *)
-            (* Constants *)
+            (* IntExp *)
         let fun trexp (A.IntExp (int)) = {exp=(), ty=Types.INT}
+
+            (* StringExp *)
             |   trexp (A.StringExp (str, pos)) = {exp=(), ty=Types.STRING}
         
             (* Ops *)
             |   trexp (A.OpExp{left, oper=A.PlusOp, right, pos}) =
                 {exp=(), ty=Types.closestDescendant (checkInt(trexp left, pos), checkInt(trexp right, pos))}
+            |   trexp (A.OpExp{left, oper=A.MinusOp, right, pos}) =
+                {exp=(), ty=Types.closestDescendant (checkInt(trexp left, pos), checkInt(trexp right, pos))}
+            |   trexp (A.OpExp{left, oper=A.TimesOp, right, pos}) =
+                {exp=(), ty=Types.closestDescendant (checkInt(trexp left, pos), checkInt(trexp right, pos))}
+            |   trexp (A.OpExp{left, oper=A.DivideOp, right, pos}) =
+                {exp=(), ty=Types.closestDescendant (checkInt(trexp left, pos), checkInt(trexp right, pos))}
             
+            |   trexp (A.OpExp{left, oper=A.EqOp, right, pos}) =
+                {exp=(), ty=(checkComparisonOp (trexp left, trexp right, A.EqOp, pos))}
+            |   trexp (A.OpExp{left, oper=A.NeqOp, right, pos}) =
+                {exp=(), ty=(checkComparisonOp (trexp left, trexp right, A.NeqOp, pos))}
+            |   trexp (A.OpExp{left, oper=A.LtOp, right, pos}) =
+                {exp=(), ty=(checkComparisonOp (trexp left, trexp right, A.LtOp, pos))}
+            |   trexp (A.OpExp{left, oper=A.LeOp, right, pos}) =
+                {exp=(), ty=(checkComparisonOp (trexp left, trexp right, A.LeOp, pos))}
+            |   trexp (A.OpExp{left, oper=A.GtOp, right, pos}) =
+                {exp=(), ty=(checkComparisonOp (trexp left, trexp right, A.GtOp, pos))}
+            |   trexp (A.OpExp{left, oper=A.GeOp, right, pos}) =
+                {exp=(), ty=(checkComparisonOp (trexp left, trexp right, A.GeOp, pos))}
+
             (* SeqExps *)
             |   trexp (A.SeqExp (exps)) =
                     let fun trseq [] = {exp=(), ty=Types.UNIT}

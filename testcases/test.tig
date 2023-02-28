@@ -13,7 +13,10 @@ let
     var intarr := arrty [5] of 3
     var bigarr := nestedarr [2] of arrty [5] of 3
 
-
+    var plustest: int := 1 + 2
+    var minustest: c := 4 - 3
+    var timestest := plustest * minustest
+    var divtest := timestest / 5
 in
    5 + 4
 end
