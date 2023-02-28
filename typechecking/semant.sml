@@ -298,7 +298,34 @@ struct
                     )
                 end
 
-            (* Let *)
+            (* AssignExp *)
+            | trexp (A.AssignExp{var, exp, pos}) =
+                let val {exp=varexp, ty=varty} = trvar var
+                    val {exp=expexp, ty=expty} = trexp exp
+                in
+                    Types.checkType(expty, varty, pos);
+                    {exp=(), ty=Types.UNIT}
+                end
+
+            (* IfExp *)
+            (* IfExp of {test: exp, then': exp, else': exp option, pos: pos} *)
+            | trexp (A.IfExp{test, then', else'=NONE, pos}) = 
+                let val {exp=testexp, ty=testty} = trexp test
+                in
+                    Types.checkType(testty, Types.INT, pos);
+                    {exp=(), ty=Types.UNIT}
+                end
+            | trexp (A.IfExp{test, then', else'=SOME(else'), pos}) = 
+                let val {exp=testexp, ty=testty} = trexp test
+                    val {exp=thenexp, ty=thenty} = trexp then'
+                    val {exp=elseexp, ty=elsety} = trexp else'
+                    val resty = Types.nearestAncestor(thenty, elsety, pos)
+                in
+                    Types.checkType(testty, Types.INT, pos);
+                    {exp=(), ty=resty}
+                end
+
+            (* LetExp *)
             |   trexp (A.LetExp{decs, body, pos}) =
                     let val {venv=venv', tenv=tenv'} = transDecs(venv, tenv, decs)
                     in transExp (venv', tenv') body

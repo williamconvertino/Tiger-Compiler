@@ -80,6 +80,31 @@ struct
           else IMPOSSIBILITY
       | closestDescendant (_, _) = IMPOSSIBILITY
 
+    fun nearestAncestor (NAME(sym, tyop), ty', pos) = (case !tyop of
+          NONE => (ErrorMsg.error pos ("type " ^ Symbol.name (sym) ^ " has not been declared"); nearestAncestor (IMPOSSIBILITY, ty', pos)) |
+          SOME(ty) => nearestAncestor (ty, ty', pos)
+        )
+      | nearestAncestor (ty, NAME(sym, tyop), pos) = (case !tyop of
+          NONE => (ErrorMsg.error pos ("type " ^ Symbol.name (sym) ^ " has not been declared"); nearestAncestor (ty, IMPOSSIBILITY, pos)) |
+          SOME(ty') => nearestAncestor (ty, ty', pos)
+        )
+      | nearestAncestor (RECORD(symlist, uniq), RECORD(_, uniq'), _) = 
+        if (uniq = uniq')
+          then RECORD(symlist, uniq)
+          else UNIT 
+      | nearestAncestor (ARRAY(arrty, uniq), ARRAY(_, uniq'), _) = 
+        if (uniq = uniq')
+          then ARRAY(arrty, uniq)
+          else UNIT
+      | nearestAncestor (RECORD(symlist, uniq), NIL, _) = RECORD(symlist, uniq)
+      | nearestAncestor (NIL, RECORD(symlist, uniq), _) = RECORD(symlist, uniq)
+      | nearestAncestor (IMPOSSIBILITY, ty, _) = ty
+      | nearestAncestor (ty, IMPOSSIBILITY, _) = ty
+      | nearestAncestor (INT, INT, _) = INT
+      | nearestAncestor (STRING, STRING, _) = STRING
+      | nearestAncestor (NIL, NIL, _) = NIL
+      | nearestAncestor (_, _, _) = UNIT
+
 
 end
 

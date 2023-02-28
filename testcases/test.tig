@@ -18,6 +18,8 @@ let
     var minustest: c := 4 - 3
     var timestest := plustest * minustest
     var divtest := timestest / 5
+
+    type rec2 = {a: int, b: int}
 in
-    intarr > intarr
+   3 + 4
 end
