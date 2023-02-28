@@ -1,7 +1,9 @@
 let    
     type rec = {a: rec, b: int}
-    var inst := rec {a=nil, b=10}
-    var inst2 := rec {a=inst, b=15}
+    var inst1 := rec {a=nil, b=10}
+    var inst2 := rec {a=inst1, b=15}
+    var inst3 := rec {a=inst2, b=20}
+    var inst4 := rec {a=inst3, b=25}
     type a = c
     type b = string
     type c = int
@@ -21,6 +23,11 @@ let
 
     type rec2 = {a: int, b: int}
 in
+    
+    intarr[3] * 7;
+
+    inst4.a.b + intarr[3];
+    
     break; /*invalid */
     for test := 3 to 5 do break; /* valid */
     while (3 > break) do 4; /* valid */

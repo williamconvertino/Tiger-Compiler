@@ -376,15 +376,16 @@ struct
             |   trvar (A.FieldVar(var, symbol, pos)) =
                     let fun findsymty (sym, (sym', ty)::l) = if Symbol.eq (sym, sym') then SOME(ty) else findsymty(sym, l) |
                             findsymty (sym, []) = NONE
-                        fun tycheck {exp=varexp, ty=Types.RECORD(symtys, _)} = (
+                        fun tycheck {exp=varexp, ty=Types.RECORD(symtys, uniq)} = (
                                 case (findsymty (symbol, symtys)) of
                                     SOME(ty) => {exp=(), ty=ty} |
-                                    NONE     => (ErrorMsg.error pos ("must reference record type"); {exp=(), ty=Types.IMPOSSIBILITY})
+                                    NONE     => (ErrorMsg.error pos ("field " ^ Symbol.name symbol ^ " not found in record type " ^ (Types.toString (Types.RECORD(symtys, uniq)))); {exp=(), ty=Types.IMPOSSIBILITY})
                             )
-                        |   tycheck {exp=varexp, ty=_} = (ErrorMsg.error pos ("must reference record type");
+                        |   tycheck {exp=varexp, ty=symty} = (ErrorMsg.error pos ("must reference record type got " ^ (Types.toString symty));
                                 {exp=(), ty=Types.IMPOSSIBILITY})
+                        val {exp=varexp, ty=varty} = trvar var
                     in
-                        tycheck (trvar var)
+                        tycheck {exp=varexp, ty=(actual_ty varty)}
                     end
     in
         trexp
