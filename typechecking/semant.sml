@@ -6,7 +6,7 @@ sig
     type expty = {exp: Translate.exp, ty: Types.ty}
 
     val transExp: venv * tenv * bool -> Absyn.exp -> expty
-    val transDec: venv * tenv * Absyn.dec -> {venv: venv, tenv: tenv}
+    val transDec: venv * tenv * bool * Absyn.dec -> {venv: venv, tenv: tenv}
     val transTy:  tenv * Absyn.ty -> Types.ty
 
     val transProg : Absyn.exp -> unit
@@ -56,10 +56,10 @@ struct
             of SOME(ty) => ty
             |  NONE     => (ErrorMsg.error pos ("undefined type " ^ S.name id); Types.IMPOSSIBILITY)
     
-    fun transDecs (venv, tenv, []) = {venv=venv, tenv=tenv} |
-        transDecs (venv, tenv, dec::l) =
-            let val {venv=venv', tenv=tenv'} = transDec(venv, tenv, dec)
-            in transDecs (venv', tenv', l) end
+    fun transDecs (venv, tenv, in_loop, []) = {venv=venv, tenv=tenv} |
+        transDecs (venv, tenv, in_loop, dec::l) =
+            let val {venv=venv', tenv=tenv'} = transDec(venv, tenv, in_loop, dec)
+            in transDecs (venv', tenv', in_loop, l) end
 
         (* -- Types -- *)
     and transTy (tenv, A.NameTy(sym, pos)) = lookupTypeDec (tenv, sym, pos) |
@@ -73,14 +73,14 @@ struct
 
         (* -- Var Decs -- *)
         (* var x := exp *)
-    and transDec (venv, tenv, A.VarDec{name, typ=NONE, init, escape, pos}) = 
-            let val {exp, ty} = transExp (venv, tenv, false) init
+    and transDec (venv, tenv, in_loop, A.VarDec{name, typ=NONE, init, escape, pos}) = 
+            let val {exp, ty} = transExp (venv, tenv, in_loop) init
             in 
                 {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=ty})}
             end |
         (* var x: type := exp *)
-        transDec (venv, tenv, A.VarDec{name, typ=SOME((tysym, typos)), init, escape, pos}) =
-            let val {exp, ty=initty} = transExp (venv, tenv, false) init
+        transDec (venv, tenv, in_loop, A.VarDec{name, typ=SOME((tysym, typos)), init, escape, pos}) =
+            let val {exp, ty=initty} = transExp (venv, tenv, in_loop) init
                 val decty = lookupTypeDec (tenv, tysym, typos)
                 val evalty = Types.checkType(initty, decty, pos)
             in
@@ -89,7 +89,7 @@ struct
 
         (* -- Type Decs -- *)
         (* type t = ty *)
-        transDec (venv, tenv, A.TypeDec(tydecs)) =
+        transDec (venv, tenv, in_loop, A.TypeDec(tydecs)) =
             let fun setupHeaders (venv, tenv, {name=decname, ty=decty, pos=decpos}::tydecs) = 
                 let val tyref = ref NONE
                     val {venv=venv', tenv=tenv'} = setupHeaders (venv, S.enter(tenv, decname, Types.NAME(decname, tyref)), tydecs)
@@ -124,7 +124,7 @@ struct
         (* -- Function Decs -- *)
         (* function f(a: ta, b: tb) : rt = body *)
         (* function f(a: ta, b: tb) = body *)
-        transDec (venv, tenv, A.FunctionDec(fundecs)) =
+        transDec (venv, tenv, in_loop, A.FunctionDec(fundecs)) =
             let fun trFun (venv, tenv, {name, params, body, pos, result}::fundecs) =
                     let val result_ty = case result of
                             SOME(rt, respos) => (case S.look(tenv, rt) of
@@ -326,7 +326,7 @@ struct
 
             (* LetExp *)
             |   trexp (A.LetExp{decs, body, pos}) =
-                    let val {venv=venv', tenv=tenv'} = transDecs(venv, tenv, decs)
+                    let val {venv=venv', tenv=tenv'} = transDecs(venv, tenv, in_loop, decs)
                     in transExp (venv', tenv', in_loop) body
                 end
 

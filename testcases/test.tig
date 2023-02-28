@@ -28,7 +28,6 @@ in
     while (1) do if 4 < 5 then break; /* valid */
     while (1) do if 4 < 5 then 3 else break; /* valid */
     while 1 = 1 do let in break end; /* valid */
-    while 1 = 1 do let var x := break in 4 end; /* valid? */
-
+    while 1 = 1 do let var x := break in 4 end; /* valid (out interpretation using type system) */
     while 1 do let function test_break() = break in test_break() end /* not valid */ 
 end
