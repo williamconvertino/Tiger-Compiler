@@ -371,8 +371,9 @@ struct
                                 {exp=(), ty=arrty})
                         |   tycheck ({exp=varexp, ty=_}, _) = (ErrorMsg.error pos ("cannot index non-array type");
                                 {exp=(), ty=Types.IMPOSSIBILITY})
+                        val {exp=varexp, ty=varty} = trvar var
                     in
-                        tycheck (trvar var, trexp exp) 
+                        tycheck ({exp=varexp, ty=actual_ty varty}, trexp exp) 
                     end
                 (* foo.bar *)
             |   trvar (A.FieldVar(var, symbol, pos)) =
