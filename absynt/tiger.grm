@@ -29,11 +29,11 @@ structure A = Absyn
   
 %nonassoc LOWER_THAN_FUNCTION LOWER_THAN_TYPE LOWER_THAN_ELSE
 %nonassoc FUNCTION TYPE ELSE OF DO
-%nonassoc EQ NEQ LT LE GT GE
 %right SEMICOLON
 %left ASSIGN
 %left OR
 %left AND
+%nonassoc EQ NEQ LT LE GT GE
 %left PLUS MINUS
 %left TIMES DIVIDE
 %left UMINUS
