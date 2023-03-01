@@ -1,0 +1,7 @@
+let in 
+    let 
+        type rectype = {} 
+        var a:=5 
+    in end; 
+    5
+end

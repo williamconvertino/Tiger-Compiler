@@ -22,8 +22,14 @@ let
     var divtest := timestest / 5
 
     type rec2 = {a: int, b: int}
+
+    var teststring := "hello
+
+    world"
+
 in
-    
+    teststring;
+
     intarr[3] * 7;
 
     inst4.a.b + intarr[3];
