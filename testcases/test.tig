@@ -23,12 +23,11 @@ let
 
     type rec2 = {a: int, b: int}
 
-    var teststring := "hello
+    type emptyrecty = {}
 
-    world"
+    var emptyrec := emptyrecty {}
 
 in
-    teststring;
 
     intarr[3] * 7;
 
