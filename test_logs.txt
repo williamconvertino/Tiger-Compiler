@@ -1,0 +1,1485 @@
+Standard ML of New Jersey v110.79 [built: Sat Oct 26 12:27:04 2019]
+- [autoloading]
+[library $smlnj/cm/cm.cm is stable]
+[library $smlnj/internal/cm-sig-lib.cm is stable]
+[library $/pgraph.cm is stable]
+[library $smlnj/internal/srcpath-lib.cm is stable]
+[library $SMLNJ-BASIS/basis.cm is stable]
+[library $SMLNJ-BASIS/(basis.cm):basis-common.cm is stable]
+[autoloading done]
+[scanning typechecking/sources.cm]
+[library $/ml-yacc-lib.cm is stable]
+[attempting to load plugin $/lex-ext.cm]
+[library $/lex-ext.cm is stable]
+[library $smlnj/cm/tools.cm is stable]
+[library $smlnj/internal/cm-lib.cm is stable]
+[plugin $/lex-ext.cm loaded successfully]
+[attempting to load plugin $/mllex-tool.cm]
+[library $/mllex-tool.cm is stable]
+[plugin $/mllex-tool.cm loaded successfully]
+[attempting to load plugin $/grm-ext.cm]
+[library $/grm-ext.cm is stable]
+[plugin $/grm-ext.cm loaded successfully]
+[attempting to load plugin $/mlyacc-tool.cm]
+[library $/mlyacc-tool.cm is stable]
+[plugin $/mlyacc-tool.cm loaded successfully]
+[library $SMLNJ-LIB/Util/smlnj-lib.cm is stable]
+[library $SMLNJ-ML-YACC-LIB/ml-yacc-lib.cm is stable]
+[loading typechecking/(sources.cm):translate.sml]
+[loading typechecking/(sources.cm):symbol.sml]
+[loading typechecking/(sources.cm):absyn.sml]
+[loading typechecking/(sources.cm):prabsyn.sml]
+[loading typechecking/(sources.cm):tiger.grm.sig]
+[loading typechecking/(sources.cm):errormsg.sml]
+[loading typechecking/(sources.cm):tiger.lex.sml]
+[loading typechecking/(sources.cm):types.sml]
+[loading typechecking/(sources.cm):table.sig]
+[loading typechecking/(sources.cm):tiger.grm.sml]
+[loading typechecking/(sources.cm):parse.sml]
+[loading typechecking/(sources.cm):table.sml]
+[loading typechecking/(sources.cm):env.sml]
+[loading typechecking/(sources.cm):semant.sml]
+[loading typechecking/(sources.cm):main.sml]
+[New bindings added.]
+val it = true : bool
+testcases/test.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+[autoloading]
+[autoloading done]
+LetExp([
+ TypeDec[
+  (rec,
+   RecordTy[
+    (a,false,rec),
+    (b,false,int)])],
+ VarDec(inst1,false,NONE,
+  RecordExp(rec,[
+
+   (a,
+    NilExp),
+   (b,
+    IntExp(10))])),
+ VarDec(inst2,false,NONE,
+  RecordExp(rec,[
+
+   (a,
+    VarExp(
+     SimpleVar(inst1))),
+   (b,
+    IntExp(15))])),
+ VarDec(inst3,false,NONE,
+  RecordExp(rec,[
+
+   (a,
+    VarExp(
+     SimpleVar(inst2))),
+   (b,
+    IntExp(20))])),
+ VarDec(inst4,false,NONE,
+  RecordExp(rec,[
+
+   (a,
+    VarExp(
+     SimpleVar(inst3))),
+   (b,
+    IntExp(25))])),
+ TypeDec[
+  (a,
+   NameTy(c)),
+  (b,
+   NameTy(string)),
+  (c,
+   NameTy(int))],
+ FunctionDec[
+  (f,[
+   (a,false,int),
+   (b,false,int)],
+NONE,
+   OpExp(PlusOp,
+    VarExp(
+     SimpleVar(a)),
+    VarExp(
+     SimpleVar(b)))),
+  (g,[],
+SOME(int),
+   SeqExp[
+    CallExp(f,[
+     IntExp(3),
+     IntExp(5)]),
+    IntExp(4)])],
+ TypeDec[
+  (arrty,
+   ArrayTy(int)),
+  (nestedarr,
+   ArrayTy(arrty))],
+ VarDec(testint,false,NONE,
+  OpExp(PlusOp,
+   IntExp(4),
+   IntExp(5))),
+ VarDec(intarr,false,NONE,
+  ArrayExp(arrty,
+   IntExp(5),
+   IntExp(3))),
+ VarDec(bigarr,false,NONE,
+  ArrayExp(nestedarr,
+   IntExp(2),
+   ArrayExp(arrty,
+    IntExp(5),
+    IntExp(3)))),
+ VarDec(plustest,false,SOME(int),
+  OpExp(PlusOp,
+   IntExp(1),
+   IntExp(2))),
+ VarDec(minustest,false,SOME(c),
+  OpExp(MinusOp,
+   IntExp(4),
+   IntExp(3))),
+ VarDec(timestest,false,NONE,
+  OpExp(TimesOp,
+   VarExp(
+    SimpleVar(plustest)),
+   VarExp(
+    SimpleVar(minustest)))),
+ VarDec(divtest,false,NONE,
+  OpExp(DivideOp,
+   VarExp(
+    SimpleVar(timestest)),
+   IntExp(5))),
+ TypeDec[
+  (rec2,
+   RecordTy[
+    (a,false,int),
+    (b,false,int)])]],
+ SeqExp[
+  OpExp(TimesOp,
+   VarExp(
+    SubscriptVar(
+     SimpleVar(intarr),
+     IntExp(3))),
+   IntExp(7)),
+  OpExp(PlusOp,
+   VarExp(
+    FieldVar(
+     FieldVar(
+      SimpleVar(inst4),
+      a),
+     b)),
+   VarExp(
+    SubscriptVar(
+     SimpleVar(intarr),
+     IntExp(3)))),
+  BreakExp,
+  ForExp(
+test,false,
+   IntExp(3),
+   IntExp(5),
+   BreakExp),
+  WhileExp(
+   SeqExp[
+    OpExp(GtOp,
+     IntExp(3),
+     BreakExp)],
+   IntExp(4)),
+  WhileExp(
+   SeqExp[
+    IntExp(1)],
+   BreakExp),
+  WhileExp(
+   SeqExp[
+    IntExp(1)],
+   IfExp(
+    OpExp(LtOp,
+     IntExp(4),
+     IntExp(5)),
+    BreakExp)),
+  WhileExp(
+   SeqExp[
+    IntExp(1)],
+   IfExp(
+    OpExp(LtOp,
+     IntExp(4),
+     IntExp(5)),
+    IntExp(3),
+    BreakExp)),
+  WhileExp(
+   OpExp(EqOp,
+    IntExp(1),
+    IntExp(1)),
+   SeqExp[
+    BreakExp]),
+  WhileExp(
+   OpExp(EqOp,
+    IntExp(1),
+    IntExp(1)),
+   LetExp([
+    VarDec(x,false,NONE,
+     BreakExp)],
+    SeqExp[
+     IntExp(4)])),
+  WhileExp(
+   IntExp(1),
+   LetExp([
+    FunctionDec[
+     (test_break,[],
+NONE,
+      BreakExp)]],
+    SeqExp[
+     CallExp(test_break,[])]))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test.tig:31.5:break not contained within loop
+testcases/test.tig:39.44:break not contained within loop
+val it = () : unit
+testcases/test1.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (arrtype,
+   ArrayTy(int))],
+ VarDec(arr1,false,SOME(arrtype),
+  ArrayExp(arrtype,
+   IntExp(10),
+   IntExp(0)))],
+ SeqExp[
+  VarExp(
+   SimpleVar(arr1))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test10.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+WhileExp(
+ SeqExp[
+  OpExp(GtOp,
+   IntExp(10),
+   IntExp(5))],
+ OpExp(PlusOp,
+  IntExp(5),
+  IntExp(6)))
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test11.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+ForExp(
+i,false,
+ IntExp(10),
+ StringExp(" "),
+ AssignExp(
+  SimpleVar(i),
+  OpExp(MinusOp,
+   VarExp(
+    SimpleVar(i)),
+   IntExp(1))))
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test11.tig:2.1:type string does not match required type int
+val it = () : unit
+testcases/test12.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ VarDec(a,false,NONE,
+  IntExp(0))],
+ SeqExp[
+  ForExp(
+i,false,
+   IntExp(0),
+   IntExp(100),
+   SeqExp[
+    AssignExp(
+     SimpleVar(a),
+     OpExp(PlusOp,
+      VarExp(
+       SimpleVar(a)),
+      IntExp(1))),
+    SeqExp[]])])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test13.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+OpExp(GtOp,
+ IntExp(3),
+ StringExp("df"))
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test13.tig:3.1:type string does not match required type int
+val it = () : unit
+testcases/test14.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (arrtype,
+   ArrayTy(int)),
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(rec,false,NONE,
+  RecordExp(rectype,[
+
+   (name,
+    StringExp("aname")),
+   (id,
+    IntExp(0))])),
+ VarDec(arr,false,NONE,
+  ArrayExp(arrtype,
+   IntExp(3),
+   IntExp(0)))],
+ SeqExp[
+  IfExp(
+   OpExp(NeqOp,
+    VarExp(
+     SimpleVar(rec)),
+    VarExp(
+     SimpleVar(arr))),
+   IntExp(3),
+   IntExp(4))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test14.tig:12.5:type array of int does not match required type {id:int, name:string}
+val it = () : unit
+testcases/test15.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+IfExp(
+ IntExp(20),
+ IntExp(3))
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test16.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (a,
+   NameTy(c)),
+  (b,
+   NameTy(a)),
+  (c,
+   NameTy(d)),
+  (d,
+   NameTy(a))]],
+ SeqExp[
+  StringExp("")])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test16.tig:4.1:cycle detected in type dec d
+testcases/test16.tig:5.1:cycle detected in type dec c
+testcases/test16.tig:6.1:cycle detected in type dec a
+testcases/test16.tig:7.1:cycle detected in type dec c
+val it = () : unit
+testcases/test17.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (tree,
+   RecordTy[
+    (key,false,int),
+    (children,false,treelist)])],
+ VarDec(d,false,SOME(int),
+  IntExp(0)),
+ TypeDec[
+  (treelist,
+   RecordTy[
+    (hd,false,tree),
+    (tl,false,treelist)])]],
+ SeqExp[
+  VarExp(
+   SimpleVar(d))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test17.tig:4.23:undefined type treelist
+testcases/test17.tig:4.23:undefined type treelist
+val it = () : unit
+testcases/test18.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ FunctionDec[
+  (do_nothing1,[
+   (a,false,int),
+   (b,false,string)],
+SOME(int),
+   SeqExp[
+    CallExp(do_nothing2,[
+     OpExp(PlusOp,
+      VarExp(
+       SimpleVar(a)),
+      IntExp(1))]),
+    IntExp(0)])],
+ VarDec(d,false,NONE,
+  IntExp(0)),
+ FunctionDec[
+  (do_nothing2,[
+   (d,false,int)],
+SOME(string),
+   SeqExp[
+    CallExp(do_nothing1,[
+     VarExp(
+      SimpleVar(d)),
+     StringExp("str")]),
+    StringExp(" ")])]],
+ SeqExp[
+  CallExp(do_nothing1,[
+   IntExp(0),
+   StringExp("str2")])])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test18.tig:5.4:function do_nothing2 not declared
+val it = () : unit
+testcases/test19.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ FunctionDec[
+  (do_nothing1,[
+   (a,false,int),
+   (b,false,string)],
+SOME(int),
+   SeqExp[
+    CallExp(do_nothing2,[
+     OpExp(PlusOp,
+      VarExp(
+       SimpleVar(a)),
+      IntExp(1))]),
+    IntExp(0)]),
+  (do_nothing2,[
+   (d,false,int)],
+SOME(string),
+   SeqExp[
+    CallExp(do_nothing1,[
+     VarExp(
+      SimpleVar(a)),
+     StringExp("str")]),
+    StringExp(" ")])]],
+ SeqExp[
+  CallExp(do_nothing1,[
+   IntExp(0),
+   StringExp("str2")])])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test19.tig:8.16:undefined variable a
+val it = () : unit
+testcases/test2.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (myint,
+   NameTy(int)),
+  (arrtype,
+   ArrayTy(myint))],
+ VarDec(arr1,false,SOME(arrtype),
+  ArrayExp(arrtype,
+   IntExp(10),
+   IntExp(0)))],
+ SeqExp[
+  VarExp(
+   SimpleVar(arr1))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test20.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+WhileExp(
+ OpExp(GtOp,
+  IntExp(10),
+  IntExp(5)),
+ SeqExp[
+  OpExp(PlusOp,
+   VarExp(
+    SimpleVar(i)),
+   IntExp(1)),
+  SeqExp[]])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test20.tig:3.18:undefined variable i
+val it = () : unit
+testcases/test21.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ FunctionDec[
+  (nfactor,[
+   (n,false,int)],
+NONE,
+   IfExp(
+    OpExp(EqOp,
+     VarExp(
+      SimpleVar(n)),
+     IntExp(0)),
+    IntExp(1),
+    OpExp(TimesOp,
+     VarExp(
+      SimpleVar(n)),
+     CallExp(nfactor,[
+      OpExp(MinusOp,
+       VarExp(
+        SimpleVar(n)),
+       IntExp(1))]))))]],
+ SeqExp[
+  CallExp(nfactor,[
+   IntExp(10)])])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test21.tig:8.9:type unit does not match required type int
+val it = () : unit
+testcases/test22.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(rec1,false,NONE,
+  RecordExp(rectype,[
+
+   (name,
+    StringExp("Name")),
+   (id,
+    IntExp(0))]))],
+ SeqExp[
+  AssignExp(
+   FieldVar(
+    SimpleVar(rec1),
+    nam),
+   StringExp("asd"))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test22.tig:7.2:field nam not found in record type {id:int, name:string}
+testcases/test22.tig:7.2:type string does not match required type impossibility
+val it = () : unit
+testcases/test23.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(rec1,false,NONE,
+  RecordExp(rectype,[
+
+   (name,
+    StringExp("aname")),
+   (id,
+    IntExp(0))]))],
+ SeqExp[
+  AssignExp(
+   FieldVar(
+    SimpleVar(rec1),
+    name),
+   IntExp(3)),
+  AssignExp(
+   FieldVar(
+    SimpleVar(rec1),
+    id),
+   StringExp(""))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test23.tig:7.2:type int does not match required type string
+testcases/test23.tig:8.2:type string does not match required type int
+val it = () : unit
+testcases/test24.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ VarDec(d,false,NONE,
+  IntExp(0))],
+ SeqExp[
+  VarExp(
+   SubscriptVar(
+    SimpleVar(d),
+    IntExp(3)))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test24.tig:5.2:cannot index non-array type
+val it = () : unit
+testcases/test25.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ VarDec(d,false,NONE,
+  IntExp(0))],
+ SeqExp[
+  VarExp(
+   FieldVar(
+    SimpleVar(d),
+    f))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test25.tig:5.2:must reference record type got int
+val it = () : unit
+testcases/test26.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+OpExp(PlusOp,
+ IntExp(3),
+ StringExp("var"))
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test26.tig:3.1:type string does not match required type int
+val it = () : unit
+testcases/test27.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ VarDec(a,false,NONE,
+  IntExp(0)),
+ FunctionDec[
+  (g,[
+   (a,false,int)],
+SOME(int),
+   VarExp(
+    SimpleVar(a)))]],
+ SeqExp[
+  CallExp(g,[
+   IntExp(2)])])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test28.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (rectype1,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)]),
+  (rectype2,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(rec1,false,SOME(rectype1),
+  RecordExp(rectype2,[
+
+   (name,
+    StringExp("Name")),
+   (id,
+    IntExp(0))]))],
+ SeqExp[
+  VarExp(
+   SimpleVar(rec1))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test28.tig:7.2:record types do not match
+val it = () : unit
+testcases/test29.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (arrtype1,
+   ArrayTy(int)),
+  (arrtype2,
+   ArrayTy(int))],
+ VarDec(arr1,false,SOME(arrtype1),
+  ArrayExp(arrtype2,
+   IntExp(10),
+   IntExp(0)))],
+ SeqExp[
+  VarExp(
+   SimpleVar(arr1))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test29.tig:7.2:array types do not match
+val it = () : unit
+testcases/test3.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (age,false,int)])],
+ VarDec(rec1,false,SOME(rectype),
+  RecordExp(rectype,[
+
+   (name,
+    StringExp("Nobody")),
+   (age,
+    IntExp(1000))]))],
+ SeqExp[
+  AssignExp(
+   FieldVar(
+    SimpleVar(rec1),
+    name),
+   StringExp("Somebody")),
+  VarExp(
+   SimpleVar(rec1))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test30.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (a,
+   ArrayTy(int)),
+  (b,
+   NameTy(a))],
+ VarDec(arr1,false,SOME(a),
+  ArrayExp(b,
+   IntExp(10),
+   IntExp(0)))],
+ SeqExp[
+  VarExp(
+   SubscriptVar(
+    SimpleVar(arr1),
+    IntExp(2)))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test31.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ VarDec(a,false,SOME(int),
+  StringExp(" "))],
+ SeqExp[
+  VarExp(
+   SimpleVar(a))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test31.tig:3.2:type string does not match required type int
+val it = () : unit
+testcases/test32.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (arrayty,
+   ArrayTy(int))],
+ VarDec(a,false,NONE,
+  ArrayExp(arrayty,
+   IntExp(10),
+   StringExp(" ")))],
+ SeqExp[
+  IntExp(0)])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test32.tig:6.11:type string does not match required type int
+val it = () : unit
+testcases/test33.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ VarDec(a,false,NONE,
+  RecordExp(rectype,[
+]))],
+ SeqExp[
+  IntExp(0)])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test33.tig:3.10:undefined type rectype
+testcases/test33.tig:3.10:declared type not record type: rectype
+val it = () : unit
+testcases/test34.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ FunctionDec[
+  (g,[
+   (a,false,int),
+   (b,false,string)],
+SOME(int),
+   VarExp(
+    SimpleVar(a)))]],
+ SeqExp[
+  CallExp(g,[
+   StringExp("one"),
+   StringExp("two")])])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test34.tig:5.2:type string does not match required type int
+val it = () : unit
+testcases/test35.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ FunctionDec[
+  (g,[
+   (a,false,int),
+   (b,false,string)],
+SOME(int),
+   VarExp(
+    SimpleVar(a)))]],
+ SeqExp[
+  CallExp(g,[
+   StringExp("one")])])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test35.tig:5.2:type string does not match required type int
+testcases/test35.tig:5.2:missing params: string 
+val it = () : unit
+testcases/test36.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ FunctionDec[
+  (g,[
+   (a,false,int),
+   (b,false,string)],
+SOME(int),
+   VarExp(
+    SimpleVar(a)))]],
+ SeqExp[
+  CallExp(g,[
+   IntExp(3),
+   StringExp("one"),
+   IntExp(5)])])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test36.tig:5.2:too many args provided: 1
+val it = () : unit
+testcases/test37.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ VarDec(a,false,NONE,
+  IntExp(0)),
+ VarDec(a,false,NONE,
+  StringExp(" "))],
+ SeqExp[
+  IntExp(0)])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test38.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (a,
+   NameTy(int)),
+  (a,
+   NameTy(string))]],
+ SeqExp[
+  IntExp(0)])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test39.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ FunctionDec[
+  (g,[
+   (a,false,int)],
+SOME(int),
+   VarExp(
+    SimpleVar(a))),
+  (g,[
+   (a,false,int)],
+SOME(int),
+   VarExp(
+    SimpleVar(a)))]],
+ SeqExp[
+  IntExp(0)])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test4.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ FunctionDec[
+  (nfactor,[
+   (n,false,int)],
+SOME(int),
+   IfExp(
+    OpExp(EqOp,
+     VarExp(
+      SimpleVar(n)),
+     IntExp(0)),
+    IntExp(1),
+    OpExp(TimesOp,
+     VarExp(
+      SimpleVar(n)),
+     CallExp(nfactor,[
+      OpExp(MinusOp,
+       VarExp(
+        SimpleVar(n)),
+       IntExp(1))]))))]],
+ SeqExp[
+  CallExp(nfactor,[
+   IntExp(10)])])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test40.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ FunctionDec[
+  (g,[
+   (a,false,int)],
+NONE,
+   VarExp(
+    SimpleVar(a)))]],
+ SeqExp[
+  CallExp(g,[
+   IntExp(2)])])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test41.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (a,
+   NameTy(int))]],
+ SeqExp[
+  LetExp([
+   TypeDec[
+    (a,
+     NameTy(string))]],
+   SeqExp[
+    IntExp(0)])])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test42.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (arrtype1,
+   ArrayTy(int)),
+  (rectype1,
+   RecordTy[
+    (name,false,string),
+    (address,false,string),
+    (id,false,int),
+    (age,false,int)]),
+  (arrtype2,
+   ArrayTy(rectype1)),
+  (rectype2,
+   RecordTy[
+    (name,false,string),
+    (dates,false,arrtype1)]),
+  (arrtype3,
+   ArrayTy(string))],
+ VarDec(arr1,false,NONE,
+  ArrayExp(arrtype1,
+   IntExp(10),
+   IntExp(0))),
+ VarDec(arr2,false,NONE,
+  ArrayExp(arrtype2,
+   IntExp(5),
+   RecordExp(rectype1,[
+
+    (name,
+     StringExp("aname")),
+    (address,
+     StringExp("somewhere")),
+    (id,
+     IntExp(0)),
+    (age,
+     IntExp(0))]))),
+ VarDec(arr3,false,SOME(arrtype3),
+  ArrayExp(arrtype3,
+   IntExp(100),
+   StringExp(""))),
+ VarDec(rec1,false,NONE,
+  RecordExp(rectype1,[
+
+   (name,
+    StringExp("Kapoios")),
+   (address,
+    StringExp("Kapou")),
+   (id,
+    IntExp(2432)),
+   (age,
+    IntExp(44))])),
+ VarDec(rec2,false,NONE,
+  RecordExp(rectype2,[
+
+   (name,
+    StringExp("Allos")),
+   (dates,
+    ArrayExp(arrtype1,
+     IntExp(3),
+     IntExp(1900)))]))],
+ SeqExp[
+  AssignExp(
+   SubscriptVar(
+    SimpleVar(arr1),
+    IntExp(0)),
+   IntExp(1)),
+  AssignExp(
+   SubscriptVar(
+    SimpleVar(arr1),
+    IntExp(9)),
+   IntExp(3)),
+  AssignExp(
+   FieldVar(
+    SubscriptVar(
+     SimpleVar(arr2),
+     IntExp(3)),
+    name),
+   StringExp("kati")),
+  AssignExp(
+   FieldVar(
+    SubscriptVar(
+     SimpleVar(arr2),
+     IntExp(1)),
+    age),
+   IntExp(23)),
+  AssignExp(
+   SubscriptVar(
+    SimpleVar(arr3),
+    IntExp(34)),
+   StringExp("sfd")),
+  AssignExp(
+   FieldVar(
+    SimpleVar(rec1),
+    name),
+   StringExp("sdf")),
+  AssignExp(
+   SubscriptVar(
+    FieldVar(
+     SimpleVar(rec2),
+     dates),
+    IntExp(0)),
+   IntExp(2323)),
+  AssignExp(
+   SubscriptVar(
+    FieldVar(
+     SimpleVar(rec2),
+     dates),
+    IntExp(2)),
+   IntExp(2323))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test42.tig:27.1:cannot index non-array type
+testcases/test42.tig:27.1:type int does not match required type impossibility
+testcases/test42.tig:28.1:cannot index non-array type
+testcases/test42.tig:28.1:type int does not match required type impossibility
+val it = () : unit
+testcases/test43.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ VarDec(a,false,NONE,
+  SeqExp[])],
+ SeqExp[
+  OpExp(PlusOp,
+   VarExp(
+    SimpleVar(a)),
+   IntExp(3))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test43.tig:6.2:type unit does not match required type int
+val it = () : unit
+testcases/test44.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(b,false,SOME(rectype),
+  NilExp)],
+ SeqExp[
+  AssignExp(
+   SimpleVar(b),
+   NilExp)])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test45.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(a,false,NONE,
+  NilExp)],
+ SeqExp[
+  VarExp(
+   SimpleVar(a))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test46.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(b,false,SOME(rectype),
+  NilExp)],
+ SeqExp[
+  OpExp(EqOp,
+   VarExp(
+    SimpleVar(b)),
+   NilExp),
+  OpExp(NeqOp,
+   VarExp(
+    SimpleVar(b)),
+   NilExp)])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test47.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (a,
+   NameTy(int))],
+ VarDec(b,false,NONE,
+  IntExp(4)),
+ TypeDec[
+  (a,
+   NameTy(string))]],
+ SeqExp[
+  IntExp(0)])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test48.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ FunctionDec[
+  (g,[
+   (a,false,int)],
+SOME(int),
+   VarExp(
+    SimpleVar(a)))],
+ TypeDec[
+  (t,
+   NameTy(int))],
+ FunctionDec[
+  (g,[
+   (a,false,int)],
+SOME(int),
+   VarExp(
+    SimpleVar(a)))]],
+ SeqExp[
+  IntExp(0)])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test49.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (rectype,
+   RecordTy[
+    (name,false,string),
+    (id,false,int)])],
+ VarDec(a,false,NONE,
+  RecordExp(rectype,[
+]))],
+ SeqExp[
+  VarExp(
+   SimpleVar(a))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test49.tig:5.10:missing required fields from type {id:int, name:string}
+val it = () : unit
+testcases/test5.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ TypeDec[
+  (intlist,
+   RecordTy[
+    (hd,false,int),
+    (tl,false,intlist)]),
+  (tree,
+   RecordTy[
+    (key,false,int),
+    (children,false,treelist)]),
+  (treelist,
+   RecordTy[
+    (hd,false,tree),
+    (tl,false,treelist)])],
+ VarDec(lis,false,SOME(intlist),
+  RecordExp(intlist,[
+
+   (hd,
+    IntExp(0)),
+   (tl,
+    NilExp)]))],
+ SeqExp[
+  VarExp(
+   SimpleVar(lis))])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test6.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ FunctionDec[
+  (do_nothing1,[
+   (a,false,int),
+   (b,false,string)],
+NONE,
+   CallExp(do_nothing2,[
+    OpExp(PlusOp,
+     VarExp(
+      SimpleVar(a)),
+     IntExp(1))])),
+  (do_nothing2,[
+   (d,false,int)],
+NONE,
+   CallExp(do_nothing1,[
+    VarExp(
+     SimpleVar(d)),
+    StringExp("str")]))]],
+ SeqExp[
+  CallExp(do_nothing1,[
+   IntExp(0),
+   StringExp("str2")])])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test7.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+LetExp([
+ FunctionDec[
+  (do_nothing1,[
+   (a,false,int),
+   (b,false,string)],
+SOME(int),
+   SeqExp[
+    CallExp(do_nothing2,[
+     OpExp(PlusOp,
+      VarExp(
+       SimpleVar(a)),
+      IntExp(1))]),
+    IntExp(0)]),
+  (do_nothing2,[
+   (d,false,int)],
+SOME(string),
+   SeqExp[
+    CallExp(do_nothing1,[
+     VarExp(
+      SimpleVar(d)),
+     StringExp("str")]),
+    StringExp(" ")])]],
+ SeqExp[
+  CallExp(do_nothing1,[
+   IntExp(0),
+   StringExp("str2")])])
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test8.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+IfExp(
+ SeqExp[
+  OpExp(GtOp,
+   IntExp(10),
+   IntExp(20))],
+ IntExp(30),
+ IntExp(40))
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test9.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+IfExp(
+ SeqExp[
+  OpExp(GtOp,
+   IntExp(5),
+   IntExp(4))],
+ IntExp(13),
+ StringExp(" "))
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/_stringtest1.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+testcases/_stringtest1.tig:1.1:syntax error: deleting  LET ID
+testcases/_stringtest1.tig:3.5:syntax error: replacing  ID with  AND
+testcases/_stringtest1.tig:4.5:syntax error: replacing  ID with  AND
+testcases/_stringtest1.tig:4.21:syntax error: replacing  STRING with  LET
+IfExp(
+ IfExp(
+  OpExp(EqOp,
+   VarExp(
+    SimpleVar(myString1)),
+   StringExp("hello")),
+  IfExp(
+   OpExp(EqOp,
+    VarExp(
+     SimpleVar(myString2)),
+    StringExp("world")),
+   IntExp(1),
+   IntExp(0)),
+  IntExp(0)),
+ IfExp(
+  OpExp(EqOp,
+   VarExp(
+    SimpleVar(myString3)),
+   SeqExp[
+    VarExp(
+     SimpleVar(myString1))]),
+  IntExp(1),
+  IntExp(0)),
+ IntExp(0))
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/_stringtest1.tig:1.1:syntax error: deleting  LET ID
+testcases/_stringtest1.tig:3.5:syntax error: replacing  ID with  AND
+testcases/_stringtest1.tig:4.5:syntax error: replacing  ID with  AND
+testcases/_stringtest1.tig:4.21:syntax error: replacing  STRING with  LET
+testcases/_stringtest1.tig:2.9:undefined variable myString1
+testcases/_stringtest1.tig:2.9:types impossibility and string cannot be compared using this comparison operator
+testcases/_stringtest1.tig:3.9:undefined variable myString2
+testcases/_stringtest1.tig:3.9:types impossibility and string cannot be compared using this comparison operator
+testcases/_stringtest1.tig:4.9:undefined variable myString3
+testcases/_stringtest1.tig:6.5:undefined variable myString1
+testcases/_stringtest1.tig:4.9:types impossibility and impossibility cannot be compared using this comparison operator
+val it = () : unit
+testcases/_stringtest2.tig
+val it = () : unit
+AST===========>
+val it = () : unit
+testcases/_stringtest2.tig:2.5:syntax error: inserting  LPAREN
+testcases/_stringtest2.tig:13.1:syntax error: replacing  ID with  COMMA
+testcases/_stringtest2.tig:19.1:syntax error: replacing  ID with  COMMA
+testcases/_stringtest2.tig:18.1:syntax error found at EOF
+
+uncaught exception Error
+  raised at: typechecking/parse.sml:20.43-20.57
+- 
