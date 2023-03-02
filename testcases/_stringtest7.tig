@@ -1,0 +1,16 @@
+let
+    var str1 := "hello world"
+    var str2 := "hello \n world"
+    var str3 := "hello
+     world"
+    var str4 := "hello \
+
+
+    \ world"
+
+    var str5 := "hello \
+
+    world \"
+in
+    0
+end
