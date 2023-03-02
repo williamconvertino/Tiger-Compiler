@@ -27,6 +27,8 @@ let
 
     var emptyrec := emptyrecty {}
 
+    function k(a: int): int = if a < 5 then k(a-1) else 10
+
 in
 
     intarr[3] * 7;
