@@ -1,4 +1,15 @@
 let    
+    var var1 := nil
+   
+    type ty1 = int
+    type ty2 = ty1
+    type ty1 = string
+
+    function a() = 5
+    function b() = a()
+    function a() = 3
+    
+
     type rec = {a: rec, b: int}
     var inst1 := rec {a=nil, b=10}
     var inst2 := rec {a=inst1, b=15}

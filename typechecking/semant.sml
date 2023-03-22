@@ -76,7 +76,9 @@ struct
     and transDec (venv, tenv, in_loop, A.VarDec{name, typ=NONE, init, escape, pos}) = 
             let val {exp, ty} = transExp (venv, tenv, in_loop) init
             in 
-                {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=ty})}
+                if (ty = Types.NIL)
+                then (ErrorMsg.error pos ("variable cannot have type of nil: " ^ Symbol.name name); {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=Types.IMPOSSIBILITY})})
+                else {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=ty})}
             end |
         (* var x: type := exp *)
         transDec (venv, tenv, in_loop, A.VarDec{name, typ=SOME((tysym, typos)), init, escape, pos}) =
@@ -90,16 +92,19 @@ struct
         (* -- Type Decs -- *)
         (* type t = ty *)
         transDec (venv, tenv, in_loop, A.TypeDec(tydecs)) =
-            let fun setupHeaders (venv, tenv, {name=decname, ty=decty, pos=decpos}::tydecs) = 
+            let fun setupHeaders (venv, tenv, {name=decname, ty=decty, pos=decpos}::tydecs, newTypes) = 
                 let val tyref = ref NONE
-                    val {venv=venv', tenv=tenv'} = setupHeaders (venv, S.enter(tenv, decname, Types.NAME(decname, tyref)), tydecs)
+                    val {venv=venv', tenv=tenv'} = 
+                        case (Symbol.look (newTypes, decname)) of
+                            SOME(_) => (ErrorMsg.error decpos ("duplicate mutually recursive type name not allowed " ^ Symbol.name decname); setupHeaders (venv, S.enter(tenv, decname, Types.NAME(decname, tyref)), tydecs, S.enter(newTypes, decname, true)))
+                        |   NONE    => setupHeaders (venv, S.enter(tenv, decname, Types.NAME(decname, tyref)), tydecs, S.enter(newTypes, decname, true))
                 in
                     (
                         tyref := SOME(transTy (tenv', decty));
                         {tenv=tenv', venv=venv'}
                     )
                 end
-                |   setupHeaders (venv, tenv, []) = {venv=venv, tenv=tenv}
+                |   setupHeaders (venv, tenv, [], newTypes) = {venv=venv, tenv=tenv}
 
                 fun cyclicGuard ({tenv, venv}) =
                     let fun checkTyDec ({name=decname, ty=decty, pos=decpos}::tydecs) =
@@ -118,14 +123,14 @@ struct
                         (checkTyDec(tydecs); {tenv=tenv, venv=venv})
                     end
             in
-                cyclicGuard (setupHeaders (venv, tenv, tydecs))
+                cyclicGuard (setupHeaders (venv, tenv, tydecs, Symbol.empty))
             end |
         
         (* -- Function Decs -- *)
         (* function f(a: ta, b: tb) : rt = body *)
         (* function f(a: ta, b: tb) = body *)
         transDec (venv, tenv, in_loop, A.FunctionDec(fundecs)) =
-            let fun trFun (venv, tenv, {name, params, body, pos, result}::fundecs) =
+            let fun trFun (venv, tenv, {name, params, body, pos, result}::fundecs, newFuncs) =
                     let val result_ty = case result of
                             SOME(rt, respos) => (case S.look(tenv, rt) of
                                 SOME(resty) => resty |
@@ -151,7 +156,11 @@ struct
                         |   enterparams (venv, []) = venv
                         
 
-                        val {venv=venv'', tenv} = trFun (venv', tenv, fundecs)
+                        val {venv=venv'', tenv} = 
+                            case (Symbol.look (newFuncs, name)) of
+                                SOME(_)     => (ErrorMsg.error pos ("duplicate mutually recursive function name not allowed " ^ Symbol.name name); trFun (venv', tenv, fundecs, Symbol.enter (newFuncs, name, true)))
+                            |   NONE        => trFun (venv', tenv, fundecs, Symbol.enter (newFuncs, name, true))
+                        
                         val venv''' = enterparams (venv'', params')
                         val {exp=bodyexp, ty=bodyty} = transExp(venv''', tenv, NONE) body
                     in 
@@ -161,10 +170,10 @@ struct
                         )
                     end
 
-                |   trFun (venv, tenv, []) = {venv=venv, tenv=tenv}
+                |   trFun (venv, tenv, [], newFuncs) = {venv=venv, tenv=tenv}
 
             in
-                trFun (venv, tenv, fundecs)
+                trFun (venv, tenv, fundecs, Symbol.empty)
             end
 
     
