@@ -205,9 +205,14 @@ struct
             
             (* SeqExps *)
             |   trexp (A.SeqExp (exps)) =
-                    let fun trseq [] = {exp=(), ty=Types.UNIT}
-                        |   trseq ((exp, pos)::[]) = trexp exp
-                        |   trseq ((exp, pos)::seq) = (trexp exp; trseq seq)
+                    let fun trseq [] = {exp=(T.seqExp []), ty=Types.UNIT}
+                        |   trseq (seq) = 
+                                let val trseqs = List.map trexp seq
+                                    val seqexps = List.map (fn transexp => (#exp transexp)) trseqs
+                                in
+                                    {exp=(T.seqExp seqexps), ty=(#ty (List.last trseqs))}
+                                end
+
                     in
                         trseq exps
                     end
@@ -216,7 +221,7 @@ struct
             |   trexp (A.VarExp (var)) = trvar var
 
             (* NilExp *)
-            |   trexp (A.NilExp) = {exp=(), ty=Types.NIL}
+            |   trexp (A.NilExp) = {exp=T.const(0), ty=Types.NIL}
 
 
             (* CallExp *)

@@ -13,6 +13,8 @@ sig
 
   val opExp : Absyn.oper * exp * exp -> exp
   val const : int -> exp
+  val label : Temp.label -> exp
+  val seqExp : exp list -> exp
 
   val seq : Tree.stm list -> Tree.stm
     
@@ -105,4 +107,16 @@ structure Translate : TRANSLATE = struct
 
 
   fun const const = Ex(T.CONST(const))
+
+  fun label label = Nx(T.LABEL(label))
+
+  fun seqExp [] = Nx(T.LABEL(Temp.newlabel()))
+  |   seqExp (exp::[]) = exp
+  |   seqExp (exps) = 
+        let val stms = List.take (exps, (List.length exps)-1)
+            val unwrappedExp = unEx(List.last exps)
+            val unwrappedStms = List.map unNx stms
+        in
+          Ex(T.ESEQ(seq unwrappedStms, unwrappedExp))
+        end
 end
