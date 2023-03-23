@@ -6,12 +6,12 @@ sig
   val name : frame -> Temp.label
   val formals : frame -> access list
   val allocLocal : frame -> bool -> access
-
   val allocR0 : unit -> access
-  (* val FP : Temp.temp
+
+  val FP : Temp.temp
   val wordSize: int
   val exp : access -> Tree.exp -> Tree.exp
-  val externalCall: string * Tree.exp list -> Tree.exp
+  (*val externalCall: string * Tree.exp list -> Tree.exp
   val RV : Temp.temp
   val procEntryExit1 : frame * Tree.stm -> Tree.stm
   datatype frag = PROC of {body: Tree.stm, frame: frame}
@@ -42,7 +42,6 @@ structure MipsFrame : FRAME = struct
     |   allocLocal _ false                = InReg (Temp.newtemp())
 
     fun allocR0 () = InReg(0)
-
     val FP = Temp.newtemp ()
     val wordSize = 4
 
