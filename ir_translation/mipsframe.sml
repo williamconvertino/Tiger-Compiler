@@ -13,7 +13,7 @@ sig
   val exp : access -> Tree.exp -> Tree.exp
   val externalCall: string * Tree.exp list -> Tree.exp
   val RV : Temp.temp
-  val procEntryExitl : frame * Tree.stm -> Tree.stm
+  val procEntryExit1 : frame * Tree.stm -> Tree.stm
   datatype frag = PROC of {body: Tree.stm, frame: frame}
                 | STRING of Temp.label * string *)
 end
@@ -47,7 +47,7 @@ structure MipsFrame : FRAME = struct
     val wordSize = 4
 
     
-    fun procEntryExitl(frame,body) = body
+    fun procEntryExit1(frame,body) = body
 
 
 end
