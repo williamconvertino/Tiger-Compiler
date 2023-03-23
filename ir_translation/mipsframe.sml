@@ -6,6 +6,8 @@ sig
   val name : frame -> Temp.label
   val formals : frame -> access list
   val allocLocal : frame -> bool -> access
+
+  val allocR0 : unit -> access
   (* val FP : Temp.temp
   val wordSize: int
   val exp : access -> Tree.exp -> Tree.exp
@@ -39,8 +41,10 @@ structure MipsFrame : FRAME = struct
     fun allocLocal (_, _, locals, _) true = (locals := !locals + 1 ; InFrame (!locals * ~4))
     |   allocLocal _ false                = InReg (Temp.newtemp())
 
+    fun allocR0 () = InReg(0)
+
     val FP = Temp.newtemp ()
-    val wordSize = 32
+    val wordSize = 4
 
     
     fun procEntryExitl(frame,body) = body

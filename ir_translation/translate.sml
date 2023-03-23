@@ -19,14 +19,27 @@ structure Frame = MipsFrame
 
 structure Translate : TRANSLATE = struct 
   type exp = Tree.exp
-  type level = Frame.frame
+  datatype level = TOP | LEVEL of (level * Frame.frame) * unit ref
+
   type access = level * Frame.access
 
-  val outermost: level = MipsFrame.newFrame {name=(Temp.newlabel()), formals=[]}
+  val outermost: level = TOP
 
-  fun newLevel {parent, name, formals} = MipsFrame.newFrame {name=name, formals=(true::formals)}
+  fun newLevel {parent, name, formals} = LEVEL((parent, MipsFrame.newFrame {name=name, formals=(true::formals)}), ref ())
 
-  fun formals (name, acclist, locals, shift) = (List.map (fn (frameAccess) => ((name, acclist, locals, shift), frameAccess)) acclist)
+  fun formals (TOP) = []
+  |   formals (LEVEL(level)) = 
+        let val (_, acclist, _, _) = (#2 (#1 level))
+        in
+          List.map (fn (frameAccess) => (LEVEL(level), frameAccess)) acclist
+        end
+  
 
-  fun allocLocal lev escapes = (lev, MipsFrame.allocLocal lev escapes)
+
+  fun allocLocal (TOP) escapes = (TOP, MipsFrame.allocR0())
+  |   allocLocal (LEVEL(lev)) escapes = 
+        let val ((_, frame), _) = lev
+        in
+          (LEVEL(lev), (MipsFrame.allocLocal frame escapes))
+        end
 end

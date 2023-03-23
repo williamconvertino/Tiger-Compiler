@@ -76,7 +76,7 @@ struct
         (* var x := exp *)
     and transDec (venv, tenv, in_loop, A.VarDec{name, typ=NONE, init, escape, pos}, level) = 
             let val {exp, ty} = transExp (venv, tenv, in_loop, level) init
-                val access = (level, Frame.allocLocal level (!escape))
+                val access = Translate.allocLocal level (!escape)
             in 
                 {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=ty, access=access})}
             end |
@@ -85,7 +85,7 @@ struct
             let val {exp, ty=initty} = transExp (venv, tenv, in_loop, level) init
                 val decty = lookupTypeDec (tenv, tysym, typos)
                 val evalty = Types.checkType(initty, decty, pos)
-                val access = (level, Frame.allocLocal level (!escape))
+                val access = Translate.allocLocal level (!escape)
             in
                 {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=evalty, access=access})}
             end |
@@ -155,7 +155,7 @@ struct
                         
                         val venv' = S.enter(venv, name, E.FunEntry{formals= List.map #ty params', result=result_ty, level=level', label=(Temp.newlabel())})
                         fun enterparams (venv, {name, ty, escape}::params) = 
-                            let val access = (level', Frame.allocLocal level' escape)
+                            let val access = Translate.allocLocal level' escape
                             in
                                 S.enter(enterparams (venv, params), name, E.VarEntry{ty=ty, access=access})
                             end
@@ -352,7 +352,7 @@ struct
 
             (* ForExp *)
             |   trexp (A.ForExp{var, escape, lo, hi, body, pos}) =
-                    let val loopvaraccess = (level, Frame.allocLocal level (!escape))
+                    let val loopvaraccess = Translate.allocLocal level (!escape)
                         val venv' = S.enter (venv, var, E.VarEntry{ty=Types.INT, access=loopvaraccess})
                         val {exp=loexp, ty=loty} = trexp lo
                         val {exp=hiexp, ty=hity} = trexp hi
