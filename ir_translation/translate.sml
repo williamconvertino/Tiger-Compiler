@@ -9,16 +9,21 @@ sig
   val formals: level -> access list
   val allocLocal: level -> bool -> access
   
+  val simpleVar : access * level -> exp 
+  val array : 
+    
   (* val procEntryExit : {level: level, body: exp} -> unit
 
-  structure Frame : FRAME
   val getResult : unit -> Frame.frag list *)
 end
 
 structure Frame = MipsFrame
+structure T = Tree
 
 structure Translate : TRANSLATE = struct 
-  type exp = Tree.exp
+  datatype exp = Ex of Tree.exp
+               | Nx of Tree.stm
+               | Cx of Temp.label * Temp.label -> Tree.stm
   type level = Frame.frame
   type access = level * Frame.access
 
@@ -29,4 +34,36 @@ structure Translate : TRANSLATE = struct
   fun formals (name, acclist, locals, shift) = (List.map (fn (frameAccess) => ((name, acclist, locals, shift), frameAccess)) acclist)
 
   fun allocLocal lev escapes = (lev, MipsFrame.allocLocal lev escapes)
+
+  fun unEx (Ex e) = e
+    | unEx (Cx genstm) =
+           let val r = Temp.newtemp()
+                val t = Temp.newlabel() and f = Temp.newlabel()
+           in T.ESEQ(seq[T.MOVE(T.TEMP r, T.CONST 1),
+                                genstm(t,f),
+                                T.LABEL f,
+                                T.MOVE(T.TEMP r, T.CONST 0).
+                                T.LABEL t],
+                                T.TEMP r)
+           end
+    | unEx (Nx s) = T.ESEQ(s,T.CONST 0)
+  
+  fun unCx (Ex e) = (fn (t,f) => T.CJUMP (T.EQ, T.CONST 1, e, T.NAME t, T.NAME
+    f))
+    | unCx (Ex (T.CONST 0)) = (fn (t,f) => T.JUMP(T.NAME f, [f]))
+    | unCx (Ex (T.CONST 1)) = (fn (t,f) => T.JUMP(T.NAME t, [t]))
+    | unCx (Cx c) = c
+
+  fun unNx (Ex e) = Tree.exp(e)
+    | unNx (Cx c) = Tree.stm(UnEx(c))
+    | unNx (Nx s) = s
+
+  fun staticLink deflev uselev e a = T.MEM (T.BINOP (T.PLUS, e, a))
+    (*MISSING dealing with static link*)
+  fun simpleVar ((deflev, a), uselev) = Ex(MipsFrame.exp a (staticLink
+    deflec uselev (T.TEMP(MipsFrame.FP) a)))
+    (*MISSING dealing with static link*)
+
+
+
 end
