@@ -73,11 +73,13 @@ structure Translate : TRANSLATE = struct
     | unNx (Cx c) = T.EXP((unEx(Cx(c))))
     | unNx (Nx s) = s
 
-  fun staticLink deflev uselev e a = T.MEM (T.BINOP (T.PLUS, e, a))
-    (*MISSING dealing with static link*)
-  fun simpleVar ((deflev, frameaccess), uselev) = 
-        Ex(MipsFrame.exp frameaccess (staticLink deflev uselev (T.TEMP(MipsFrame.FP)) frameaccess))
-    (*MISSING dealing with static link*)
+  fun staticLink (deflev as LEVEL((pdef, fdef), rdef)) (uselev as
+    LEVEL((puse,fuse),ruse)) e a =
+           if rdef = ruse then e
+             else (MipsFrame.exp a (staticLink deflev puse e a))
+
+  fun simpleVar ((deflev, a), uselev) = Ex(MipsFrame.exp a (staticLink
+    deflev uselev (T.TEMP(MipsFrame.FP)) a ))
 
 
 end
