@@ -182,12 +182,12 @@ struct
     and transExp (venv, tenv, in_loop, level) = 
             (* -- Expressions -- *)
             (* IntExp *)
-        let fun trexp (A.IntExp (int)) = {exp=(), ty=Types.INT}
+        let fun trexp (A.IntExp (int)) = {exp=T.const(int), ty=Types.INT}
 
             (* StringExp *)
             |   trexp (A.StringExp (str, pos)) = {exp=(), ty=Types.STRING}
         
-            (* Arithmetic Ops *)
+            (* Arithmetic & Comparison Ops *)
             |   trexp (A.OpExp{left, oper, right, pos}) =
                     let val {lty, lexp} = trexp left
                         val {rty, rexp} = trexp right

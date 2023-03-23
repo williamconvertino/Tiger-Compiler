@@ -12,6 +12,7 @@ sig
   val simpleVar : access * level -> exp 
 
   val opExp : Absyn.oper * exp * exp -> exp
+  val const : int -> exp
 
   val seq : Tree.stm list -> Tree.stm
     
@@ -101,4 +102,7 @@ structure Translate : TRANSLATE = struct
     in
       trOp oper
     end
+
+
+  fun const const = Ex(T.CONST(const))
 end
