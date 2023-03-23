@@ -19,5 +19,6 @@ env.sml
 tree.sml
 mipsframe.sml
 translate.sml
+findescape.sml
 semant.sml
 main.sml

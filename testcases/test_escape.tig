@@ -1,0 +1,12 @@
+let
+    var x := 5
+
+    function a(y: int) = b(y, 3)
+    function b(y: int, z: int) = (x + y + z; let
+        function c() = y
+    in 
+        c()
+    end)
+in
+    a(2)
+end

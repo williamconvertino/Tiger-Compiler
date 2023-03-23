@@ -1,8 +1,22 @@
-structure Main : sig val compile : string -> unit end =
+structure Main : sig 
+    val compile : string -> unit 
+    val escape  : string -> unit
+end =
 struct 
 
-    (* The reading didn't give specifications for how the Main module should be set up *)
-    (* Feel free to change/remove this function *)
-    fun compile filename = Semant.transProg (Parse.parse filename)
+    fun escape filename =
+        let val absyn = Parse.parse filename
+        in
+            FindEscape.findEscape absyn;
+            PrintAbsyn.print (TextIO.stdOut, absyn)
+        end
+
+
+    fun compile filename = 
+        let val absyn = Parse.parse filename
+        in 
+            FindEscape.findEscape absyn;
+            Semant.transProg absyn
+        end
 
 end
