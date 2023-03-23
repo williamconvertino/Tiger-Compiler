@@ -6,6 +6,8 @@ $/ml-yacc-lib.cm
 absyn.sml
 prabsyn.sml
 errormsg.sml
+temp.sig
+temp.sml
 table.sig
 table.sml
 symbol.sml
@@ -14,6 +16,8 @@ tiger.lex
 tiger.grm
 types.sml
 env.sml
-main.sml
+tree.sml
+mipsframe.sml
 translate.sml
 semant.sml
+main.sml

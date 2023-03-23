@@ -2555,7 +2555,6 @@ end
         end
     in
     fun makeLexer yyinputN = mk (yyInput.mkStream yyinputN)
-    fun makeLexer' ins = mk (yyInput.mkStream ins)
     end
 
   end
