@@ -21,6 +21,8 @@ end
 structure MipsFrame : FRAME = struct 
     datatype access = InFrame of int | InReg of Temp.temp
 
+    structure T = Tree
+
     type frame = Temp.label * access list * int ref * Tree.exp list
     
 
@@ -44,6 +46,9 @@ structure MipsFrame : FRAME = struct
     fun allocR0 () = InReg(0)
     val FP = Temp.newtemp ()
     val wordSize = 4
+
+    fun exp (InFrame(offset)) frameAddr = T.MEM(T.BINOP(T.PLUS, frameAddr, T.CONST(offset)))
+    |   exp (InReg(r)) _ = T.TEMP(r)
 
     
     fun procEntryExit1(frame,body) = body
