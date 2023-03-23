@@ -11,6 +11,8 @@ sig
   
   val simpleVar : access * level -> exp 
 
+  val opExp : Absyn.oper * exp * exp -> exp
+
   val seq : Tree.stm list -> Tree.stm
     
   (* val procEntryExit : {level: level, body: exp} -> unit
@@ -19,6 +21,7 @@ sig
 end
 
 structure Frame = MipsFrame
+structure A = Absyn
 structure T = Tree
 
 structure Translate : TRANSLATE = struct 
@@ -82,4 +85,14 @@ structure Translate : TRANSLATE = struct
     deflev uselev (T.TEMP(MipsFrame.FP)) a ))
 
 
+  fun opExp (A.PlusOp, left, right) = Ex(T.BINOP(T.PLUS, left, right))
+  |   opExp (A.MinusOp, left, right) = Ex(T.BINOP(T.MINUS, left, right))
+  |   opExp (A.TimesOp, left, right) = Ex(T.BINOP(T.MUL, left, right))
+  |   opExp (A.DivideOp, left, right) = Ex(T.BINOP(T.DIV, left, right))
+  |   opExp (A.EqOp, left, right) = Cx(fn (t,f) => T.CJUMP(T.EQ, left, right, t, f))
+  |   opExp (A.NeqOp, left, right) = Cx(fn (t,f) => T.CJUMP(T.NE, left, right, t, f))
+  |   opExp (A.LtOp, left, right) = Cx(fn (t,f) => T.CJUMP(T.LT, left, right, t, f))
+  |   opExp (A.LeOp, left, right) = Cx(fn (t,f) => T.CJUMP(T.LE, left, right, t, f))
+  |   opExp (A.GtOp, left, right) = Cx(fn (t,f) => T.CJUMP(T.GT, left, right, t, f))
+  |   opExp (A.GeOp, left, right) = Cx(fn (t,f) => T.CJUMP(T.GE, left, right, t, f))
 end

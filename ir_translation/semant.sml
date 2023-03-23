@@ -23,10 +23,11 @@ struct
     structure A = Absyn
     structure E = Env
     structure S = Symbol
+    structure T = Translate
 
-    fun checkInt ({exp, ty}, pos) = Types.checkType(ty, Types.INT, pos)
+    fun checkInt (ty, pos) = Types.checkType(ty, Types.INT, pos)
 
-    fun checkComparisonOp ({exp=lexp, ty=lty}, {exp=rexp, ty=rty}, check_op, pos) =
+    fun checkComparisonOp (lty, rty, check_op, pos) =
         let fun checkOp (Types.INT, rty, _) = Types.checkType(rty, Types.INT, pos)
             |   checkOp (Types.STRING, rty, _) = Types.checkType(rty, Types.STRING, pos)
             |   checkOp (Types.ARRAY(lty), rty, A.EqOp) = Types.checkType(rty, Types.ARRAY(lty), pos)
@@ -187,40 +188,20 @@ struct
             |   trexp (A.StringExp (str, pos)) = {exp=(), ty=Types.STRING}
         
             (* Arithmetic Ops *)
-            |   trexp (A.OpExp{left, oper=A.PlusOp, right, pos}) =
-                {exp=(), ty=Types.closestDescendant (checkInt(trexp left, pos), checkInt(trexp right, pos))}
-            |   trexp (A.OpExp{left, oper=A.MinusOp, right, pos}) =
-                {exp=(), ty=Types.closestDescendant (checkInt(trexp left, pos), checkInt(trexp right, pos))}
-            |   trexp (A.OpExp{left, oper=A.TimesOp, right, pos}) =
-                {exp=(), ty=Types.closestDescendant (checkInt(trexp left, pos), checkInt(trexp right, pos))}
-            |   trexp (A.OpExp{left, oper=A.DivideOp, right, pos}) =
-                {exp=(), ty=Types.closestDescendant (checkInt(trexp left, pos), checkInt(trexp right, pos))}
-            
-            (* Comparison Ops *)
-            |   trexp (A.OpExp{left, oper=A.EqOp, right, pos}) = (
-                    checkComparisonOp (trexp left, trexp right, A.EqOp, pos);
-                    {exp=(), ty=Types.INT}
-                )
-            |   trexp (A.OpExp{left, oper=A.NeqOp, right, pos}) = (
-                    checkComparisonOp (trexp left, trexp right, A.NeqOp, pos);
-                    {exp=(), ty=Types.INT}
-                )
-            |   trexp (A.OpExp{left, oper=A.LtOp, right, pos}) = (
-                    checkComparisonOp (trexp left, trexp right, A.LtOp, pos);
-                    {exp=(), ty=Types.INT}
-                )
-            |   trexp (A.OpExp{left, oper=A.LeOp, right, pos}) = (
-                    checkComparisonOp (trexp left, trexp right, A.LeOp, pos);
-                    {exp=(), ty=Types.INT}
-                )
-            |   trexp (A.OpExp{left, oper=A.GtOp, right, pos}) = (
-                    checkComparisonOp (trexp left, trexp right, A.GtOp, pos);
-                    {exp=(), ty=Types.INT}
-                )
-            |   trexp (A.OpExp{left, oper=A.GeOp, right, pos}) = (
-                    checkComparisonOp (trexp left, trexp right, A.GeOp, pos);
-                    {exp=(), ty=Types.INT}
-                )
+            |   trexp (A.OpExp{left, oper, right, pos}) =
+                    let val {lty, lexp} = trexp left
+                        val {rty, rexp} = trexp right
+                        fun trOpExp (A.PlusOp) = {exp=T.opExp(A.PlusOp, lexp, rexp), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
+                        |   trOpExp (A.MinusOp) = {exp=T.opExp(A.MinusOp, lexp, rexp), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
+                        |   trOpExp (A.TimesOp) = {exp=T.opExp(A.TimesOp, lexp, rexp), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
+                        |   trOpExp (A.DivideOp) = {exp=T.opExp(A.DivideOp, lexp, rexp), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
+                        |   trOpExp (compOp) = (
+                            checkComparisonOp (lty, rty, compOp, pos);
+                            {exp=T.opExp(compOp, lexp, rexp), ty=Types.INT}
+                        )
+                    in
+                        trOpExp oper
+                    end
             
             (* SeqExps *)
             |   trexp (A.SeqExp (exps)) =
