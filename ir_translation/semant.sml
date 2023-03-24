@@ -376,7 +376,6 @@ struct
                         tycheck ({exp=varexp, ty=actual_ty varty}, trexp exp) 
                     end
                 (* foo.bar *)
-                (*MISSING the weird addition of a counter to track field index*)
             |   trvar (A.FieldVar(var, symbol, pos)) =
                     let fun findsym (sym, (sym', ty)::l, i) = 
                                 if Symbol.eq (sym, sym') 
