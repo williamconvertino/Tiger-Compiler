@@ -35,6 +35,8 @@ sig
   val getResult : unit -> MipsFrame.frag list 
   val rememberedFrags : MipsFrame.frag list ref 
   val stringVar : string -> Tree.exp
+  val ifExp : exp * exp * exp -> exp
+
 end
 
 structure Frame = MipsFrame
@@ -238,5 +240,26 @@ structure Translate : TRANSLATE = struct
           (rememberedFrags := Frame.STRING((getLab(),lit))::(!rememberedFrags);
           T.NAME(getLab ()))
         end
+ 
+  fun ifExp (test, t', e) =
+     let val join = Temp.newlabel()
+          val t = Temp.newlabel()
+          val f = Temp.newlabel()
+          val r = Temp.newtemp()
+          val s1 = unCx(test)
+          
+          fun helper (s1, (v as _), (v' as _)) =
+          let val s2 = unEx (v)
+              val s3 = unEx(v')
+          in
+            Ex(T.ESEQ(T.SEQ(s1(t,f),T.SEQ(T.LABEL(t),
+            T.SEQ(T.MOVE(s2,T.TEMP(r)),T.SEQ(T.JUMP(T.NAME(join),[join]),
+            T.SEQ(T.LABEL(f),T.SEQ(T.MOVE(s3,T.TEMP(r)),T.JUMP(T.NAME(join),[join]))))))),T.TEMP(r)))
+          end
+     in
+       helper (s1,t',e)
+     end
+
+
 
 end

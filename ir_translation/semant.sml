@@ -327,7 +327,7 @@ struct
                     (
                         Types.checkType(initty, valty, pos);
                         Types.checkType(sizety, Types.INT, pos);
-                        {exp=T.arrayExp(#exp (trexp size), #exp (trexp init)), ty=dectyp}
+                        {exp=T.arrayExp(sizeexp, initexp), ty=dectyp}
                     )
                 end
 
@@ -343,9 +343,10 @@ struct
             (* IfExp *)
             | trexp (A.IfExp{test, then', else'=NONE, pos}) = 
                 let val {exp=testexp, ty=testty} = trexp test
+                    val {exp=thenexp, ty=thenty} = trexp then'
                 in
                     Types.checkType(testty, Types.INT, pos);
-                    {exp=(), ty=Types.UNIT}
+                    {exp=(T.ifExp(testexp, thenexp, T.nop())), ty=Types.UNIT}
                 end
             | trexp (A.IfExp{test, then', else'=SOME(else'), pos}) = 
                 let val {exp=testexp, ty=testty} = trexp test
@@ -354,7 +355,7 @@ struct
                     val resty = Types.nearestAncestor(thenty, elsety, pos)
                 in
                     Types.checkType(testty, Types.INT, pos);
-                    {exp=(), ty=resty}
+                    {exp=(T.ifExp(testexp, thenexp, elseexp)), ty=resty}
                 end
 
             (* LetExp *)
