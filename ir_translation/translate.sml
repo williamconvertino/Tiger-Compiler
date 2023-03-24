@@ -36,7 +36,7 @@ sig
   val procEntryExit : {level: level, body: exp} -> unit
   val getResult : unit -> MipsFrame.frag list 
   val rememberedFrags : MipsFrame.frag list ref 
-  val stringVar : string -> Tree.exp
+  val stringVar : string -> exp
   val ifExp : exp * exp * exp -> exp
 
 end
@@ -247,7 +247,7 @@ structure Translate : TRANSLATE = struct
             | NONE => Temp.newlabel()
         in
           (rememberedFrags := Frame.STRING((getLab(),lit))::(!rememberedFrags);
-          T.NAME(getLab ()))
+          Ex(T.NAME(getLab ())))
         end
  
   fun ifExp (test, t', e) =

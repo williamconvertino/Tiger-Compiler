@@ -228,7 +228,7 @@ struct
             |   trexp (A.CallExp{func, args, pos}) = 
                     let fun checkParams ([], [], formalExps) = formalExps
                         |   checkParams (args, [], formalExps) = (ErrorMsg.error pos ("too many args provided: " ^ Int.toString (List.length args)); formalExps)
-                        |   checkParams ([], formalty::formals, formalExps) = ((ErrorMsg.error pos ("missing param: " ^ Types.toString ty)); checkParams([], formals, (T.nop()::formalExps)))
+                        |   checkParams ([], formalty::formals, formalExps) = ((ErrorMsg.error pos ("missing param: " ^ Types.toString formalty)); checkParams([], formals, (T.nop()::formalExps)))
                         |   checkParams (exp::args, ty::formals, formalExps) = 
                                 let val {exp=argexp, ty=argty} = trexp exp
                                 in 
@@ -258,7 +258,7 @@ struct
                                             val remainingFields = List.filter (fn (fieldsym, _, _) => not (Symbol.eq(tysym, fieldsym))) fields
                                             fun checkField((fieldsym, fieldexp, fieldpos)) = 
                                                 let val {exp=initexp, ty=fieldty} = trexp fieldexp
-                                                    val updatedRecType = Types.checkType (trfieldty, tyty, fieldpos)
+                                                    val updatedRecType = Types.checkType (fieldty, tyty, fieldpos)
                                                 in
                                                     case updatedRecType of
                                                         Types.IMPOSSIBILITY => checkElements ({exps=(initexp::exps), ty=Types.IMPOSSIBILITY}, remainingFields, tylist)
