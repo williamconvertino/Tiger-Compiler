@@ -352,7 +352,7 @@ struct
             | trexp (A.BreakExp (pos)) = (
                 case in_loop of
                     SOME(label) => {exp=T.break(label), ty=Types.IMPOSSIBILITY} |
-                    NONE => (ErrorMsg.error pos ("break not contained within loop")); {exp=T.nop(), ty=Types.IMPOSSIBILITY}
+                    NONE => (ErrorMsg.error pos ("break not contained within loop"); {exp=T.nop(), ty=Types.IMPOSSIBILITY})
             )
 
                 (* -- Vars -- *)
@@ -360,34 +360,36 @@ struct
             and trvar (A.SimpleVar(id, pos)) = 
                 (case Symbol.look(venv, id)
                     of SOME(E.VarEntry{access, ty}) => {exp=T.simpleVar(access, level), ty=(actual_ty ty)}
-                    |  SOME(E.FunEntry _)   => (ErrorMsg.error pos ("undefined variable " ^ S.name id); {exp=T.simpleVar((level, 0), level), ty=Types.IMPOSSIBILITY})
-                    |  NONE                 => (ErrorMsg.error pos ("undefined variable " ^ S.name id); {exp=T.simpleVar((level, 0), level), ty=Types.IMPOSSIBILITY}))
+                    |  SOME(E.FunEntry _)   => (ErrorMsg.error pos ("undefined variable " ^ S.name id); {exp=T.nop(), ty=Types.IMPOSSIBILITY})
+                    |  NONE                 => (ErrorMsg.error pos ("undefined variable " ^ S.name id); {exp=T.nop(), ty=Types.IMPOSSIBILITY}))
 
                 (* foo[bar] *)
             |   trvar (A.SubscriptVar(var, exp, pos)) =
                     let fun tycheck ({exp=varexp, ty=Types.ARRAY(arrty, _)}, {exp=expexp, ty=Types.INT}) = 
-                                {exp=T.subscriptVar(#exp (trvar var), #exp (trexp exp)) , ty=arrty}
+                                {exp=T.subscriptVar(varexp, expexp) , ty=arrty}
                         |   tycheck ({exp=varexp, ty=Types.ARRAY(arrty, _)}, {exp=expexp, ty=_}) = (ErrorMsg.error pos ("index expression must be of type int");
-                                {exp=(), ty=arrty})
+                                {exp=varexp, ty=arrty})
                         |   tycheck ({exp=varexp, ty=_}, _) = (ErrorMsg.error pos ("cannot index non-array type");
-                                {exp=(), ty=Types.IMPOSSIBILITY})
+                                {exp=T.nop(), ty=Types.IMPOSSIBILITY})
                         val {exp=varexp, ty=varty} = trvar var
                     in
                         tycheck ({exp=varexp, ty=actual_ty varty}, trexp exp) 
                     end
-                (* foo.bar *)(*MISSING the weird addition of a counter to track
-                field index*)
+                (* foo.bar *)
+                (*MISSING the weird addition of a counter to track field index*)
             |   trvar (A.FieldVar(var, symbol, pos)) =
-                    let fun findsymty (sym, (sym', ty)::l,i) = if Symbol.eq (sym,
-                        sym') then (SOME(ty),i+1) else findsymty(sym, l,i+1) |
-                            findsymty (sym, [], i) = (NONE, i+1)
+                    let fun findsym (sym, (sym', ty)::l, i) = 
+                                if Symbol.eq (sym, sym') 
+                                    then (SOME(ty), i) 
+                                    else findsym(sym, l, i+1) 
+                        |   findsym (sym, [], i) = (NONE, 0)
                         fun tycheck {exp=varexp, ty=Types.RECORD(symtys, uniq)} = (
-                                case (findsymty (symbol, symtys, 0)) of
-                                    (SOME(ty),ind) => {exp=T.fieldVar(#exp (trvar var),ind), ty=ty} |
-                                     (NONE, _)     => (ErrorMsg.error pos ("field " ^ Symbol.name symbol ^ " not found in record type " ^ (Types.toString (Types.RECORD(symtys, uniq)))); {exp=(), ty=Types.IMPOSSIBILITY})
+                                case (findsym (symbol, symtys, 0)) of
+                                    (SOME(ty), ind) => {exp=T.fieldVar(varexp, ind), ty=ty} |
+                                    (NONE, _)       => (ErrorMsg.error pos ("field " ^ Symbol.name symbol ^ " not found in record type " ^ (Types.toString (Types.RECORD(symtys, uniq)))); {exp=T.nop(), ty=Types.IMPOSSIBILITY})
                             )
                         |   tycheck {exp=varexp, ty=symty} = (ErrorMsg.error pos ("must reference record type got " ^ (Types.toString symty));
-                                {exp=(), ty=Types.IMPOSSIBILITY})
+                                {exp=T.nop(), ty=Types.IMPOSSIBILITY})
                         val {exp=varexp, ty=varty} = trvar var
                     in
                         tycheck {exp=varexp, ty=(actual_ty varty)}

@@ -107,9 +107,8 @@ structure Translate : TRANSLATE = struct
   fun subscriptVar (baseAddr, index) = Ex(T.MEM(T.BINOP(T.PLUS,
     T.MEM(unEx(baseAddr)), T.BINOP(T.MUL, unEx(index), T.CONST( MipsFrame.wordSize) ))))
 
-  fun fieldVar (baseAddr, ind) = Ex(T.MEM(T.BINOP(T.PLUS,
-        T.MEM(unEx(baseAddr)), T.BINOP(T.MUL, T.CONST(ind), T.CONST(
-        MipsFrame.wordSize) ))))
+  fun fieldVar (baseAddr, index) = Ex(T.MEM(T.BINOP(T.PLUS,
+        T.MEM(unEx(baseAddr)), T.CONST(index * MipsFrame.wordSize))))
 
   fun arrayExp (arrLen, initVal) = Ex(MipsFrame.externalCall("initArray",
     [unEx(arrLen), unEx(initVal)]))
