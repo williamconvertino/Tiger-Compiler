@@ -334,9 +334,9 @@ struct
             (* LetExp *)
             |   trexp (A.LetExp{decs, body, pos}) =
                     let val {venv=venv', tenv=tenv', exps=decexps} = transDecs(venv, tenv, in_loop, decs, level, [])
-                        val {venv=lvenv, tenv=ltenv, exp=bodyexp} = transExp (venv', tenv', in_loop, level) body
+                        val {ty=bodyty, exp=bodyexp} = transExp (venv', tenv', in_loop, level) body
                     in 
-                       {venv=lvenv, tenv=ltenv, exp=T.letExp(decexps, bodyexp)} 
+                       {exp=T.letExp(decexps, bodyexp), ty=bodyty} 
                     end
 
             (* WhileExp *)
