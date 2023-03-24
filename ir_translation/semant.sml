@@ -226,20 +226,20 @@ struct
 
             (* CallExp *)
             |   trexp (A.CallExp{func, args, pos}) = 
-                    let fun checkParams ([], []) = ()
-                        |   checkParams (args, []) = (ErrorMsg.error pos ("too many args provided: " ^ Int.toString (List.length args)))
-                        |   checkParams ([], formals) = (ErrorMsg.error pos ("missing params: " ^ (List.foldr (fn (ty, str) => str ^ Types.toString ty ^ " ") "" formals)))
-                        |   checkParams (exp::args, ty::formals) = 
+                    let fun checkParams ([], [], formalExps) = formalExps
+                        |   checkParams (args, [], formalExps) = (ErrorMsg.error pos ("too many args provided: " ^ Int.toString (List.length args)); formalExps)
+                        |   checkParams ([], (ty, str)::formals, formalExps) = ((ErrorMsg.error pos ("missing param: " ^ str ^ Types.toString ty)); checkParams([], formals, (T.nop()::formalExps)))
+                        |   checkParams (exp::args, ty::formals, formalExps) = 
                                 let val {exp=argexp, ty=argty} = trexp exp
                                 in 
                                     (
                                         Types.checkType(argty, ty, pos); 
-                                        checkParams(args, formals)
+                                        checkParams(args, formals, argexp::formalExps)
                                     )
                                 end
                 in
                     case Symbol.look(venv, func) of
-                        SOME(E.FunEntry ({formals, result, level, label})) => (checkParams (args, formals); {exp=(), ty=result}) |
+                        SOME(E.FunEntry ({formals, result, level=deflevel, label})) => {exp=T.call(label, List.rev checkParams (args, formals), deflevel, level), ty=result} |
                         SOME(E.VarEntry _) => (ErrorMsg.error pos ("symbol " ^ Symbol.name func ^ " declared as a var not a function"); {exp=T.nop(), ty=Types.IMPOSSIBILITY}) |
                         NONE => (ErrorMsg.error pos ("function " ^ Symbol.name func ^ " not declared"); {exp=T.nop(), ty=Types.IMPOSSIBILITY})
                 end

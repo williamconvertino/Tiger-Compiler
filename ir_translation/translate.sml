@@ -8,7 +8,7 @@ sig
   val newLevel : {parent: level, name: Temp.label, formals: bool list} -> level
   val formals: level -> access list
   val allocLocal: level -> bool -> access
-  
+
   val simpleVar : access * level -> exp 
 
   val nop : unit -> exp
@@ -19,6 +19,8 @@ sig
   val seq : exp list -> exp
 
   val assign : exp * exp -> exp
+
+  val call : Temp.label * exp list * level * level -> exp
 
   val whileLoop : exp * exp * Temp.label -> exp
   val forLoop : exp * exp * exp * Temp.label * access -> exp
@@ -153,6 +155,13 @@ structure Translate : TRANSLATE = struct
     in
       trOp oper
     end
+
+  fun call (label, formalExps, defLevel, currLevel) = 
+        let val staticLink = staticLink (defLevel, currLevel)
+            val unwrappedFormals = List.map unEx formalExps
+        in
+          Ex(T.CALL(T.NAME(label), staticLink::unwrappedFormals))
+        end
 
   fun assign (varexp, valexp) = Nx(T.MOVE(unEx(varexp), unEx(valexp)))
 
