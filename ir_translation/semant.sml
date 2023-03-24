@@ -46,12 +46,6 @@ struct
             SOME(ty) => actual_ty ty) |
         _            => ty
 
-    fun lookupVarType (venv, id, pos) = 
-        case Symbol.look(venv, id)
-            of SOME(E.VarEntry{access, ty}) => actual_ty ty
-            |  SOME(E.FunEntry _)   => (ErrorMsg.error pos ("undefined variable " ^ S.name id); Types.IMPOSSIBILITY)
-            |  NONE                 => (ErrorMsg.error pos ("undefined variable " ^ S.name id); Types.IMPOSSIBILITY)
-
     fun lookupTypeDec (tenv, id, pos) =
         case Symbol.look(tenv, id)
             of SOME(ty) => ty
@@ -363,7 +357,12 @@ struct
 
                 (* -- Vars -- *)
                 (* foo *)
-            and trvar (A.SimpleVar(id, pos)) = {exp=T.simpleVar(access,level), ty=lookupVarType (venv, id, pos)}
+            and trvar (A.SimpleVar(id, pos)) = 
+                (case Symbol.look(venv, id)
+                    of SOME(E.VarEntry{access, ty}) => {exp=T.simpleVar(access, level), ty=(actual_ty ty)}
+                    |  SOME(E.FunEntry _)   => (ErrorMsg.error pos ("undefined variable " ^ S.name id); {exp=T.simpleVar((level, 0), level), ty=Types.IMPOSSIBILITY})
+                    |  NONE                 => (ErrorMsg.error pos ("undefined variable " ^ S.name id); {exp=T.simpleVar((level, 0), level), ty=Types.IMPOSSIBILITY}))
+
                 (* foo[bar] *)
             |   trvar (A.SubscriptVar(var, exp, pos)) =
                     let fun tycheck ({exp=varexp, ty=Types.ARRAY(arrty, _)}, {exp=expexp, ty=Types.INT}) = 

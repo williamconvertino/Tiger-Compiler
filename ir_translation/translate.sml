@@ -102,7 +102,6 @@ structure Translate : TRANSLATE = struct
         if defId = currId then T.TEMP(MipsFrame.FP) else T.MEM(staticLink(defLevel, currParent))
   |   staticLink (_, _) = (print("error: cannot static link into the TOP level"); T.TEMP(MipsFrame.FP))
 
-
   fun simpleVar ((defLevel, frameAccess), useLevel) = Ex(MipsFrame.exp frameAccess (staticLink (defLevel, useLevel)))
 
   fun subscriptVar (baseAddr, index) = Ex(T.MEM(T.BINOP(T.PLUS,
