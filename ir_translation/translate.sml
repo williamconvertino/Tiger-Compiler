@@ -21,6 +21,11 @@ sig
   val whileLoop : exp * exp * Temp.label -> exp
   val forLoop : exp * exp * exp * Temp.label * access -> exp
   val break : Temp.label -> exp
+
+  val subscriptVar : exp * exp -> exp
+  val fieldVar : exp * int -> exp
+  val arrayExp : exp * exp -> exp
+  val recordExp : exp list -> exp
     
   (* val procEntryExit : {level: level, body: exp} -> unit
 
@@ -96,6 +101,27 @@ structure Translate : TRANSLATE = struct
   fun simpleVar ((deflev, a), uselev) = Ex(MipsFrame.exp a (staticLink
     deflev uselev (T.TEMP(MipsFrame.FP)) a ))
 
+  fun subscriptVar (baseAddr, index) = Ex(T.MEM(T.BINOP(T.PLUS,
+    T.MEM(unEx(baseAddr)), T.BINOP(T.MUL, unEx(index), T.CONST( MipsFrame.wordSize) ))))
+
+  fun fieldVar (baseAddr, ind) = Ex(T.MEM(T.BINOP(T.PLUS,
+        T.MEM(unEx(baseAddr)), T.BINOP(T.MUL, T.CONST(ind), T.CONST(
+        MipsFrame.wordSize) ))))
+
+  fun arrayExp (arrLen, initVal) = Ex(MipsFrame.externalCall("initArray",
+    [unEx(arrLen), unEx(initVal)]))
+  
+  fun recordExp (fields) =  
+   let val r = Temp.newtemp()  
+     fun seq ([a], i) = T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP(r), T.CONST( i *
+                 MipsFrame.wordSize))), unEx a)
+       | seq (a::l, i) =  T.SEQ( T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP(r),
+       T.CONST( i * MipsFrame.wordSize))), unEx a), seq (l, i+1))
+       | seq ([],_) = T.EXP(T.CONST 0)
+      in
+        Ex(T.ESEQ(T.SEQ(T.MOVE(T.TEMP (r),MipsFrame.externalCall("initRecord",[T.CONST (List.length fields)])), seq
+        (fields, 0)), T.TEMP(r)))
+       end
 
   fun opExp (oper, left, right) =
     let val tleft = unEx(left)
@@ -167,5 +193,4 @@ structure Translate : TRANSLATE = struct
         T.LABEL(done)
       ])
     end
-
 end

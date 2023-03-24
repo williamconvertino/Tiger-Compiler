@@ -247,7 +247,10 @@ struct
             (* RecordExp *)
             |   trexp (A.RecordExp{fields, typ=tysym, pos}) =
                     let fun checkType (Types.RECORD(symtyps, uniq)) = 
-                            let fun checkElements (ret, [], []) = ret |
+                            let fun stripExp xs = foldr (fn ((_,exp,_),l) =>
+                            (T.exp exp)::l) [] xs (*MISSING TO CHECK THIS FOR
+                            CORRECTION/ ADDED A FUN TO STRIP EXP FROM FIELD TUPLE*)
+                              fun checkElements (ret, [], []) = ret |
                                     checkElements ({exp, ty}, fields, []) = (ErrorMsg.error pos ("too many fields provided to type " ^ Types.toString (Types.RECORD(symtyps, uniq))); {exp=exp, ty=Types.IMPOSSIBILITY}) |
                                     checkElements ({exp, ty}, [], tylist) = (ErrorMsg.error pos ("missing required fields from type " ^ Types.toString (Types.RECORD(symtyps, uniq))); {exp=exp, ty=Types.IMPOSSIBILITY}) |
                                     checkElements ({exp, ty}, (fieldsym, fieldexp, fieldpos)::l, tylist) = 
@@ -263,7 +266,7 @@ struct
                                                                         checkElements ({exp=exp, ty=Types.IMPOSSIBILITY}, l, filteredtylist))
                                         end
                             in
-                                checkElements ({exp=(), ty=(Types.RECORD(symtyps, uniq))}, fields, symtyps)
+                                checkElements ({exp=T.recordExp(stripExp fields), ty=(Types.RECORD(symtyps, uniq))}, fields, symtyps)
                             end
                         |   checkType _ = (ErrorMsg.error pos ("declared type not record type: " ^ Symbol.name tysym); {exp=(), ty=Types.IMPOSSIBILITY})
                         in
@@ -290,7 +293,7 @@ struct
                     (
                         Types.checkType(initty, valty, pos);
                         Types.checkType(sizety, Types.INT, pos);
-                        {exp=(), ty=dectyp}
+                        {exp=T.arrayExp(#exp (trexp size), #exp (trexp init)), ty=dectyp}
                     )
                 end
 
@@ -360,11 +363,11 @@ struct
 
                 (* -- Vars -- *)
                 (* foo *)
-            and trvar (A.SimpleVar(id, pos)) = {exp=(), ty=lookupVarType (venv, id, pos)}
+            and trvar (A.SimpleVar(id, pos)) = {exp=T.simpleVar(access,level), ty=lookupVarType (venv, id, pos)}
                 (* foo[bar] *)
             |   trvar (A.SubscriptVar(var, exp, pos)) =
                     let fun tycheck ({exp=varexp, ty=Types.ARRAY(arrty, _)}, {exp=expexp, ty=Types.INT}) = 
-                                {exp=(), ty=arrty}
+                                {exp=T.subscriptVar(#exp (trvar var), #exp (trexp exp)) , ty=arrty}
                         |   tycheck ({exp=varexp, ty=Types.ARRAY(arrty, _)}, {exp=expexp, ty=_}) = (ErrorMsg.error pos ("index expression must be of type int");
                                 {exp=(), ty=arrty})
                         |   tycheck ({exp=varexp, ty=_}, _) = (ErrorMsg.error pos ("cannot index non-array type");
@@ -373,14 +376,16 @@ struct
                     in
                         tycheck ({exp=varexp, ty=actual_ty varty}, trexp exp) 
                     end
-                (* foo.bar *)
+                (* foo.bar *)(*MISSING the weird addition of a counter to track
+                field index*)
             |   trvar (A.FieldVar(var, symbol, pos)) =
-                    let fun findsymty (sym, (sym', ty)::l) = if Symbol.eq (sym, sym') then SOME(ty) else findsymty(sym, l) |
-                            findsymty (sym, []) = NONE
+                    let fun findsymty (sym, (sym', ty)::l,i) = if Symbol.eq (sym,
+                        sym') then (SOME(ty),i+1) else findsymty(sym, l,i+1) |
+                            findsymty (sym, [], i) = (NONE, i+1)
                         fun tycheck {exp=varexp, ty=Types.RECORD(symtys, uniq)} = (
-                                case (findsymty (symbol, symtys)) of
-                                    SOME(ty) => {exp=(), ty=ty} |
-                                    NONE     => (ErrorMsg.error pos ("field " ^ Symbol.name symbol ^ " not found in record type " ^ (Types.toString (Types.RECORD(symtys, uniq)))); {exp=(), ty=Types.IMPOSSIBILITY})
+                                case (findsymty (symbol, symtys, 0)) of
+                                    (SOME(ty),ind) => {exp=T.fieldVar(#exp (trvar var),ind), ty=ty} |
+                                     (NONE, _)     => (ErrorMsg.error pos ("field " ^ Symbol.name symbol ^ " not found in record type " ^ (Types.toString (Types.RECORD(symtys, uniq)))); {exp=(), ty=Types.IMPOSSIBILITY})
                             )
                         |   tycheck {exp=varexp, ty=symty} = (ErrorMsg.error pos ("must reference record type got " ^ (Types.toString symty));
                                 {exp=(), ty=Types.IMPOSSIBILITY})
