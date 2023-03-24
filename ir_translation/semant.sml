@@ -5,8 +5,8 @@ sig
     
     type expty = {exp: Translate.exp, ty: Types.ty}
 
-    val transExp: venv * tenv * unit option * Translate.level -> Absyn.exp -> expty
-    val transDec: venv * tenv * unit option * Absyn.dec * Translate.level -> {venv: venv, tenv: tenv}
+    val transExp: venv * tenv * Temp.label option * Translate.level -> Absyn.exp -> expty
+    val transDec: venv * tenv * Temp.label option * Absyn.dec * Translate.level -> {venv: venv, tenv: tenv}
     val transTy:  tenv * Absyn.ty -> Types.ty
 
     val transProg : Absyn.exp -> unit
@@ -45,12 +45,6 @@ struct
             NONE     => Types.IMPOSSIBILITY |
             SOME(ty) => actual_ty ty) |
         _            => ty
-
-    fun lookupVarType (venv, id, pos) = 
-        case Symbol.look(venv, id)
-            of SOME(E.VarEntry{access, ty}) => actual_ty ty
-            |  SOME(E.FunEntry _)   => (ErrorMsg.error pos ("undefined variable " ^ S.name id); Types.IMPOSSIBILITY)
-            |  NONE                 => (ErrorMsg.error pos ("undefined variable " ^ S.name id); Types.IMPOSSIBILITY)
 
     fun lookupTypeDec (tenv, id, pos) =
         case Symbol.look(tenv, id)
@@ -182,12 +176,10 @@ struct
     and transExp (venv, tenv, in_loop, level) = 
             (* -- Expressions -- *)
             (* IntExp *)
-        let val access = Translate.allocLocal level false (*MISSING, UNSURE IF
-        THIS SHOULD BE FALSE*)
-          fun trexp (A.IntExp (int)) = {exp=T.const(int), ty=Types.INT}
+        let fun trexp (A.IntExp (int)) = {exp=T.const(int), ty=Types.INT}
 
             (* StringExp *)
-            |   trexp (A.StringExp (str, pos)) = {exp=(), ty=Types.STRING}
+            |   trexp (A.StringExp (str, pos)) = {exp=T.stringVar(str), ty=Types.STRING}
         
             (* Arithmetic & Comparison Ops *)
             |   trexp (A.OpExp{left, oper, right, pos}) =
@@ -207,12 +199,12 @@ struct
             
             (* SeqExps *)
             |   trexp (A.SeqExp (exps)) =
-                    let fun trseq [] = {exp=(T.seqExp []), ty=Types.UNIT}
+                    let fun trseq [] = {exp=(T.seq []), ty=Types.UNIT}
                         |   trseq (seq) = 
                                 let val trseqs = List.map trexp seq
                                     val seqexps = List.map (fn transexp => (#exp transexp)) trseqs
                                 in
-                                    {exp=(T.seqExp seqexps), ty=(#ty (List.last trseqs))}
+                                    {exp=(T.seq seqexps), ty=(#ty (List.last trseqs))}
                                 end
 
                     in
@@ -242,8 +234,8 @@ struct
                 in
                     case Symbol.look(venv, func) of
                         SOME(E.FunEntry ({formals, result, level, label})) => (checkParams (args, formals); {exp=(), ty=result}) |
-                        SOME(E.VarEntry _) => (ErrorMsg.error pos ("symbol " ^ Symbol.name func ^ " declared as a var not a function"); {exp=(), ty=Types.IMPOSSIBILITY}) |
-                        NONE => (ErrorMsg.error pos ("function " ^ Symbol.name func ^ " not declared"); {exp=(), ty=Types.IMPOSSIBILITY})
+                        SOME(E.VarEntry _) => (ErrorMsg.error pos ("symbol " ^ Symbol.name func ^ " declared as a var not a function"); {exp=T.nop(), ty=Types.IMPOSSIBILITY}) |
+                        NONE => (ErrorMsg.error pos ("function " ^ Symbol.name func ^ " not declared"); {exp=T.nop(), ty=Types.IMPOSSIBILITY})
                 end
 
             (* RecordExp *)
@@ -270,7 +262,7 @@ struct
                             in
                                 checkElements ({exp=T.recordExp(stripExp fields), ty=(Types.RECORD(symtyps, uniq))}, fields, symtyps)
                             end
-                        |   checkType _ = (ErrorMsg.error pos ("declared type not record type: " ^ Symbol.name tysym); {exp=(), ty=Types.IMPOSSIBILITY})
+                        |   checkType _ = (ErrorMsg.error pos ("declared type not record type: " ^ Symbol.name tysym); {exp=T.nop(), ty=Types.IMPOSSIBILITY})
                         in
                             checkType (actual_ty (lookupTypeDec (tenv, tysym, pos)))
                         end
@@ -333,11 +325,12 @@ struct
 
             (* WhileExp *)
             |   trexp (A.WhileExp{test, body, pos}) =
-                    let val {exp=testexp, ty=testty} = transExp (venv, tenv, SOME(()), level) test
-                        val {exp=bodyexp, ty=bodyty} = transExp (venv, tenv, SOME(()), level) body
+                    let val doneLabel = Temp.newlabel()
+                        val {exp=testexp, ty=testty} = transExp (venv, tenv, SOME(doneLabel), level) test
+                        val {exp=bodyexp, ty=bodyty} = transExp (venv, tenv, SOME(doneLabel), level) body
                     in
                         Types.checkType(testty, Types.INT, pos);
-                        {exp=(), ty=Types.UNIT}
+                        {exp=(T.whileLoop (testexp, bodyexp, doneLabel)), ty=Types.UNIT}
                     end
 
             (* ForExp *)
@@ -346,50 +339,56 @@ struct
                         val venv' = S.enter (venv, var, E.VarEntry{ty=Types.INT, access=loopvaraccess})
                         val {exp=loexp, ty=loty} = trexp lo
                         val {exp=hiexp, ty=hity} = trexp hi
-                        val {exp=bodyexp, ty=bodyty} = transExp (venv', tenv, SOME(()), level) body
+                        val doneLabel = Temp.newlabel()
+                        val {exp=bodyexp, ty=bodyty} = transExp (venv', tenv, SOME(doneLabel), level) body
                     in
                         Types.checkType(loty, Types.INT, pos);
                         Types.checkType(hity, Types.INT, pos);
-                        {exp=(), ty=Types.UNIT}
+                        {exp=T.forLoop(loexp, hiexp, bodyexp, doneLabel, loopvaraccess), ty=Types.UNIT}
                     end
 
 
             (* BreakExp *)
             | trexp (A.BreakExp (pos)) = (
                 case in_loop of
-                    SOME(label) => () |
-                    NONE => (ErrorMsg.error pos ("break not contained within loop"));
-                {exp=(), ty=Types.IMPOSSIBILITY}
+                    SOME(label) => {exp=T.break(label), ty=Types.IMPOSSIBILITY} |
+                    NONE => (ErrorMsg.error pos ("break not contained within loop"); {exp=T.nop(), ty=Types.IMPOSSIBILITY})
             )
 
                 (* -- Vars -- *)
                 (* foo *)
-            and trvar (A.SimpleVar(id, pos)) = {exp=T.simpleVar(access,level), ty=lookupVarType (venv, id, pos)}
+            and trvar (A.SimpleVar(id, pos)) = 
+                (case Symbol.look(venv, id)
+                    of SOME(E.VarEntry{access, ty}) => {exp=T.simpleVar(access, level), ty=(actual_ty ty)}
+                    |  SOME(E.FunEntry _)   => (ErrorMsg.error pos ("undefined variable " ^ S.name id); {exp=T.nop(), ty=Types.IMPOSSIBILITY})
+                    |  NONE                 => (ErrorMsg.error pos ("undefined variable " ^ S.name id); {exp=T.nop(), ty=Types.IMPOSSIBILITY}))
+
                 (* foo[bar] *)
             |   trvar (A.SubscriptVar(var, exp, pos)) =
                     let fun tycheck ({exp=varexp, ty=Types.ARRAY(arrty, _)}, {exp=expexp, ty=Types.INT}) = 
-                                {exp=T.subscriptVar(#exp (trvar var), #exp (trexp exp)) , ty=arrty}
+                                {exp=T.subscriptVar(varexp, expexp) , ty=arrty}
                         |   tycheck ({exp=varexp, ty=Types.ARRAY(arrty, _)}, {exp=expexp, ty=_}) = (ErrorMsg.error pos ("index expression must be of type int");
-                                {exp=(), ty=arrty})
+                                {exp=varexp, ty=arrty})
                         |   tycheck ({exp=varexp, ty=_}, _) = (ErrorMsg.error pos ("cannot index non-array type");
-                                {exp=(), ty=Types.IMPOSSIBILITY})
+                                {exp=T.nop(), ty=Types.IMPOSSIBILITY})
                         val {exp=varexp, ty=varty} = trvar var
                     in
                         tycheck ({exp=varexp, ty=actual_ty varty}, trexp exp) 
                     end
-                (* foo.bar *)(*MISSING the weird addition of a counter to track
-                field index*)
+                (* foo.bar *)
             |   trvar (A.FieldVar(var, symbol, pos)) =
-                    let fun findsymty (sym, (sym', ty)::l,i) = if Symbol.eq (sym,
-                        sym') then (SOME(ty),i+1) else findsymty(sym, l,i+1) |
-                            findsymty (sym, [], i) = (NONE, i+1)
+                    let fun findsym (sym, (sym', ty)::l, i) = 
+                                if Symbol.eq (sym, sym') 
+                                    then (SOME(ty), i) 
+                                    else findsym(sym, l, i+1) 
+                        |   findsym (sym, [], i) = (NONE, 0)
                         fun tycheck {exp=varexp, ty=Types.RECORD(symtys, uniq)} = (
-                                case (findsymty (symbol, symtys, 0)) of
-                                    (SOME(ty),ind) => {exp=T.fieldVar(#exp (trvar var),ind), ty=ty} |
-                                     (NONE, _)     => (ErrorMsg.error pos ("field " ^ Symbol.name symbol ^ " not found in record type " ^ (Types.toString (Types.RECORD(symtys, uniq)))); {exp=(), ty=Types.IMPOSSIBILITY})
+                                case (findsym (symbol, symtys, 0)) of
+                                    (SOME(ty), ind) => {exp=T.fieldVar(varexp, ind), ty=ty} |
+                                    (NONE, _)       => (ErrorMsg.error pos ("field " ^ Symbol.name symbol ^ " not found in record type " ^ (Types.toString (Types.RECORD(symtys, uniq)))); {exp=T.nop(), ty=Types.IMPOSSIBILITY})
                             )
                         |   tycheck {exp=varexp, ty=symty} = (ErrorMsg.error pos ("must reference record type got " ^ (Types.toString symty));
-                                {exp=(), ty=Types.IMPOSSIBILITY})
+                                {exp=T.nop(), ty=Types.IMPOSSIBILITY})
                         val {exp=varexp, ty=varty} = trvar var
                     in
                         tycheck {exp=varexp, ty=(actual_ty varty)}
