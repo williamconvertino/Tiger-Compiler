@@ -112,18 +112,28 @@ structure Translate : TRANSLATE = struct
 
   fun arrayExp (arrLen, initVal) = Ex(MipsFrame.externalCall("initArray",
     [unEx(arrLen), unEx(initVal)]))
-  
-  fun recordExp (fields) =  
-   let val r = Temp.newtemp()  
-     fun seq ([a], i) = T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP(r), T.CONST( i *
-                 MipsFrame.wordSize))), unEx a)
-       | seq (a::l, i) =  T.SEQ( T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP(r),
-       T.CONST( i * MipsFrame.wordSize))), unEx a), seq (l, i+1))
-       | seq ([],_) = T.EXP(T.CONST 0)
-      in
-        Ex(T.ESEQ(T.SEQ(T.MOVE(T.TEMP (r),MipsFrame.externalCall("initRecord",[T.CONST (List.length fields)])), seq
-        (fields, 0)), T.TEMP(r)))
-       end
+
+
+  fun recordExp (fields) =
+    let val r = Temp.newtemp()
+        val moveStms = List.foldr (fn (field, moveExps) => 
+          T.MOVE(
+            T.MEM(
+              T.BINOP(T.PLUS, 
+                T.TEMP(r), 
+                T.CONST((List.length moveExps) * MipsFrame.wordSize)
+              )
+            ),
+            unEx field
+          ) :: moveExps) [] fields
+    in
+      Ex(T.ESEQ(rollupSeq ([
+        T.MOVE(T.TEMP(r), MipsFrame.externalCall("malloc", [T.CONST((List.length fields) * MipsFrame.wordSize)])),
+        rollupSeq moveStms
+        ]), 
+        T.TEMP(r)
+      ))
+    end
 
   fun opExp (oper, left, right) =
     let val tleft = unEx(left)

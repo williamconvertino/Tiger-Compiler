@@ -245,28 +245,62 @@ struct
                 end
 
             (* RecordExp *)
-            |   trexp (A.RecordExp{fields, typ=tysym, pos}) =
+            (* |   trexp (A.RecordExp{fields, typ=tysym, pos}) =
                     let fun checkType (Types.RECORD(symtyps, uniq)) = 
-                            let fun stripExp xs = foldr (fn ((_,exp,_),l) =>
-                            (T.exp exp)::l) [] xs (*MISSING TO CHECK THIS FOR
-                            CORRECTION/ ADDED A FUN TO STRIP EXP FROM FIELD TUPLE*)
-                              fun checkElements (ret, [], []) = ret |
-                                    checkElements ({exp, ty}, fields, []) = (ErrorMsg.error pos ("too many fields provided to type " ^ Types.toString (Types.RECORD(symtyps, uniq))); {exp=exp, ty=Types.IMPOSSIBILITY}) |
-                                    checkElements ({exp, ty}, [], tylist) = (ErrorMsg.error pos ("missing required fields from type " ^ Types.toString (Types.RECORD(symtyps, uniq))); {exp=exp, ty=Types.IMPOSSIBILITY}) |
-                                    checkElements ({exp, ty}, (fieldsym, fieldexp, fieldpos)::l, tylist) = 
+                            let fun checkElements (ret, [], []) = ret |
+                                    checkElements ({exps, ty}, fields, []) = (ErrorMsg.error pos ("too many fields provided to type " ^ Types.toString (Types.RECORD(symtyps, uniq))); {exps=exps, ty=Types.IMPOSSIBILITY}) |
+                                    checkElements ({exps, ty}, [], tylist) = (ErrorMsg.error pos ("missing required fields from type " ^ Types.toString (Types.RECORD(symtyps, uniq))); {exps=(T.nop() :: exps), ty=Types.IMPOSSIBILITY}) |
+                                    checkElements ({exps, ty}, (fieldsym, initexp, fieldpos)::l, tylist) = 
                                         let val fieldty = List.find (fn (tysym, tyty) => Symbol.eq(tysym, fieldsym)) tylist
                                             val filteredtylist = List.filter (fn (tysym, tyty) => not (Symbol.eq(tysym, fieldsym))) tylist
-                                            val {exp, ty=trfieldty} = (trexp fieldexp)
-                                            fun checkElementType (Types.IMPOSSIBILITY) = checkElements ({exp=exp, ty=Types.IMPOSSIBILITY}, l, filteredtylist) |
-                                                checkElementType (ty) = checkElements ({exp=exp, ty=Types.RECORD(symtyps, uniq)}, l, filteredtylist)
+                                            val {exp=trinitexp, ty=trfieldty} = (trexp initexp)
+                                            fun checkElementType (Types.IMPOSSIBILITY) = checkElements ({exps=(initexp::exps), ty=Types.IMPOSSIBILITY}, l, filteredtylist) |
+                                                checkElementType (ty) = checkElements ({exps=(initexp::exps), ty=Types.RECORD(symtyps, uniq)}, l, filteredtylist)
                                         in
                                             case fieldty of
                                                 SOME((tysym, tyty)) => checkElementType (Types.checkType (trfieldty, tyty, fieldpos)) |
                                                 NONE                => (ErrorMsg.error pos ("field " ^ Symbol.name fieldsym ^ " does not exist on type " ^  Types.toString (Types.RECORD(symtyps, uniq))); 
-                                                                        checkElements ({exp=exp, ty=Types.IMPOSSIBILITY}, l, filteredtylist))
+                                                                        checkElements ({exps=exps, ty=Types.IMPOSSIBILITY}, l, filteredtylist))
                                         end
+                                val {exps=fieldInitExps, ty=retty} = checkElements ({exps=[], ty=(Types.RECORD(symtyps, uniq))}, fields, symtyps)
                             in
-                                checkElements ({exp=T.recordExp(stripExp fields), ty=(Types.RECORD(symtyps, uniq))}, fields, symtyps)
+                                {exp=T.recordExp(List.rev fieldInitExps), ty=retty}
+                            end
+                        |   checkType _ = (ErrorMsg.error pos ("declared type not record type: " ^ Symbol.name tysym); {exp=T.nop(), ty=Types.IMPOSSIBILITY})
+                        in
+                            checkType (actual_ty (lookupTypeDec (tenv, tysym, pos)))
+                        end *)
+
+
+            |   trexp (A.RecordExp{fields, typ=tysym, pos}) =
+                    let fun checkType (recordType as Types.RECORD(symtyps, uniq)) = 
+                            let fun checkElements (ret, [], []) = ret |
+                                    checkElements ({exps, ty}, fields, []) = (ErrorMsg.error pos ("too many fields provided to type " ^ Types.toString (Types.RECORD(symtyps, uniq))); {exps=exps, ty=Types.IMPOSSIBILITY}) |
+                                    checkElements ({exps, ty}, [], (tysym, tyty)::tylist) = 
+                                        (ErrorMsg.error pos ("missing required field " ^ Symbol.name tysym ^ " from type " ^ Types.toString (Types.RECORD(symtyps, uniq))); 
+                                        checkElements ({exps=(T.nop() :: exps), ty=Types.IMPOSSIBILITY}, [], tylist))    |
+
+                                    checkElements ({exps, ty}, fields, (tysym, tyty)::tylist) =
+                                        let val fieldop = List.find (fn (fieldsym, _, _) => Symbol.eq(tysym, fieldsym)) fields
+                                            val remainingFields = List.filter (fn (fieldsym, _, _) => not (Symbol.eq(tysym, fieldsym))) fields
+                                            fun checkField((fieldsym, fieldexp, fieldpos)) = 
+                                                let val {exp=initexp, ty=fieldty} = trexp fieldexp
+                                                    val updatedRecType = Types.checkType (trfieldty, tyty, fieldpos)
+                                                in
+                                                    case updatedRecType of
+                                                        Types.IMPOSSIBILITY => checkElements ({exps=(initexp::exps), ty=Types.IMPOSSIBILITY}, remainingFields, tylist)
+                                                    |   _                   => checkElements ({exps=(initexp::exps), ty=recordType}, remainingFields, tylist)
+                                                end
+                                        in
+                                            case fieldop of
+                                                SOME(field) => checkField(field)
+                                            |   NONE        => (ErrorMsg.error pos ("missing field " ^ Symbol.name tysym ^ " from type " ^  Types.toString (recordType)); 
+                                                                checkElements ({exps=(T.nop()::exps), ty=Types.IMPOSSIBILITY}, remainingFields, tylist))
+                                        end
+                                    
+                                val {exps=fieldInitExps, ty=retty} = checkElements ({exps=[], ty=(Types.RECORD(symtyps, uniq))}, fields, symtyps)
+                            in
+                                {exp=T.recordExp(List.rev fieldInitExps), ty=retty}
                             end
                         |   checkType _ = (ErrorMsg.error pos ("declared type not record type: " ^ Symbol.name tysym); {exp=T.nop(), ty=Types.IMPOSSIBILITY})
                         in
