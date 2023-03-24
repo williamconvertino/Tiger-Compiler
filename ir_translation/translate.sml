@@ -93,13 +93,17 @@ structure Translate : TRANSLATE = struct
         end
     | unNx (Nx s) = s
 
-  fun staticLink (deflev as LEVEL((pdef, fdef), rdef)) (uselev as
+  (* fun staticLink (deflev as LEVEL((pdef, fdef), rdef)) (uselev as
     LEVEL((puse,fuse),ruse)) e a =
            if rdef = ruse then e
-             else (MipsFrame.exp a (staticLink deflev puse e a))
+             else (MipsFrame.exp a (staticLink deflev puse e a)) *)
 
-  fun simpleVar ((deflev, a), uselev) = Ex(MipsFrame.exp a (staticLink
-    deflev uselev (T.TEMP(MipsFrame.FP)) a ))
+  fun staticLink (defLevel as LEVEL(_, defId), LEVEL((currParent, currFrame), currId)) =
+        if defId = currId then T.TEMP(MipsFrame.FP) else T.MEM(staticLink(defLevel, currParent))
+  |   staticLink (_, _) = (print("error: cannot static link into the TOP level"); T.TEMP(MipsFrame.FP))
+
+
+  fun simpleVar ((defLevel, frameAccess), useLevel) = Ex(MipsFrame.exp frameAccess (staticLink (defLevel, useLevel)))
 
   fun subscriptVar (baseAddr, index) = Ex(T.MEM(T.BINOP(T.PLUS,
     T.MEM(unEx(baseAddr)), T.BINOP(T.MUL, unEx(index), T.CONST( MipsFrame.wordSize) ))))

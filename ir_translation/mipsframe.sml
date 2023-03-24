@@ -45,10 +45,10 @@ structure MipsFrame : FRAME = struct
     |   allocLocal _ false                = InReg (Temp.newtemp())
 
     fun allocR0 () = InReg(0)
-    val FP = Temp.newtemp ()
+    val FP = 30
     val wordSize = 4
 
-    fun exp (InFrame(offset)) frameAddr = T.MEM(T.BINOP(T.PLUS, frameAddr, T.CONST(offset)))
+    fun exp (InFrame(frameOffset)) frameAddr = T.MEM(T.BINOP(T.PLUS, frameAddr, T.CONST(frameOffset)))
     |   exp (InReg(r)) _ = T.TEMP(r)
 
     fun externalCall (s, args) = T.CALL(T.NAME(Temp.namedlabel s), args)
