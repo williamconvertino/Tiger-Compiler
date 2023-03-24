@@ -13,7 +13,7 @@ sig
 
   val nop : unit -> exp
 
-  val opExp : Absyn.oper * exp * exp -> exp
+  val opExp : Absyn.oper * exp * exp * Types.ty -> exp
   val const : int -> exp
   val label : Temp.label -> exp
   val seq : exp list -> exp
@@ -139,24 +139,34 @@ structure Translate : TRANSLATE = struct
       ))
     end
 
-  fun opExp (oper, left, right) =
-    let val tleft = unEx(left)
-        val tright = unEx(right)
-        fun trOp (A.PlusOp) = Ex(T.BINOP(T.PLUS, tleft, tright))
-        |   trOp (A.MinusOp) = Ex(T.BINOP(T.MINUS, tleft, tright))
-        |   trOp (A.TimesOp) = Ex(T.BINOP(T.MUL, tleft, tright))
-        |   trOp (A.DivideOp) = Ex(T.BINOP(T.DIV, tleft, tright))
-        |   trOp (A.EqOp) = Cx(fn (t,f) => T.CJUMP(T.EQ, tleft, tright, t, f))
-        |   trOp (A.NeqOp) = Cx(fn (t,f) => T.CJUMP(T.NE, tleft, tright, t, f))
-        |   trOp (A.LtOp) = Cx(fn (t,f) => T.CJUMP(T.LT, tleft, tright, t, f))
-        |   trOp (A.LeOp) = Cx(fn (t,f) => T.CJUMP(T.LE, tleft, tright, t, f))
-        |   trOp (A.GtOp) = Cx(fn (t,f) => T.CJUMP(T.GT, tleft, tright, t, f))
-        |   trOp (A.GeOp) = Cx(fn (t,f) => T.CJUMP(T.GE, tleft, tright, t, f))
+    fun opExp (oper, left, right,ty) =
+       let val tleft = unEx(left)
+           val tright = unEx(right)
+           fun trOp (A.PlusOp) = Ex(T.BINOP(T.PLUS, tleft, tright))
+             |   trOp (A.MinusOp) = Ex(T.BINOP(T.MINUS,tleft, tright))
+             |   trOp (A.TimesOp) = Ex(T.BINOP(T.MUL, tleft, tright))
+             |   trOp (A.DivideOp) = Ex(T.BINOP(T.DIV, tleft,tright))
+             |   trOp (A.EqOp) = Cx(fn (t,f) => T.CJUMP(T.EQ, tleft,tright, t, f))
+             |   trOp (A.NeqOp) = Cx(fn (t,f) =>T.CJUMP(T.NE, tleft, tright, t, f))
+             |   trOp (A.LtOp) = Cx(fn (t,f) => T.CJUMP(T.LT, tleft, tright,t, f))
+             |   trOp (A.LeOp) = Cx(fn (t,f) => T.CJUMP(T.LE, tleft, tright,t, f))
+             |   trOp (A.GtOp) = Cx(fn (t,f) => T.CJUMP(T.GT, tleft, tright, t,f))
+             |   trOp (A.GeOp) = Cx(fn (t,f) => T.CJUMP(T.GE, tleft, tright, t, f))
+           fun trOpStr (A.EqOp) = Ex(MipsFrame.externalCall("stringEqual",[tleft,tright]))
+             |   trOpStr (A.LtOp) = Ex(MipsFrame.externalCall("stringLtOp", [tleft,tright]))
+             |   trOpStr (A.LeOp) = Ex(MipsFrame.externalCall("stringLeOp",[tleft,tright]))
+             |   trOpStr (A.GtOp) = Ex(MipsFrame.externalCall("stringGtOp",[tleft,tright]))
+             |   trOpStr (A.GeOp) = Ex(MipsFrame.externalCall("stringGeOp",[tleft,tright]))            
+             |   trOpStr (A.NeqOp) = Cx(fn (t,f) => T.CJUMP(T.NE, tleft, tright, t, f))
     in
-      trOp oper
+      case ty of
+           Types.INT => trOp oper
+         | Types.STRING => trOpStr oper
     end
-
-  fun call (label, formalExps, defLevel, currLevel) = 
+         
+         
+         
+   fun call (label, formalExps, defLevel, currLevel) = 
         let val staticLink = staticLink (defLevel, currLevel)
             val unwrappedFormals = List.map unEx formalExps
         in

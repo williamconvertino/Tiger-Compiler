@@ -191,14 +191,15 @@ struct
             |   trexp (A.OpExp{left, oper, right, pos}) =
                     let val {ty=lty, exp=lexp} = trexp left
                         val {ty=rty, exp=rexp} = trexp right
-                        fun trOpExp (A.PlusOp) = {exp=T.opExp(A.PlusOp, lexp, rexp), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
-                        |   trOpExp (A.MinusOp) = {exp=T.opExp(A.MinusOp, lexp, rexp), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
-                        |   trOpExp (A.TimesOp) = {exp=T.opExp(A.TimesOp, lexp, rexp), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
-                        |   trOpExp (A.DivideOp) = {exp=T.opExp(A.DivideOp, lexp, rexp), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
-                        |   trOpExp (compOp) = (
-                            checkComparisonOp (lty, rty, compOp, pos);
-                            {exp=T.opExp(compOp, lexp, rexp), ty=Types.INT}
-                        )
+                        fun trOpExp (A.PlusOp) = {exp=T.opExp(A.PlusOp, lexp,rexp,Types.INT), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
+                        |   trOpExp (A.MinusOp) = {exp=T.opExp(A.MinusOp, lexp,rexp,Types.INT), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
+                        |   trOpExp (A.TimesOp) = {exp=T.opExp(A.TimesOp, lexp,rexp,Types.INT), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
+                        |   trOpExp (A.DivideOp) = {exp=T.opExp(A.DivideOp,lexp, rexp,Types.INT), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
+                        |   trOpExp (compOp) = 
+                            let val ckComp = checkComparisonOp (lty, rty, compOp,pos)
+                            in ( ckComp;
+                            {exp=T.opExp(compOp, lexp, rexp, ckComp), ty=Types.INT} )
+                            end                        
                     in
                         trOpExp oper
                     end
