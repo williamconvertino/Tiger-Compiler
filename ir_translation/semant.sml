@@ -297,7 +297,7 @@ struct
                     val {exp=expexp, ty=expty} = trexp exp
                 in
                     Types.checkType(expty, varty, pos);
-                    {exp=(), ty=Types.UNIT}
+                    {exp=T.assign(varexp, expexp), ty=Types.UNIT}
                 end
 
             (* IfExp *)

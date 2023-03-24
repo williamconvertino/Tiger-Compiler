@@ -18,6 +18,8 @@ sig
   val label : Temp.label -> exp
   val seq : exp list -> exp
 
+  val assign : exp * exp -> exp
+
   val whileLoop : exp * exp * Temp.label -> exp
   val forLoop : exp * exp * exp * Temp.label * access -> exp
   val break : Temp.label -> exp
@@ -143,6 +145,7 @@ structure Translate : TRANSLATE = struct
       trOp oper
     end
 
+  fun assign (varexp, valexp) = Nx(T.MOVE(unEx(varexp), unEx(valexp)))
 
   fun nop () = Nx(T.EXP(T.CONST(0)))
 
