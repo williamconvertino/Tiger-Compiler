@@ -189,8 +189,8 @@ struct
         
             (* Arithmetic & Comparison Ops *)
             |   trexp (A.OpExp{left, oper, right, pos}) =
-                    let val {lty, lexp} = trexp left
-                        val {rty, rexp} = trexp right
+                    let val {ty=lty, exp=lexp} = trexp left
+                        val {ty=rty, exp=rexp} = trexp right
                         fun trOpExp (A.PlusOp) = {exp=T.opExp(A.PlusOp, lexp, rexp), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
                         |   trOpExp (A.MinusOp) = {exp=T.opExp(A.MinusOp, lexp, rexp), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
                         |   trOpExp (A.TimesOp) = {exp=T.opExp(A.TimesOp, lexp, rexp), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
@@ -207,7 +207,7 @@ struct
             |   trexp (A.SeqExp (exps)) =
                     let fun trseq [] = {exp=(T.seq []), ty=Types.UNIT}
                         |   trseq (seq) = 
-                                let val trseqs = List.map trexp seq
+                                let val trseqs = List.map (fn (seqexp, _) => trexp seqexp) seq
                                     val seqexps = List.map (fn transexp => (#exp transexp)) trseqs
                                 in
                                     {exp=(T.seq seqexps), ty=(#ty (List.last trseqs))}
@@ -228,7 +228,7 @@ struct
             |   trexp (A.CallExp{func, args, pos}) = 
                     let fun checkParams ([], [], formalExps) = formalExps
                         |   checkParams (args, [], formalExps) = (ErrorMsg.error pos ("too many args provided: " ^ Int.toString (List.length args)); formalExps)
-                        |   checkParams ([], (ty, str)::formals, formalExps) = ((ErrorMsg.error pos ("missing param: " ^ str ^ Types.toString ty)); checkParams([], formals, (T.nop()::formalExps)))
+                        |   checkParams ([], formalty::formals, formalExps) = ((ErrorMsg.error pos ("missing param: " ^ Types.toString ty)); checkParams([], formals, (T.nop()::formalExps)))
                         |   checkParams (exp::args, ty::formals, formalExps) = 
                                 let val {exp=argexp, ty=argty} = trexp exp
                                 in 
@@ -239,7 +239,7 @@ struct
                                 end
                 in
                     case Symbol.look(venv, func) of
-                        SOME(E.FunEntry ({formals, result, level=deflevel, label})) => {exp=T.call(label, List.rev checkParams (args, formals), deflevel, level), ty=result} |
+                        SOME(E.FunEntry ({formals, result, level=deflevel, label})) => {exp=T.call(label, List.rev (checkParams (args, formals, [])), deflevel, level), ty=result} |
                         SOME(E.VarEntry _) => (ErrorMsg.error pos ("symbol " ^ Symbol.name func ^ " declared as a var not a function"); {exp=T.nop(), ty=Types.IMPOSSIBILITY}) |
                         NONE => (ErrorMsg.error pos ("function " ^ Symbol.name func ^ " not declared"); {exp=T.nop(), ty=Types.IMPOSSIBILITY})
                 end
