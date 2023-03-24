@@ -10,7 +10,16 @@ sig
   val allocLocal: level -> bool -> access
   
   val simpleVar : access * level -> exp 
-  val array : 
+  val subscriptVar : exp * exp -> exp
+  val fieldVar : exp * int -> exp
+  val arrayExp : exp * exp -> exp
+  val recordExp : exp list -> exp
+  val opExp : Absyn.oper * exp * exp -> exp
+  val const : int -> exp
+  val label : Temp.label -> exp
+  val seqExp : exp list -> exp
+  
+  val seq : Tree.stm list -> Tree.stm
     
   (* val procEntryExit : {level: level, body: exp} -> unit
 
@@ -18,6 +27,7 @@ sig
 end
 
 structure Frame = MipsFrame
+structure A = Absyn
 structure T = Tree
 
 structure Translate : TRANSLATE = struct 
@@ -29,9 +39,13 @@ structure Translate : TRANSLATE = struct
   type access = level * Frame.access
   val outermost: level = TOP
 
-  
+  fun seq (stm::[]) = stm
+  |   seq (stm::stmlist) = T.SEQ(stm, seq(stmlist))
+
   fun newLevel {parent, name, formals} = LEVEL((parent, MipsFrame.newFrame
     {name=name, formals=(true::formals)}), ref ())
+
+
   fun formals (TOP) = []
     |   formals (LEVEL(level)) =
     let val (_, acclist, _, _) = (#2 (#1 level))
@@ -48,33 +62,85 @@ structure Translate : TRANSLATE = struct
 
   fun unEx (Ex e) = e
     | unEx (Cx genstm) =
-           let val r = Temp.newtemp()
-                val t = Temp.newlabel() and f = Temp.newlabel()
-           in T.ESEQ(seq[T.MOVE(T.TEMP r, T.CONST 1),
+        let val r = Temp.newtemp()
+            val t = Temp.newlabel() and f = Temp.newlabel()
+            in T.ESEQ(seq[T.MOVE(T.TEMP r, T.CONST 1),
                                 genstm(t,f),
                                 T.LABEL f,
-                                T.MOVE(T.TEMP r, T.CONST 0).
+                                T.MOVE(T.TEMP r, T.CONST 0),
                                 T.LABEL t],
                                 T.TEMP r)
-           end
+            end
     | unEx (Nx s) = T.ESEQ(s,T.CONST 0)
   
-  fun unCx (Ex e) = (fn (t,f) => T.CJUMP (T.EQ, T.CONST 1, e, T.NAME t, T.NAME
-    f))
-    | unCx (Ex (T.CONST 0)) = (fn (t,f) => T.JUMP(T.NAME f, [f]))
-    | unCx (Ex (T.CONST 1)) = (fn (t,f) => T.JUMP(T.NAME t, [t]))
+  fun unCx (Ex(T.CONST 0)) = (fn (t,f) => T.JUMP(T.NAME f, [f]))
+    | unCx (Ex(T.CONST 1)) = (fn (t,f) => T.JUMP(T.NAME t, [t]))
+    | unCx (Ex e) = (fn (t,f) => T.CJUMP (T.NE, e, T.CONST 0, t, f))
     | unCx (Cx c) = c
 
-  fun unNx (Ex e) = Tree.exp(e)
-    | unNx (Cx c) = Tree.stm(UnEx(c))
+  fun unNx (Ex e) = Tree.EXP(e)
+    | unNx (Cx c) = T.EXP((unEx(Cx(c))))
     | unNx (Nx s) = s
 
-  fun staticLink deflev uselev e a = T.MEM (T.BINOP (T.PLUS, e, a))
-    (*MISSING dealing with static link*)
+  fun staticLink (deflev as LEVEL((pdef, fdef), rdef)) (uselev as
+    LEVEL((puse,fuse),ruse)) e a =
+           if rdef = ruse then e
+             else (MipsFrame.exp a (staticLink deflev puse e a))
+
   fun simpleVar ((deflev, a), uselev) = Ex(MipsFrame.exp a (staticLink
-    deflec uselev (T.TEMP(MipsFrame.FP) a)))
-    (*MISSING dealing with static link*)
+    deflev uselev (T.TEMP(MipsFrame.FP)) a ))
+
+  fun subscriptVar (baseAddr, index) = Ex(T.MEM(T.BINOP(T.PLUS,
+    T.MEM(unEx(baseAddr)), T.BINOP(T.MUL, unEx(index), T.CONST( MipsFrame.wordSize) ))))
+
+  fun fieldVar (baseAddr, ind) = Ex(T.MEM(T.BINOP(T.PLUS,
+        T.MEM(unEx(baseAddr)), T.BINOP(T.MUL, T.CONST(ind), T.CONST(
+        MipsFrame.wordSize) ))))
+
+  fun arrayExp (arrLen, initVal) = Ex(MipsFrame.externalCall("initArray",
+    [unEx(arrLen), unEx(initVal)]))
+  
+  fun recordExp (fields) =  
+   let val r = Temp.newtemp()  
+     fun seq ([a], i) = T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP(r), T.CONST( i *
+                 MipsFrame.wordSize))), unEx a)
+       | seq (a::l, i) =  T.SEQ( T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP(r),
+       T.CONST( i * MipsFrame.wordSize))), unEx a), seq (l, i+1))
+       | seq ([],_) = T.EXP(T.CONST 0)
+      in
+        Ex(T.ESEQ(T.SEQ(T.MOVE(T.TEMP (r),MipsFrame.externalCall("initRecord",[T.CONST (List.length fields)])), seq
+        (fields, 0)), T.TEMP(r)))
+       end
+
+  fun opExp (oper, left, right) =
+    let val tleft = unEx(left)
+        val tright = unEx(right)
+        fun trOp (A.PlusOp) = Ex(T.BINOP(T.PLUS, tleft, tright))
+        |   trOp (A.MinusOp) = Ex(T.BINOP(T.MINUS, tleft, tright))
+        |   trOp (A.TimesOp) = Ex(T.BINOP(T.MUL, tleft, tright))
+        |   trOp (A.DivideOp) = Ex(T.BINOP(T.DIV, tleft, tright))
+        |   trOp (A.EqOp) = Cx(fn (t,f) => T.CJUMP(T.EQ, tleft, tright, t, f))
+        |   trOp (A.NeqOp) = Cx(fn (t,f) => T.CJUMP(T.NE, tleft, tright, t, f))
+        |   trOp (A.LtOp) = Cx(fn (t,f) => T.CJUMP(T.LT, tleft, tright, t, f))
+        |   trOp (A.LeOp) = Cx(fn (t,f) => T.CJUMP(T.LE, tleft, tright, t, f))
+        |   trOp (A.GtOp) = Cx(fn (t,f) => T.CJUMP(T.GT, tleft, tright, t, f))
+        |   trOp (A.GeOp) = Cx(fn (t,f) => T.CJUMP(T.GE, tleft, tright, t, f))
+    in
+      trOp oper
+    end
 
 
+  fun const const = Ex(T.CONST(const))
 
+  fun label label = Nx(T.LABEL(label))
+
+  fun seqExp [] = Nx(T.LABEL(Temp.newlabel()))
+  |   seqExp (exp::[]) = exp
+  |   seqExp (exps) = 
+        let val stms = List.take (exps, (List.length exps)-1)
+            val unwrappedExp = unEx(List.last exps)
+            val unwrappedStms = List.map unNx stms
+        in
+          Ex(T.ESEQ(seq unwrappedStms, unwrappedExp))
+        end
 end

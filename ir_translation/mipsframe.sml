@@ -11,15 +11,17 @@ sig
   val FP : Temp.temp
   val wordSize: int
   val exp : access -> Tree.exp -> Tree.exp
-  (*val externalCall: string * Tree.exp list -> Tree.exp
-  val RV : Temp.temp
-  val procEntryExitl : frame * Tree.stm -> Tree.stm
+  val externalCall: string * Tree.exp list -> Tree.exp
+  (*val RV : Temp.temp
+  val procEntryExit1 : frame * Tree.stm -> Tree.stm
   datatype frag = PROC of {body: Tree.stm, frame: frame}
                 | STRING of Temp.label * string *)
 end
 
 structure MipsFrame : FRAME = struct 
     datatype access = InFrame of int | InReg of Temp.temp
+
+    structure T = Tree
 
     type frame = Temp.label * access list * int ref * Tree.exp list
     
@@ -43,10 +45,14 @@ structure MipsFrame : FRAME = struct
 
     fun allocR0 () = InReg(0)
     val FP = Temp.newtemp ()
-    val wordSize = 32
+    val wordSize = 4
 
-    
-    fun procEntryExitl(frame,body) = body
+    fun exp (InFrame(offset)) frameAddr = T.MEM(T.BINOP(T.PLUS, frameAddr, T.CONST(offset)))
+    |   exp (InReg(r)) _ = T.TEMP(r)
+
+    fun externalCall (s, args) = T.CALL(T.NAME(Temp.namedlabel s), args)
+
+    fun procEntryExit1(frame,body) = body
 
 
 end

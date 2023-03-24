@@ -3,8 +3,7 @@ sig
     type venv = Env.enventry Symbol.table
     type tenv = Types.ty Symbol.table
     
-    (* type expty = {exp: Translate.exp, ty: Types.ty} *)
-    type expty = {exp: unit, ty: Types.ty}
+    type expty = {exp: Translate.exp, ty: Types.ty}
 
     val transExp: venv * tenv * unit option * Translate.level -> Absyn.exp -> expty
     val transDec: venv * tenv * unit option * Absyn.dec * Translate.level -> {venv: venv, tenv: tenv}
@@ -19,15 +18,16 @@ struct
     type venv = Env.enventry Symbol.table
     type tenv = Types.ty Symbol.table
     
-    type expty = {exp: unit, ty: Types.ty}
+    type expty = {exp: Translate.exp, ty: Types.ty}
 
     structure A = Absyn
     structure E = Env
     structure S = Symbol
+    structure T = Translate
 
-    fun checkInt ({exp, ty}, pos) = Types.checkType(ty, Types.INT, pos)
+    fun checkInt (ty, pos) = Types.checkType(ty, Types.INT, pos)
 
-    fun checkComparisonOp ({exp=lexp, ty=lty}, {exp=rexp, ty=rty}, check_op, pos) =
+    fun checkComparisonOp (lty, rty, check_op, pos) =
         let fun checkOp (Types.INT, rty, _) = Types.checkType(rty, Types.INT, pos)
             |   checkOp (Types.STRING, rty, _) = Types.checkType(rty, Types.STRING, pos)
             |   checkOp (Types.ARRAY(lty), rty, A.EqOp) = Types.checkType(rty, Types.ARRAY(lty), pos)
@@ -182,52 +182,39 @@ struct
     and transExp (venv, tenv, in_loop, level) = 
             (* -- Expressions -- *)
             (* IntExp *)
-        let fun trexp (A.IntExp (int)) = {exp=(), ty=Types.INT}
+        let val access = Translate.allocLocal level false (*MISSING, UNSURE IF
+        THIS SHOULD BE FALSE*)
+          fun trexp (A.IntExp (int)) = {exp=T.const(int), ty=Types.INT}
 
             (* StringExp *)
             |   trexp (A.StringExp (str, pos)) = {exp=(), ty=Types.STRING}
         
-            (* Arithmetic Ops *)
-            |   trexp (A.OpExp{left, oper=A.PlusOp, right, pos}) =
-                {exp=(), ty=Types.closestDescendant (checkInt(trexp left, pos), checkInt(trexp right, pos))}
-            |   trexp (A.OpExp{left, oper=A.MinusOp, right, pos}) =
-                {exp=(), ty=Types.closestDescendant (checkInt(trexp left, pos), checkInt(trexp right, pos))}
-            |   trexp (A.OpExp{left, oper=A.TimesOp, right, pos}) =
-                {exp=(), ty=Types.closestDescendant (checkInt(trexp left, pos), checkInt(trexp right, pos))}
-            |   trexp (A.OpExp{left, oper=A.DivideOp, right, pos}) =
-                {exp=(), ty=Types.closestDescendant (checkInt(trexp left, pos), checkInt(trexp right, pos))}
-            
-            (* Comparison Ops *)
-            |   trexp (A.OpExp{left, oper=A.EqOp, right, pos}) = (
-                    checkComparisonOp (trexp left, trexp right, A.EqOp, pos);
-                    {exp=(), ty=Types.INT}
-                )
-            |   trexp (A.OpExp{left, oper=A.NeqOp, right, pos}) = (
-                    checkComparisonOp (trexp left, trexp right, A.NeqOp, pos);
-                    {exp=(), ty=Types.INT}
-                )
-            |   trexp (A.OpExp{left, oper=A.LtOp, right, pos}) = (
-                    checkComparisonOp (trexp left, trexp right, A.LtOp, pos);
-                    {exp=(), ty=Types.INT}
-                )
-            |   trexp (A.OpExp{left, oper=A.LeOp, right, pos}) = (
-                    checkComparisonOp (trexp left, trexp right, A.LeOp, pos);
-                    {exp=(), ty=Types.INT}
-                )
-            |   trexp (A.OpExp{left, oper=A.GtOp, right, pos}) = (
-                    checkComparisonOp (trexp left, trexp right, A.GtOp, pos);
-                    {exp=(), ty=Types.INT}
-                )
-            |   trexp (A.OpExp{left, oper=A.GeOp, right, pos}) = (
-                    checkComparisonOp (trexp left, trexp right, A.GeOp, pos);
-                    {exp=(), ty=Types.INT}
-                )
+            (* Arithmetic & Comparison Ops *)
+            |   trexp (A.OpExp{left, oper, right, pos}) =
+                    let val {lty, lexp} = trexp left
+                        val {rty, rexp} = trexp right
+                        fun trOpExp (A.PlusOp) = {exp=T.opExp(A.PlusOp, lexp, rexp), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
+                        |   trOpExp (A.MinusOp) = {exp=T.opExp(A.MinusOp, lexp, rexp), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
+                        |   trOpExp (A.TimesOp) = {exp=T.opExp(A.TimesOp, lexp, rexp), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
+                        |   trOpExp (A.DivideOp) = {exp=T.opExp(A.DivideOp, lexp, rexp), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
+                        |   trOpExp (compOp) = (
+                            checkComparisonOp (lty, rty, compOp, pos);
+                            {exp=T.opExp(compOp, lexp, rexp), ty=Types.INT}
+                        )
+                    in
+                        trOpExp oper
+                    end
             
             (* SeqExps *)
             |   trexp (A.SeqExp (exps)) =
-                    let fun trseq [] = {exp=(), ty=Types.UNIT}
-                        |   trseq ((exp, pos)::[]) = trexp exp
-                        |   trseq ((exp, pos)::seq) = (trexp exp; trseq seq)
+                    let fun trseq [] = {exp=(T.seqExp []), ty=Types.UNIT}
+                        |   trseq (seq) = 
+                                let val trseqs = List.map trexp seq
+                                    val seqexps = List.map (fn transexp => (#exp transexp)) trseqs
+                                in
+                                    {exp=(T.seqExp seqexps), ty=(#ty (List.last trseqs))}
+                                end
+
                     in
                         trseq exps
                     end
@@ -236,7 +223,7 @@ struct
             |   trexp (A.VarExp (var)) = trvar var
 
             (* NilExp *)
-            |   trexp (A.NilExp) = {exp=(), ty=Types.NIL}
+            |   trexp (A.NilExp) = {exp=T.const(0), ty=Types.NIL}
 
 
             (* CallExp *)
@@ -262,7 +249,10 @@ struct
             (* RecordExp *)
             |   trexp (A.RecordExp{fields, typ=tysym, pos}) =
                     let fun checkType (Types.RECORD(symtyps, uniq)) = 
-                            let fun checkElements (ret, [], []) = ret |
+                            let fun stripExp xs = foldr (fn ((_,exp,_),l) =>
+                            (T.exp exp)::l) [] xs (*MISSING TO CHECK THIS FOR
+                            CORRECTION/ ADDED A FUN TO STRIP EXP FROM FIELD TUPLE*)
+                              fun checkElements (ret, [], []) = ret |
                                     checkElements ({exp, ty}, fields, []) = (ErrorMsg.error pos ("too many fields provided to type " ^ Types.toString (Types.RECORD(symtyps, uniq))); {exp=exp, ty=Types.IMPOSSIBILITY}) |
                                     checkElements ({exp, ty}, [], tylist) = (ErrorMsg.error pos ("missing required fields from type " ^ Types.toString (Types.RECORD(symtyps, uniq))); {exp=exp, ty=Types.IMPOSSIBILITY}) |
                                     checkElements ({exp, ty}, (fieldsym, fieldexp, fieldpos)::l, tylist) = 
@@ -278,7 +268,7 @@ struct
                                                                         checkElements ({exp=exp, ty=Types.IMPOSSIBILITY}, l, filteredtylist))
                                         end
                             in
-                                checkElements ({exp=(), ty=(Types.RECORD(symtyps, uniq))}, fields, symtyps)
+                                checkElements ({exp=T.recordExp(stripExp fields), ty=(Types.RECORD(symtyps, uniq))}, fields, symtyps)
                             end
                         |   checkType _ = (ErrorMsg.error pos ("declared type not record type: " ^ Symbol.name tysym); {exp=(), ty=Types.IMPOSSIBILITY})
                         in
@@ -305,7 +295,7 @@ struct
                     (
                         Types.checkType(initty, valty, pos);
                         Types.checkType(sizety, Types.INT, pos);
-                        {exp=(), ty=dectyp}
+                        {exp=T.arrayExp(#exp (trexp size), #exp (trexp init)), ty=dectyp}
                     )
                 end
 
@@ -374,11 +364,11 @@ struct
 
                 (* -- Vars -- *)
                 (* foo *)
-            and trvar (A.SimpleVar(id, pos)) = {exp=(), ty=lookupVarType (venv, id, pos)}
+            and trvar (A.SimpleVar(id, pos)) = {exp=T.simpleVar(access,level), ty=lookupVarType (venv, id, pos)}
                 (* foo[bar] *)
             |   trvar (A.SubscriptVar(var, exp, pos)) =
                     let fun tycheck ({exp=varexp, ty=Types.ARRAY(arrty, _)}, {exp=expexp, ty=Types.INT}) = 
-                                {exp=(), ty=arrty}
+                                {exp=T.subscriptVar(#exp (trvar var), #exp (trexp exp)) , ty=arrty}
                         |   tycheck ({exp=varexp, ty=Types.ARRAY(arrty, _)}, {exp=expexp, ty=_}) = (ErrorMsg.error pos ("index expression must be of type int");
                                 {exp=(), ty=arrty})
                         |   tycheck ({exp=varexp, ty=_}, _) = (ErrorMsg.error pos ("cannot index non-array type");
@@ -387,14 +377,16 @@ struct
                     in
                         tycheck ({exp=varexp, ty=actual_ty varty}, trexp exp) 
                     end
-                (* foo.bar *)
+                (* foo.bar *)(*MISSING the weird addition of a counter to track
+                field index*)
             |   trvar (A.FieldVar(var, symbol, pos)) =
-                    let fun findsymty (sym, (sym', ty)::l) = if Symbol.eq (sym, sym') then SOME(ty) else findsymty(sym, l) |
-                            findsymty (sym, []) = NONE
+                    let fun findsymty (sym, (sym', ty)::l,i) = if Symbol.eq (sym,
+                        sym') then (SOME(ty),i+1) else findsymty(sym, l,i+1) |
+                            findsymty (sym, [], i) = (NONE, i+1)
                         fun tycheck {exp=varexp, ty=Types.RECORD(symtys, uniq)} = (
-                                case (findsymty (symbol, symtys)) of
-                                    SOME(ty) => {exp=(), ty=ty} |
-                                    NONE     => (ErrorMsg.error pos ("field " ^ Symbol.name symbol ^ " not found in record type " ^ (Types.toString (Types.RECORD(symtys, uniq)))); {exp=(), ty=Types.IMPOSSIBILITY})
+                                case (findsymty (symbol, symtys, 0)) of
+                                    (SOME(ty),ind) => {exp=T.fieldVar(#exp (trvar var),ind), ty=ty} |
+                                     (NONE, _)     => (ErrorMsg.error pos ("field " ^ Symbol.name symbol ^ " not found in record type " ^ (Types.toString (Types.RECORD(symtys, uniq)))); {exp=(), ty=Types.IMPOSSIBILITY})
                             )
                         |   tycheck {exp=varexp, ty=symty} = (ErrorMsg.error pos ("must reference record type got " ^ (Types.toString symty));
                                 {exp=(), ty=Types.IMPOSSIBILITY})
