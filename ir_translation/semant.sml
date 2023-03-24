@@ -6,7 +6,7 @@ sig
     type expty = {exp: Translate.exp, ty: Types.ty}
 
     val transExp: venv * tenv * Temp.label option * Translate.level -> Absyn.exp -> expty
-    val transDec: venv * tenv * Temp.label option * Absyn.dec * Translate.level -> {venv: venv, tenv: tenv}
+    val transDec: venv * tenv * Temp.label option * Absyn.dec * Translate.level -> {venv: venv, tenv: tenv, exp: Translate.exp option}
     val transTy:  tenv * Absyn.ty -> Types.ty
 
     val transProg : Absyn.exp -> unit
@@ -51,10 +51,14 @@ struct
             of SOME(ty) => ty
             |  NONE     => (ErrorMsg.error pos ("undefined type " ^ S.name id); Types.IMPOSSIBILITY)
     
-    fun transDecs (venv, tenv, in_loop, [], _) = {venv=venv, tenv=tenv} |
-        transDecs (venv, tenv, in_loop, dec::l, level) =
-            let val {venv=venv', tenv=tenv'} = transDec(venv, tenv, in_loop, dec, level)
-            in transDecs (venv', tenv', in_loop, l, level) end
+    fun transDecs (venv, tenv, in_loop, [], _, exps) = {venv=venv, tenv=tenv, exps=List.rev exps} |
+        transDecs (venv, tenv, in_loop, dec::l, level, exps) =
+            let val {venv=venv', tenv=tenv', exp=expop} = transDec(venv, tenv, in_loop, dec, level)
+            in 
+                case expop of
+                    SOME(exp) => transDecs (venv', tenv', in_loop, l, level, exp::exps) 
+                |   NONE      => transDecs (venv', tenv', in_loop, l, level, exps) 
+            end
 
         (* -- Types -- *)
     and transTy (tenv, A.NameTy(sym, pos)) = lookupTypeDec (tenv, sym, pos) |
@@ -69,19 +73,21 @@ struct
         (* -- Var Decs -- *)
         (* var x := exp *)
     and transDec (venv, tenv, in_loop, A.VarDec{name, typ=NONE, init, escape, pos}, level) = 
-            let val {exp, ty} = transExp (venv, tenv, in_loop, level) init
+            let val {exp=initexp, ty} = transExp (venv, tenv, in_loop, level) init
                 val access = Translate.allocLocal level (!escape)
+                val varexp = T.simpleVar(access, level)
             in 
-                {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=ty, access=access})}
+                {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=ty, access=access}), exp=SOME(T.assign(varexp, initexp))}
             end |
         (* var x: type := exp *)
         transDec (venv, tenv, in_loop, A.VarDec{name, typ=SOME((tysym, typos)), init, escape, pos}, level) =
-            let val {exp, ty=initty} = transExp (venv, tenv, in_loop, level) init
+            let val {exp=initexp, ty=initty} = transExp (venv, tenv, in_loop, level) init
                 val decty = lookupTypeDec (tenv, tysym, typos)
                 val evalty = Types.checkType(initty, decty, pos)
                 val access = Translate.allocLocal level (!escape)
+                val varexp = T.simpleVar(access, level)
             in
-                {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=evalty, access=access})}
+                {tenv=tenv, venv=S.enter (venv, name, E.VarEntry{ty=evalty, access=access}), exp=SOME(T.assign(varexp, initexp))}
             end |
 
         (* -- Type Decs -- *)
@@ -112,7 +118,7 @@ struct
                             end
                         |   checkTyDec ([]) = ()
                     in
-                        (checkTyDec(tydecs); {tenv=tenv, venv=venv})
+                        (checkTyDec(tydecs); {tenv=tenv, venv=venv, exp=NONE})
                     end
             in
                 cyclicGuard (setupHeaders (venv, tenv, tydecs))
@@ -156,17 +162,17 @@ struct
                         |   enterparams (venv, []) = venv
                         
 
-                        val {venv=venv'', tenv} = trFun (venv', tenv, fundecs)
+                        val {venv=venv'', tenv, exp} = trFun (venv', tenv, fundecs)
                         val venv''' = enterparams (venv'', params')
                         val {exp=bodyexp, ty=bodyty} = transExp(venv''', tenv, NONE, level') body
                     in 
                         ( 
                             Types.checkType(bodyty, result_ty, pos);
-                            {venv=venv'', tenv=tenv}
+                            {venv=venv'', tenv=tenv, exp=NONE}
                         )
                     end
 
-                |   trFun (venv, tenv, []) = {venv=venv, tenv=tenv}
+                |   trFun (venv, tenv, []) = {venv=venv, tenv=tenv, exp=NONE}
 
             in
                 trFun (venv, tenv, fundecs)
@@ -297,7 +303,7 @@ struct
                     val {exp=expexp, ty=expty} = trexp exp
                 in
                     Types.checkType(expty, varty, pos);
-                    {exp=(), ty=Types.UNIT}
+                    {exp=T.assign(varexp, expexp), ty=Types.UNIT}
                 end
 
             (* IfExp *)
@@ -305,7 +311,7 @@ struct
                 let val {exp=testexp, ty=testty} = trexp test
                 in
                     Types.checkType(testty, Types.INT, pos);
-                    {exp=(), ty=Types.UNIT}
+                    {exp=(T.ifExp(#exp(trexp test), #exp(trexp then'), T.CONST(0))), ty=Types.UNIT}
                 end
             | trexp (A.IfExp{test, then', else'=SOME(else'), pos}) = 
                 let val {exp=testexp, ty=testty} = trexp test
@@ -314,14 +320,16 @@ struct
                     val resty = Types.nearestAncestor(thenty, elsety, pos)
                 in
                     Types.checkType(testty, Types.INT, pos);
-                    {exp=(), ty=resty}
+                    {exp=(T.ifExp(#exp(trexp test), #exp(trexp then'),#exp(trexp else'))), ty=resty}
                 end
 
             (* LetExp *)
             |   trexp (A.LetExp{decs, body, pos}) =
-                    let val {venv=venv', tenv=tenv'} = transDecs(venv, tenv, in_loop, decs, level)
-                    in transExp (venv', tenv', in_loop, level) body
-                end
+                    let val {venv=venv', tenv=tenv', exps=decexps} = transDecs(venv, tenv, in_loop, decs, level, [])
+                        val {venv=lvenv, tenv=ltenv, exp=bodyexp} = transExp (venv', tenv', in_loop, level) body
+                    in 
+                       {venv=lvenv, tenv=ltenv, exp=T.letExp(decexps, bodyexp)} 
+                    end
 
             (* WhileExp *)
             |   trexp (A.WhileExp{test, body, pos}) =

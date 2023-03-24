@@ -18,9 +18,13 @@ sig
   val label : Temp.label -> exp
   val seq : exp list -> exp
 
+  val assign : exp * exp -> exp
+
   val whileLoop : exp * exp * Temp.label -> exp
   val forLoop : exp * exp * exp * Temp.label * access -> exp
   val break : Temp.label -> exp
+
+  val letExp : exp list * exp -> exp
 
   val subscriptVar : exp * exp -> exp
   val fieldVar : exp * int -> exp
@@ -31,6 +35,8 @@ sig
   val getResult : unit -> MipsFrame.frag list 
   val rememberedFrags : MipsFrame.frag list ref 
   val stringVar : string -> Tree.exp
+  val ifExp : exp * exp * exp -> exp
+
 end
 
 structure Frame = MipsFrame
@@ -94,11 +100,6 @@ structure Translate : TRANSLATE = struct
         end
     | unNx (Nx s) = s
 
-  (* fun staticLink (deflev as LEVEL((pdef, fdef), rdef)) (uselev as
-    LEVEL((puse,fuse),ruse)) e a =
-           if rdef = ruse then e
-             else (MipsFrame.exp a (staticLink deflev puse e a)) *)
-
   fun staticLink (defLevel as LEVEL(_, defId), LEVEL((currParent, currFrame), currId)) =
         if defId = currId then T.TEMP(MipsFrame.FP) else T.MEM(staticLink(defLevel, currParent))
   |   staticLink (_, _) = (print("error: cannot static link into the TOP level"); T.TEMP(MipsFrame.FP))
@@ -143,6 +144,7 @@ structure Translate : TRANSLATE = struct
       trOp oper
     end
 
+  fun assign (varexp, valexp) = Nx(T.MOVE(unEx(varexp), unEx(valexp)))
 
   fun nop () = Nx(T.EXP(T.CONST(0)))
 
@@ -197,28 +199,57 @@ structure Translate : TRANSLATE = struct
       ])
     end
 
+
+  fun letExp (decexps, bodyexp) =
+      let val unwrappedStms = List.map unNx decexps
+      in
+        Ex(T.ESEQ(rollupSeq unwrappedStms, unEx bodyexp))
+      end
+
+
     val rememberedFrags = ref [] : Frame.frag list ref
-   fun getResult () = !rememberedFrags;
+    fun getResult () = !rememberedFrags;
 
   
-   fun procEntryExit {level=level, body=exp} = 
-     case level of
-          LEVEL((level', frame'), un) => rememberedFrags :=
-          Frame.PROC({body=(unNx(exp)), frame=frame'})::(!rememberedFrags)
+    fun procEntryExit {level=level, body=exp} = 
+      case level of
+            LEVEL((level', frame'), un) => rememberedFrags :=
+            Frame.PROC({body=(unNx(exp)), frame=frame'})::(!rememberedFrags)
 
-   fun stringVar lit = 
-   let fun getLab () =
-     case List.find 
-        (fn(remfrag) => (case remfrag of 
-              Frame.PROC(_) => false
-            | Frame.STRING(lab,lit') => String.compare(lit, lit') = EQUAL))
-        (!rememberedFrags)
-        of
-         SOME(Frame.STRING(lab,lit')) => lab
-        | NONE => Temp.newlabel()
+    fun stringVar lit = 
+      let fun getLab () =
+        case List.find 
+            (fn(remfrag) => (case remfrag of 
+                  Frame.PROC(_) => false
+                | Frame.STRING(lab,lit') => String.compare(lit, lit') = EQUAL))
+            (!rememberedFrags)
+            of
+            SOME(Frame.STRING(lab,lit')) => lab
+            | NONE => Temp.newlabel()
+        in
+          (rememberedFrags := Frame.STRING((getLab(),lit))::(!rememberedFrags);
+          T.NAME(getLab ()))
+        end
+ 
+  fun ifExp (test, t', e) =
+     let val join = Temp.newlabel()
+          val t = Temp.newlabel()
+          val f = Temp.newlabel()
+          val r = Temp.newtemp()
+          val s1 = unCx(test)
+          
+          fun helper (s1, (v as _), (v' as _)) =
+          let val s2 = unEx (v)
+              val s3 = unEx(v')
+          in
+            Ex(T.ESEQ(T.SEQ(s1(t,f),T.SEQ(T.LABEL(t),
+            T.SEQ(T.MOVE(s2,T.TEMP(r)),T.SEQ(T.JUMP(T.NAME(join),[join]),
+            T.SEQ(T.LABEL(f),T.SEQ(T.MOVE(s3,T.TEMP(r)),T.JUMP(T.NAME(join),[join]))))))),T.TEMP(r)))
+          end
      in
-       (rememberedFrags := Frame.STRING((getLab(),lit))::(!rememberedFrags);
-       T.NAME(getLab ()))
+       helper (s1,t',e)
      end
+
+
 
 end
