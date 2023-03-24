@@ -234,8 +234,8 @@ struct
                 in
                     case Symbol.look(venv, func) of
                         SOME(E.FunEntry ({formals, result, level, label})) => (checkParams (args, formals); {exp=(), ty=result}) |
-                        SOME(E.VarEntry _) => (ErrorMsg.error pos ("symbol " ^ Symbol.name func ^ " declared as a var not a function"); {exp=(), ty=Types.IMPOSSIBILITY}) |
-                        NONE => (ErrorMsg.error pos ("function " ^ Symbol.name func ^ " not declared"); {exp=(), ty=Types.IMPOSSIBILITY})
+                        SOME(E.VarEntry _) => (ErrorMsg.error pos ("symbol " ^ Symbol.name func ^ " declared as a var not a function"); {exp=T.nop(), ty=Types.IMPOSSIBILITY}) |
+                        NONE => (ErrorMsg.error pos ("function " ^ Symbol.name func ^ " not declared"); {exp=T.nop(), ty=Types.IMPOSSIBILITY})
                 end
 
             (* RecordExp *)
@@ -262,7 +262,7 @@ struct
                             in
                                 checkElements ({exp=T.recordExp(stripExp fields), ty=(Types.RECORD(symtyps, uniq))}, fields, symtyps)
                             end
-                        |   checkType _ = (ErrorMsg.error pos ("declared type not record type: " ^ Symbol.name tysym); {exp=(), ty=Types.IMPOSSIBILITY})
+                        |   checkType _ = (ErrorMsg.error pos ("declared type not record type: " ^ Symbol.name tysym); {exp=T.nop(), ty=Types.IMPOSSIBILITY})
                         in
                             checkType (actual_ty (lookupTypeDec (tenv, tysym, pos)))
                         end
