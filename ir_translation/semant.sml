@@ -179,7 +179,7 @@ struct
         let fun trexp (A.IntExp (int)) = {exp=T.const(int), ty=Types.INT}
 
             (* StringExp *)
-            |   trexp (A.StringExp (str, pos)) = {exp=(), ty=Types.STRING}
+            |   trexp (A.StringExp (str, pos)) = {exp=T.stringVar(str), ty=Types.STRING}
         
             (* Arithmetic & Comparison Ops *)
             |   trexp (A.OpExp{left, oper, right, pos}) =

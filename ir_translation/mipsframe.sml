@@ -2,6 +2,8 @@ signature FRAME =
 sig 
   type access
   type frame = Temp.label * access list * int ref * Tree.exp list
+  datatype frag = PROC of {body: Tree.stm, frame: frame}
+                             | STRING of Temp.label * string
   val newFrame : {name: Temp.label, formals: bool list} -> frame
   val name : frame -> Temp.label
   val formals : frame -> access list
@@ -14,18 +16,18 @@ sig
   val externalCall: string * Tree.exp list -> Tree.exp
   val procEntryExit1 : frame * Tree.stm -> Tree.stm
 
-  (* val RV : Temp.temp
-  datatype frag = PROC of {body: Tree.stm, frame: frame}
-                | STRING of Temp.label * string *)
+  (* val RV : Temp.temp *)
 end
 
 structure MipsFrame : FRAME = struct 
     datatype access = InFrame of int | InReg of Temp.temp
 
     structure T = Tree
+    
 
     type frame = Temp.label * access list * int ref * Tree.exp list
-    
+     datatype frag = PROC of {body: Tree.stm, frame: frame}
+                                  | STRING of Temp.label * string
 
     fun newFrame {name, formals} =
       let fun setupFormals (true::formalescs, esccount, regcount)   = (InFrame (esccount * 4)) :: (setupFormals (formalescs, esccount+1, regcount))

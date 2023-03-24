@@ -27,9 +27,10 @@ sig
   val arrayExp : exp * exp -> exp
   val recordExp : exp list -> exp
     
-  (* val procEntryExit : {level: level, body: exp} -> unit
-
-  val getResult : unit -> Frame.frag list *)
+  val procEntryExit : {level: level, body: exp} -> unit
+  val getResult : unit -> MipsFrame.frag list 
+  val rememberedFrags : MipsFrame.frag list ref 
+  val stringVar : string -> Tree.exp
 end
 
 structure Frame = MipsFrame
@@ -195,4 +196,29 @@ structure Translate : TRANSLATE = struct
         T.LABEL(done)
       ])
     end
+
+    val rememberedFrags = ref [] : Frame.frag list ref
+    fun getResult () = !rememberedFrags;
+
+  
+    fun procEntryExit {level=level, body=exp} = 
+      case level of
+            LEVEL((level', frame'), un) => rememberedFrags :=
+            Frame.PROC({body=(unNx(exp)), frame=frame'})::(!rememberedFrags)
+
+    fun stringVar lit = 
+      let fun getLab () =
+        case List.find 
+            (fn(remfrag) => (case remfrag of 
+                  Frame.PROC(_) => false
+                | Frame.STRING(lab,lit') => String.compare(lit, lit') = EQUAL))
+            (!rememberedFrags)
+            of
+            SOME(Frame.STRING(lab,lit')) => lab
+            | NONE => Temp.newlabel()
+        in
+          (rememberedFrags := Frame.STRING((getLab(),lit))::(!rememberedFrags);
+          T.NAME(getLab ()))
+        end
+
 end
