@@ -24,6 +24,8 @@ sig
   val forLoop : exp * exp * exp * Temp.label * access -> exp
   val break : Temp.label -> exp
 
+  val letExp : exp list * exp -> exp
+
   val subscriptVar : exp * exp -> exp
   val fieldVar : exp * int -> exp
   val arrayExp : exp * exp -> exp
@@ -95,11 +97,6 @@ structure Translate : TRANSLATE = struct
           T.SEQ(c(l,l), T.LABEL(l))
         end
     | unNx (Nx s) = s
-
-  (* fun staticLink (deflev as LEVEL((pdef, fdef), rdef)) (uselev as
-    LEVEL((puse,fuse),ruse)) e a =
-           if rdef = ruse then e
-             else (MipsFrame.exp a (staticLink deflev puse e a)) *)
 
   fun staticLink (defLevel as LEVEL(_, defId), LEVEL((currParent, currFrame), currId)) =
         if defId = currId then T.TEMP(MipsFrame.FP) else T.MEM(staticLink(defLevel, currParent))
@@ -199,6 +196,14 @@ structure Translate : TRANSLATE = struct
         T.LABEL(done)
       ])
     end
+
+
+  fun letExp (decexps, bodyexp) =
+      let val unwrappedStms = List.map unNx decexps
+      in
+        Ex(T.ESEQ(rollupSeq unwrappedStms, unEx bodyexp))
+      end
+
 
     val rememberedFrags = ref [] : Frame.frag list ref
     fun getResult () = !rememberedFrags;
