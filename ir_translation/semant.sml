@@ -5,8 +5,8 @@ sig
     
     type expty = {exp: Translate.exp, ty: Types.ty}
 
-    val transExp: venv * tenv * unit option * Translate.level -> Absyn.exp -> expty
-    val transDec: venv * tenv * unit option * Absyn.dec * Translate.level -> {venv: venv, tenv: tenv}
+    val transExp: venv * tenv * Temp.label option * Translate.level -> Absyn.exp -> expty
+    val transDec: venv * tenv * Temp.label option * Absyn.dec * Translate.level -> {venv: venv, tenv: tenv}
     val transTy:  tenv * Absyn.ty -> Types.ty
 
     val transProg : Absyn.exp -> unit
@@ -205,12 +205,12 @@ struct
             
             (* SeqExps *)
             |   trexp (A.SeqExp (exps)) =
-                    let fun trseq [] = {exp=(T.seqExp []), ty=Types.UNIT}
+                    let fun trseq [] = {exp=(T.seq []), ty=Types.UNIT}
                         |   trseq (seq) = 
                                 let val trseqs = List.map trexp seq
                                     val seqexps = List.map (fn transexp => (#exp transexp)) trseqs
                                 in
-                                    {exp=(T.seqExp seqexps), ty=(#ty (List.last trseqs))}
+                                    {exp=(T.seq seqexps), ty=(#ty (List.last trseqs))}
                                 end
 
                     in
@@ -328,11 +328,12 @@ struct
 
             (* WhileExp *)
             |   trexp (A.WhileExp{test, body, pos}) =
-                    let val {exp=testexp, ty=testty} = transExp (venv, tenv, SOME(()), level) test
-                        val {exp=bodyexp, ty=bodyty} = transExp (venv, tenv, SOME(()), level) body
+                    let val doneLabel = Temp.newlabel()
+                        val {exp=testexp, ty=testty} = transExp (venv, tenv, SOME(doneLabel), level) test
+                        val {exp=bodyexp, ty=bodyty} = transExp (venv, tenv, SOME(doneLabel), level) body
                     in
                         Types.checkType(testty, Types.INT, pos);
-                        {exp=(), ty=Types.UNIT}
+                        {exp=(T.whileLoop (testexp, bodyexp, doneLabel)), ty=Types.UNIT}
                     end
 
             (* ForExp *)
@@ -341,20 +342,20 @@ struct
                         val venv' = S.enter (venv, var, E.VarEntry{ty=Types.INT, access=loopvaraccess})
                         val {exp=loexp, ty=loty} = trexp lo
                         val {exp=hiexp, ty=hity} = trexp hi
-                        val {exp=bodyexp, ty=bodyty} = transExp (venv', tenv, SOME(()), level) body
+                        val doneLabel = Temp.newlabel()
+                        val {exp=bodyexp, ty=bodyty} = transExp (venv', tenv, SOME(doneLabel), level) body
                     in
                         Types.checkType(loty, Types.INT, pos);
                         Types.checkType(hity, Types.INT, pos);
-                        {exp=(), ty=Types.UNIT}
+                        {exp=T.forLoop(loexp, hiexp, bodyexp, doneLabel, loopvaraccess), ty=Types.UNIT}
                     end
 
 
             (* BreakExp *)
             | trexp (A.BreakExp (pos)) = (
                 case in_loop of
-                    SOME(label) => () |
-                    NONE => (ErrorMsg.error pos ("break not contained within loop"));
-                {exp=(), ty=Types.IMPOSSIBILITY}
+                    SOME(label) => {exp=T.break(label), ty=Types.IMPOSSIBILITY} |
+                    NONE => (ErrorMsg.error pos ("break not contained within loop")); {exp=T.nop(), ty=Types.IMPOSSIBILITY}
             )
 
                 (* -- Vars -- *)
