@@ -180,8 +180,6 @@ structure Translate : TRANSLATE = struct
 
   fun assign (varexp, valexp) = Nx(T.MOVE(unEx(varexp), unEx(valexp)))
 
-  fun nop () = Nx(T.EXP(T.CONST(0)))
-
   fun const const = Ex(T.CONST(const))
 
   fun label label = Nx(T.LABEL(label))
