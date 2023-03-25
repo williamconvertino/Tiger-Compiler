@@ -107,28 +107,27 @@ structure Translate : TRANSLATE = struct
   fun nop () = Nx(T.EXP(T.CONST(0)))
 
   fun staticLink (defLevel as LEVEL(_, defId), LEVEL((currParent, currFrame), currId)) =
-    let fun checkLevel true = T.TEMP(MipsFrame.FP)
-    |   checkLevel false = 
-          let val linkOp = staticLink(defLevel, currParent)
-          in
-            case linkOp of
-                 SOME(link) => T.MEM(link)
-               | NONE=> (print("error: def level changed during static link computation\n");  T.CONST(0))
-          end
-    in
-      SOME(checkLevel((defId = currId)))
-    end
-    |  staticLink (TOP, _) = (print ("error: current level became TOP during static link computation\n"); SOME(T.CONST(0)))
+        let fun checkLevel true = T.TEMP(MipsFrame.FP)
+            |   checkLevel false = 
+                  let val linkOp = staticLink(defLevel, currParent)
+                  in
+                    case linkOp of
+                      SOME(link) => T.MEM(link)
+                    | NONE       => (print("error: def level changed during static link computation\n"); T.CONST(0)) 
+                  end
+        in
+          SOME(checkLevel((defId = currId)))
+        end
+  |   staticLink (TOP, _) = NONE
+  |   staticLink (_, TOP) = (print ("error: current level became TOP during static link computation\n"); SOME(T.CONST(0)))
 
   fun simpleVar ((defLevel, frameAccess), useLevel) = 
     let val linkOp = staticLink (defLevel, useLevel)
     in
       case linkOp of
-           SOME(link) => Ex(MipsFrame.exp frameAccess link)
-         | NONE       => (print ("error: variable cannot be accessed in TOP level\n"); Ex(T.CONST(0)))
-     end
-
-
+        SOME(link) => Ex(MipsFrame.exp frameAccess link)
+      | NONE       => (print ("error: variable cannot be accessed in TOP level\n"); Ex(T.CONST(0)))
+    end
 
   fun subscriptVar (baseAddr, index) = Ex(T.MEM(T.BINOP(T.PLUS,
     T.MEM(unEx(baseAddr)), T.BINOP(T.MUL, unEx(index), T.CONST( MipsFrame.wordSize) ))))
@@ -185,19 +184,18 @@ structure Translate : TRANSLATE = struct
       case ty of
            Types.INT => trOp oper
          | Types.STRING => trOpStr oper
-         | _ =>  nop()
+         | _ => nop()
     end
          
          
          
    fun call (label, formalExps, defLevel, currLevel) = 
-        let val linkOp  = staticLink (defLevel, currLevel)
+        let val linkOp = staticLink (defLevel, currLevel)
             val unwrappedFormals = List.map unEx formalExps
         in
-        case linkOp of
-             SOME(link) => Ex(T.CALL(T.NAME(label),link::unwrappedFormals))
-           | NONE       => Ex(T.CALL(T.NAME(label),unwrappedFormals))
-
+          case linkOp of
+            SOME(link) => Ex(T.CALL(T.NAME(label), link::unwrappedFormals))
+          | NONE       => Ex(T.CALL(T.NAME(label), unwrappedFormals))
         end
 
   fun assign (varexp, valexp) = Nx(T.MOVE(unEx(varexp), unEx(valexp)))
@@ -305,6 +303,5 @@ structure Translate : TRANSLATE = struct
      in
        helper (s1,t',e)
      end
-
 
 end
