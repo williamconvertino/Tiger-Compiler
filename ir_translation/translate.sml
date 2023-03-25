@@ -54,7 +54,8 @@ structure Translate : TRANSLATE = struct
   type access = level * Frame.access
   val outermost: level = TOP
 
-  fun rollupSeq (stm::[]) = stm
+  fun rollupSeq ([]) = (print ("error: rollupSeq called with empty list.\n"); T.EXP(T.CONST(0)))
+  |   rollupSeq (stm::[]) = stm
   |   rollupSeq (stm::stmlist) = T.SEQ(stm, rollupSeq(stmlist))
 
   fun newLevel {parent, name, formals} = LEVEL((parent, MipsFrame.newFrame
@@ -232,7 +233,9 @@ structure Translate : TRANSLATE = struct
   fun letExp (decexps, bodyexp) =
       let val unwrappedStms = List.map unNx decexps
       in
-        Ex(T.ESEQ(rollupSeq unwrappedStms, unEx bodyexp))
+        if (List.length unwrappedStms > 0)
+          then Ex(T.ESEQ(rollupSeq unwrappedStms, unEx bodyexp))
+          else bodyexp
       end
 
 
