@@ -112,19 +112,20 @@ structure Translate : TRANSLATE = struct
                   in
                     case linkOp of
                       SOME(link) => T.MEM(link)
-                    | NONE       => (print("error: def level changed during static link computation"); T.CONST(0)) 
+                    | NONE       => (print("error: def level changed during static link computation\n"); T.CONST(0)) 
                   end
         in
           SOME(checkLevel((defId = currId)))
         end
   |   staticLink (TOP, _) = NONE
+  |   staticLink (_, TOP) = (print ("error: current level became TOP during static link computation\n"); SOME(T.CONST(0)))
 
   fun simpleVar ((defLevel, frameAccess), useLevel) = 
     let val linkOp = staticLink (defLevel, useLevel)
     in
       case linkOp of
         SOME(link) => Ex(MipsFrame.exp frameAccess link)
-      | NONE       => (print ("error: variable cannot be accessed in TOP level"); Ex(T.CONST(0)))
+      | NONE       => (print ("error: variable cannot be accessed in TOP level\n"); Ex(T.CONST(0)))
     end
 
   fun subscriptVar (baseAddr, index) = Ex(T.MEM(T.BINOP(T.PLUS,
