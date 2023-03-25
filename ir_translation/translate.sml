@@ -361,7 +361,7 @@ structure Translate : TRANSLATE = struct
         ]),
         T.MEM(
           T.BINOP(T.PLUS,
-            T.MEM(unEx(baseAddr)), 
+            unEx(baseAddr), 
             T.CONST(index * MipsFrame.wordSize)
           )
         )
