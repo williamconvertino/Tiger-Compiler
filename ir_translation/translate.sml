@@ -129,14 +129,10 @@ structure Translate : TRANSLATE = struct
       | NONE       => (print ("error: variable cannot be accessed in TOP level\n"); Ex(T.CONST(0)))
     end
 
-  fun subscriptVar (baseAddr, index) = Ex(T.MEM(T.BINOP(T.PLUS,
-    T.MEM(unEx(baseAddr)), T.BINOP(T.MUL, unEx(index), T.CONST( MipsFrame.wordSize) ))))
+    
 
   fun fieldVar (baseAddr, index) = Ex(T.MEM(T.BINOP(T.PLUS,
         T.MEM(unEx(baseAddr)), T.CONST(index * MipsFrame.wordSize))))
-
-  fun arrayExp (arrLen, initVal) = Ex(MipsFrame.externalCall("initArray",
-    [unEx(arrLen), unEx(initVal)]))
 
 
   fun recordExp (fields) =
@@ -279,6 +275,7 @@ structure Translate : TRANSLATE = struct
             (!rememberedFrags)
             of
             SOME(Frame.STRING(lab,lit')) => lab
+            | SOME (_) => Temp.newlabel()
             | NONE => Temp.newlabel()
         in
           (rememberedFrags := Frame.STRING((getLab(),lit))::(!rememberedFrags);
@@ -302,6 +299,24 @@ structure Translate : TRANSLATE = struct
           end
      in
        helper (s1,t',e)
+     end
+  
+
+  fun arrayExp (arrsize, initVal) = 
+    let val ba = MipsFrame.externalCall("initArray",[unEx(arrsize), unEx(initVal)])
+    in (assign(Ex(ba),arrsize);Ex(T.BINOP(T.PLUS,ba,T.CONST(MipsFrame.wordSize))))
+    end
+
+  fun subscriptVar (baseAddr, index) =
+    let val ind = unEx(index)
+        val size =
+          T.MEM(T.BINOP(T.MINUS,unEx(baseAddr),T.CONST(MipsFrame.wordSize)))
+        val condUB = Cx((fn (t,f) => T.CJUMP(T.GE,ind, size, t,f)))
+        val inBounds = Ex(T.MEM(T.BINOP(T.PLUS,T.MEM(unEx(baseAddr)),
+        T.BINOP(T.MUL, unEx(index),T.CONST(MipsFrame.wordSize) ))))
+        val outBounds = (print("Out of Bounds Array Access"); nop()) 
+     in
+       ifExp(condUB,outBounds,inBounds)
      end
 
 end
