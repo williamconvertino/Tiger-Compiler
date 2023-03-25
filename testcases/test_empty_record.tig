@@ -1,0 +1,7 @@
+let
+    type emptyrecty = {}
+
+    var emptyrec := emptyrecty {}
+in
+    emptyrec
+end

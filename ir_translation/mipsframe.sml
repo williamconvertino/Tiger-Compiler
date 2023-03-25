@@ -51,7 +51,7 @@ structure MipsFrame : FRAME = struct
     |   printAccess (InReg(temp)) = print("in reg: " ^ Int.toString(temp) ^ "\n")
 
     fun allocLocal (_, _, locals, _) true = (locals := !locals + 1 ; InFrame (!locals * ~4))
-    |   allocLocal _ false                = (print("alloc local called, creating reg\n"); InReg (Temp.newtemp()))
+    |   allocLocal _ false                = InReg (Temp.newtemp())
 
     fun allocR0 () = InReg(0)
     val RV = 2

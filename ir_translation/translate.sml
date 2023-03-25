@@ -349,11 +349,10 @@ structure Translate : TRANSLATE = struct
             ),
             unEx field
           ) :: moveExps) [] fields
+        val mallocExp = T.MOVE(T.TEMP(r), MipsFrame.externalCall("malloc", [T.CONST((List.length fields) * MipsFrame.wordSize)]))
     in
-      Ex(T.ESEQ(rollupSeq ([
-        T.MOVE(T.TEMP(r), MipsFrame.externalCall("malloc", [T.CONST((List.length fields) * MipsFrame.wordSize)])),
-        rollupSeq moveStms
-        ]), 
+      Ex(T.ESEQ(
+        if (List.length moveStms > 0) then T.SEQ(mallocExp, rollupSeq (moveStms)) else mallocExp, 
         T.TEMP(r)
       ))
     end
