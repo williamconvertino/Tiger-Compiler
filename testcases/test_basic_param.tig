@@ -1,0 +1,5 @@
+let
+    function testfun(n: int) = n + 3
+in
+    testfun(4)
+end

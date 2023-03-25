@@ -162,21 +162,18 @@ struct
                         
                         val funlabel = Temp.newlabel()
                         val level' = Translate.newLevel {parent=level, name=funlabel, formals=(List.map #escape params')}
-                        
+                        val formalAccesses = T.formals level'
+
                         val venv' = S.enter(venv, name, E.FunEntry{formals= List.map #ty params', result=result_ty, level=level, label=funlabel})
-                        fun enterparams (venv, {name, ty, escape}::params) = 
-                            let val access = Translate.allocLocal level' escape
-                            in
-                                S.enter(enterparams (venv, params), name, E.VarEntry{ty=ty, access=access})
-                            end
-                        |   enterparams (venv, []) = venv
+                        fun enterparams (venv, {name, ty, escape}::params, access::accesses) = S.enter(enterparams (venv, params, accesses), name, E.VarEntry{ty=ty, access=access})
+                        |   enterparams (venv, _, _) = venv
                         
 
                         val {venv=venv'', tenv, exp} = 
                           case (Symbol.look (newFuncs, name)) of
                                SOME(_)     => (ErrorMsg.error pos ("duplicate mutually recursive function name not allowed " ^ Symbol.name name); trFun (venv', tenv, fundecs, Symbol.enter (newFuncs, name,true)))
                              |NONE        => trFun (venv', tenv, fundecs, Symbol.enter (newFuncs, name, true))
-                        val venv''' = enterparams (venv'', params')
+                        val venv''' = enterparams (venv'', params', formalAccesses)
                         val {exp=bodyexp, ty=bodyty} = transExp(venv''', tenv, NONE, level') body
                     in 
                         ( 

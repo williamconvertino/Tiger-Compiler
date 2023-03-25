@@ -38,6 +38,8 @@ sig
   val stringVar : string -> exp
   val ifExp : exp * exp * exp -> exp
 
+  val printAccess: access -> unit
+
 end
 
 structure Frame = MipsFrame
@@ -54,6 +56,9 @@ structure Translate : TRANSLATE = struct
   type access = level * Frame.access
   val outermost: level = TOP
 
+  fun printAccess (level, frameAccess) = MipsFrame.printAccess(frameAccess)
+
+
   fun rollupSeq ([]) = (print ("error: rollupSeq called with empty list.\n"); T.EXP(T.CONST(0)))
   |   rollupSeq (stm::[]) = stm
   |   rollupSeq (stm::stmlist) = T.SEQ(stm, rollupSeq(stmlist))
@@ -63,11 +68,11 @@ structure Translate : TRANSLATE = struct
 
 
   fun formals (TOP) = []
-    |   formals (LEVEL(level)) =
-    let val (_, acclist, _, _) = (#2 (#1 level))
-    in
-      List.map (fn (frameAccess) => (LEVEL(level), frameAccess)) acclist
-    end
+  |   formals (LEVEL(level)) =
+        let val (_, acclist, _, _) = (#2 (#1 level))
+        in
+          List.drop(List.map (fn (frameAccess) => (LEVEL(level), frameAccess)) acclist, 1)
+        end
 
   fun allocLocal (TOP) escapes = (TOP, MipsFrame.allocR0())
     | allocLocal (LEVEL(lev)) escapes =

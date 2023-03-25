@@ -17,6 +17,8 @@ sig
   val externalCall: string * Tree.exp list -> Tree.exp
   val procEntryExit1 :  Tree.stm * frame -> Tree.stm
 
+  val printAccess: access -> unit
+
   val RV : Temp.temp
 end
 
@@ -44,8 +46,12 @@ structure MipsFrame : FRAME = struct
     fun name (name, _, _, _) = name
     fun formals (_, formals, _, _) = formals
     
+
+    fun printAccess (InFrame(addr)) = print("in frame addr: " ^ Int.toString(addr) ^ "\n")
+    |   printAccess (InReg(temp)) = print("in reg: " ^ Int.toString(temp) ^ "\n")
+
     fun allocLocal (_, _, locals, _) true = (locals := !locals + 1 ; InFrame (!locals * ~4))
-    |   allocLocal _ false                = InReg (Temp.newtemp())
+    |   allocLocal _ false                = (print("alloc local called, creating reg\n"); InReg (Temp.newtemp()))
 
     fun allocR0 () = InReg(0)
     val RV = 2
