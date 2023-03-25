@@ -415,6 +415,10 @@ struct
         trexp
     end
 
-    fun transProg exp = (transExp (Env.base_venv, Env.base_tenv, NONE, Translate.outermost) exp; ())
+    fun transProg exp = 
+        let val mainLevel  = Translate.newLevel {parent=Translate.outermost, name=(Temp.namedlabel "tigmain"), formals=[]}
+        in
+            (transExp (Env.base_venv, Env.base_tenv, NONE, mainLevel) exp; ())
+        end
 
 end

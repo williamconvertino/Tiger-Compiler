@@ -104,10 +104,26 @@ structure Translate : TRANSLATE = struct
     | unNx (Nx s) = s
 
   fun staticLink (defLevel as LEVEL(_, defId), LEVEL((currParent, currFrame), currId)) =
-        if defId = currId then T.TEMP(MipsFrame.FP) else T.MEM(staticLink(defLevel, currParent))
-  |   staticLink (_, _) = (print("error: cannot static link into the TOP level"); T.TEMP(MipsFrame.FP))
+        let fun checkLevel true = T.TEMP(MipsFrame.FP)
+            |   checkLevel false = 
+                  let val linkOp = staticLink(defLevel, currParent)
+                  in
+                    case linkOp of
+                      SOME(link) => T.MEM(link)
+                    | NONE       => (print("error: def level changed during static link computation"); T.CONST(0)) 
+                  end
+        in
+          SOME(checkLevel((defId = currId)))
+        end
+  |   staticLink (TOP, _) = NONE
 
-  fun simpleVar ((defLevel, frameAccess), useLevel) = Ex(MipsFrame.exp frameAccess (staticLink (defLevel, useLevel)))
+  fun simpleVar ((defLevel, frameAccess), useLevel) = 
+    let val linkOp = staticLink (defLevel, useLevel)
+    in
+      case linkOp of
+        SOME(link) => Ex(MipsFrame.exp frameAccess link)
+      | NONE       => (print ("error: variable cannot be accessed in TOP level"); Ex(T.CONST(0)))
+    end
 
   fun subscriptVar (baseAddr, index) = Ex(T.MEM(T.BINOP(T.PLUS,
     T.MEM(unEx(baseAddr)), T.BINOP(T.MUL, unEx(index), T.CONST( MipsFrame.wordSize) ))))
@@ -168,10 +184,12 @@ structure Translate : TRANSLATE = struct
          
          
    fun call (label, formalExps, defLevel, currLevel) = 
-        let val staticLink = staticLink (defLevel, currLevel)
+        let val linkOp = staticLink (defLevel, currLevel)
             val unwrappedFormals = List.map unEx formalExps
         in
-          Ex(T.CALL(T.NAME(label), staticLink::unwrappedFormals))
+          case linkOp of
+            SOME(link) => Ex(T.CALL(T.NAME(label), link::unwrappedFormals))
+          | NONE       => Ex(T.CALL(T.NAME(label), unwrappedFormals))
         end
 
   fun assign (varexp, valexp) = Nx(T.MOVE(unEx(varexp), unEx(valexp)))
