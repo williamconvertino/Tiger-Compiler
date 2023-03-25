@@ -103,6 +103,8 @@ structure Translate : TRANSLATE = struct
         end
     | unNx (Nx s) = s
 
+  fun nop () = Nx(T.EXP(T.CONST(0)))
+
   fun staticLink (defLevel as LEVEL(_, defId), LEVEL((currParent, currFrame), currId)) =
         if defId = currId then T.TEMP(MipsFrame.FP) else T.MEM(staticLink(defLevel, currParent))
   |   staticLink (_, _) = (print("error: cannot static link into the TOP level"); T.TEMP(MipsFrame.FP))
@@ -159,10 +161,12 @@ structure Translate : TRANSLATE = struct
              |   trOpStr (A.GtOp) = Ex(MipsFrame.externalCall("stringGtOp",[tleft,tright]))
              |   trOpStr (A.GeOp) = Ex(MipsFrame.externalCall("stringGeOp",[tleft,tright]))            
              |   trOpStr (A.NeqOp) = Cx(fn (t,f) => T.CJUMP(T.NE, tleft, tright, t, f))
+             |   trOpStr _ = (print ("Error should not reach STRING with any INT operand"); nop())
     in
       case ty of
            Types.INT => trOp oper
          | Types.STRING => trOpStr oper
+         | _ => (print("Error mismatched types"); nop())
     end
          
          
@@ -246,6 +250,7 @@ structure Translate : TRANSLATE = struct
     fun procEntryExit {level=level, body=exp} = 
       case level of
             LEVEL((level', frame'), un) => rememberedFrags := Frame.PROC({body=(unNx(exp)), frame=frame'})::(!rememberedFrags)
+         | TOP => print("Error should not reach TOP level at procEntry")
 
     fun stringVar lit = 
       let fun getLab () =
