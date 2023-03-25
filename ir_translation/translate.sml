@@ -239,10 +239,13 @@ structure Translate : TRANSLATE = struct
       end
 
   
-    fun procEntryExit {level=level, body=exp} = 
-      case level of
-            LEVEL((parent, frame), un) => rememberedFrags := Frame.PROC({body=(unNx(exp)), frame=frame})::(!rememberedFrags)
-         | TOP => print("Error should not reach TOP level at procEntry")
+    fun procEntryExit {level=level, body=exp} =
+      let fun applyViewShift (frame) = MipsFrame.procEntryExit1(unNx(exp), frame)
+      in
+        case level of
+          LEVEL((parent, frame), _) => rememberedFrags := Frame.PROC({body=(applyViewShift(frame)), frame=frame})::(!rememberedFrags)
+        | TOP => print("Error should not reach TOP level at procEntry")
+      end
 
     fun stringVar lit = 
       let fun getLab () =

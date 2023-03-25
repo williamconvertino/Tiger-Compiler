@@ -61,6 +61,7 @@ structure MipsFrame : FRAME = struct
 
     fun rollupSeq (stm::[]) = stm
     |   rollupSeq (stm::stmlist) = T.SEQ(stm, rollupSeq(stmlist))
+    |   rollupSeq ([]) = T.EXP(T.CONST(0))
 
     fun procEntryExit1(body, frame) = 
       let val (label, formals, numLocals, _) = frame
