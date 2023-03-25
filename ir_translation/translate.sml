@@ -322,11 +322,6 @@ structure Translate : TRANSLATE = struct
      end
 
 
-
-  fun fieldVar (baseAddr, index) = Ex(T.MEM(T.BINOP(T.PLUS,
-        T.MEM(unEx(baseAddr)), T.CONST(index * MipsFrame.wordSize))))
-
-
   fun recordExp (fields) =
     let val r = Temp.newtemp()
         val moveStms = List.foldr (fn (field, moveExps) => 
@@ -347,5 +342,27 @@ structure Translate : TRANSLATE = struct
         T.TEMP(r)
       ))
     end
+
+  fun fieldVar (baseAddr, index) = 
+    let val nullPointerLabel = Temp.newlabel()
+        val validPointerLabel = Temp.newlabel()
+    in
+      Ex(T.ESEQ(
+        rollupSeq ([
+          T.CJUMP(T.EQ, unEx(baseAddr), T.CONST(0), nullPointerLabel, validPointerLabel),
+          T.LABEL(nullPointerLabel),
+          unNx(call(Temp.namedlabel "print", [stringVar ("Error cannot derefernece null pointer\n")], TOP, TOP)),
+          unNx(call(Temp.namedlabel "exit", [Ex(T.CONST(1))], TOP, TOP)),
+          T.LABEL(validPointerLabel)
+        ]),
+        T.MEM(
+          T.BINOP(T.PLUS,
+            T.MEM(unEx(baseAddr)), 
+            T.CONST(index * MipsFrame.wordSize)
+          )
+        )
+      ))
+    end
+    
 
 end
