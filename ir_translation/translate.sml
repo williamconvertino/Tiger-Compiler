@@ -3,7 +3,7 @@ sig
   type exp
   type level
   type access (* not the same as Frame.access *)
-  
+  type frag 
   val outermost : level
   val newLevel : {parent: level, name: Temp.label, formals: bool list} -> level
   val formals: level -> access list
@@ -32,10 +32,9 @@ sig
   val fieldVar : exp * int -> exp
   val arrayExp : exp * exp -> exp
   val recordExp : exp list -> exp
-    
   val procEntryExit : {level: level, body: exp} -> unit
-  val getResult : unit -> MipsFrame.frag list 
-  val rememberedFrags : MipsFrame.frag list ref 
+  val getResult : unit -> frag list 
+  val rememberedFrags : frag list ref
   val stringVar : string -> exp
   val ifExp : exp * exp * exp -> exp
 
@@ -51,6 +50,7 @@ structure Translate : TRANSLATE = struct
                | Cx of Temp.label * Temp.label -> Tree.stm
   
   datatype level = TOP | LEVEL of (level * Frame.frame) * unit ref
+  type frag = Frame.frag
   type access = level * Frame.access
   val outermost: level = TOP
 
@@ -93,7 +93,8 @@ structure Translate : TRANSLATE = struct
     | unCx (Ex (T.CONST 1)) = (fn (t,f) => T.JUMP(T.NAME t, [t]))
     | unCx (Ex e) = (fn (t,f) => T.CJUMP (T.NE, e, T.CONST 0, t, f))
     | unCx (Cx c) = c
-    | unCx (Nx _) = (fn (t,f) => T.EXP(T.CONST(0))) (* this should not happen in valid Tiger program, but kept for error purposes*)
+    | unCx (Nx _) = (fn (t,f) => T.EXP(T.CONST(0))) (* this should not happen in
+  valid Tiger program, but kept for error purposes*)
 
   fun unNx (Ex e) = Tree.EXP(e)
     | unNx (Cx c) = 
@@ -302,6 +303,5 @@ structure Translate : TRANSLATE = struct
      in
        helper (s1,t',e)
      end
-
 
 end

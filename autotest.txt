@@ -1,0 +1,393 @@
+Standard ML of New Jersey v110.79 [built: Sat Oct 26 12:27:04 2019]
+- [autoloading]
+[library $smlnj/cm/cm.cm is stable]
+[library $smlnj/internal/cm-sig-lib.cm is stable]
+[library $/pgraph.cm is stable]
+[library $smlnj/internal/srcpath-lib.cm is stable]
+[library $SMLNJ-BASIS/basis.cm is stable]
+[library $SMLNJ-BASIS/(basis.cm):basis-common.cm is stable]
+[autoloading done]
+[scanning ir_translation/sources.cm]
+[library $/ml-yacc-lib.cm is stable]
+[attempting to load plugin $/lex-ext.cm]
+[library $/lex-ext.cm is stable]
+[library $smlnj/cm/tools.cm is stable]
+[library $smlnj/internal/cm-lib.cm is stable]
+[plugin $/lex-ext.cm loaded successfully]
+[attempting to load plugin $/mllex-tool.cm]
+[library $/mllex-tool.cm is stable]
+[plugin $/mllex-tool.cm loaded successfully]
+[attempting to load plugin $/grm-ext.cm]
+[library $/grm-ext.cm is stable]
+[plugin $/grm-ext.cm loaded successfully]
+[attempting to load plugin $/mlyacc-tool.cm]
+[library $/mlyacc-tool.cm is stable]
+[plugin $/mlyacc-tool.cm loaded successfully]
+[parsing ir_translation/(sources.cm):translate.sml]
+[library $SMLNJ-LIB/Util/smlnj-lib.cm is stable]
+[library $SMLNJ-ML-YACC-LIB/ml-yacc-lib.cm is stable]
+[loading ir_translation/(sources.cm):symbol.sml]
+[loading ir_translation/(sources.cm):table.sig]
+[loading ir_translation/(sources.cm):table.sml]
+[loading ir_translation/(sources.cm):temp.sig]
+[loading ir_translation/(sources.cm):temp.sml]
+[loading ir_translation/(sources.cm):tree.sml]
+[loading ir_translation/(sources.cm):mipsframe.sml]
+[loading ir_translation/(sources.cm):absyn.sml]
+[loading ir_translation/(sources.cm):errormsg.sml]
+[loading ir_translation/(sources.cm):types.sml]
+[compiling ir_translation/(sources.cm):translate.sml]
+ir_translation/translate.sml:255.9-262.38 Warning: match nonexhaustive
+          SOME (STRING (lab,lit')) => ...
+          NONE => ...
+  
+[code: 21338, data: 442, env: 1660 bytes]
+[loading ir_translation/(sources.cm):prabsyn.sml]
+[loading ir_translation/(sources.cm):tiger.grm.sig]
+[loading ir_translation/(sources.cm):findescape.sml]
+[loading ir_translation/(sources.cm):tiger.lex.sml]
+[loading ir_translation/(sources.cm):tiger.grm.sml]
+[loading ir_translation/(sources.cm):parse.sml]
+[loading ir_translation/(sources.cm):env.sml]
+[loading ir_translation/(sources.cm):semant.sml]
+[loading ir_translation/(sources.cm):main.sml]
+[New bindings added.]
+val it = true : bool
+testcases/test.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test.tig:37.24:syntax error: deleting  RBRACE VAR
+testcases/test.tig:39.18:syntax error: deleting  ASSIGN ID LBRACE
+testcases/test.tig:39.33:syntax error: deleting  RBRACE FUNCTION ID
+testcases/test.tig:41.15:syntax error: deleting  LPAREN ID
+testcases/test.tig:41.17:syntax error: deleting  COLON ID RPAREN
+testcases/test.tig:41.25:syntax error: deleting  ID EQ IF
+testcases/test.tig:41.36:syntax error: deleting  LT INT THEN
+testcases/test.tig:41.45:syntax error: deleting  ID LPAREN ID
+testcases/test.tig:41.48:syntax error: deleting  MINUS INT RPAREN
+testcases/test.tig:41.52:syntax error: deleting  ELSE INT IN
+testcases/test.tig:45.5:syntax error: deleting  ID LBRACK INT
+testcases/test.tig:45.13:syntax error: deleting  RBRACK TIMES INT
+testcases/test.tig:45.18:syntax error: deleting  SEMICOLON ID DOT
+testcases/test.tig:47.11:syntax error: deleting  ID DOT ID
+testcases/test.tig:47.15:syntax error: deleting  PLUS ID LBRACK
+testcases/test.tig:47.24:syntax error: deleting  INT RBRACK SEMICOLON
+testcases/test.tig:49.5:syntax error: deleting  BREAK SEMICOLON FOR
+testcases/test.tig:50.9:syntax error: deleting  ID ASSIGN INT
+testcases/test.tig:50.19:syntax error: deleting  TO INT DO
+testcases/test.tig:50.27:syntax error: deleting  BREAK SEMICOLON WHILE
+testcases/test.tig:51.11:syntax error: deleting  LPAREN INT GT
+testcases/test.tig:51.16:syntax error: deleting  BREAK RPAREN DO
+testcases/test.tig:51.26:syntax error: deleting  INT SEMICOLON WHILE
+testcases/test.tig:52.11:syntax error: deleting  LPAREN INT RPAREN
+testcases/test.tig:52.15:syntax error: deleting  DO BREAK SEMICOLON
+testcases/test.tig:53.5:syntax error: deleting  WHILE LPAREN INT
+testcases/test.tig:53.13:syntax error: deleting  RPAREN DO IF
+testcases/test.tig:53.21:syntax error: deleting  INT LT INT
+testcases/test.tig:53.27:syntax error: deleting  THEN BREAK SEMICOLON
+testcases/test.tig:54.5:syntax error: deleting  WHILE LPAREN INT
+testcases/test.tig:54.13:syntax error: deleting  RPAREN DO IF
+testcases/test.tig:54.21:syntax error: deleting  INT LT INT
+testcases/test.tig:54.27:syntax error: deleting  THEN INT ELSE
+testcases/test.tig:54.39:syntax error: deleting  BREAK SEMICOLON WHILE
+testcases/test.tig:55.11:syntax error: deleting  INT EQ INT
+testcases/test.tig:55.17:syntax error: deleting  DO LET IN
+testcases/test.tig:55.27:syntax error: deleting  BREAK END SEMICOLON
+testcases/test.tig:56.5:syntax error: deleting  WHILE INT EQ
+testcases/test.tig:56.15:syntax error: deleting  INT DO LET
+testcases/test.tig:56.24:syntax error: inserting  RBRACE
+testcases/test.tig:56.44:syntax error: deleting  END
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP leveltestcases/test.tig:56.33:break not contained within loop
+error: cannot static link into the TOP leveltestcases/test.tig:57.44:break not contained within loop
+error: cannot static link into the TOP levelval it = () : unit
+testcases/test1.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test10.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test11.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP leveltestcases/test11.tig:2.1:type string does not match required type int
+val it = () : unit
+testcases/test12.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test13.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test13.tig:3.1:type string does not match required type int
+Error mismatched typesval it = () : unit
+testcases/test14.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP leveltestcases/test14.tig:12.5:type array of int does not match required type {id:int, name:string}
+Error mismatched typeserror cannot unwrap Cx from Nxval it = () : unit
+testcases/test15.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test16.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test16.tig:4.1:cycle detected in type dec d
+testcases/test16.tig:5.1:cycle detected in type dec c
+testcases/test16.tig:6.1:cycle detected in type dec a
+testcases/test16.tig:7.1:cycle detected in type dec c
+val it = () : unit
+testcases/test17.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test17.tig:4.23:undefined type treelist
+testcases/test17.tig:4.23:undefined type treelist
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test18.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test18.tig:5.4:function do_nothing2 not declared
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test19.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test19.tig:8.16:undefined variable a
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test2.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test20.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test20.tig:3.18:undefined variable i
+val it = () : unit
+testcases/test21.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test21.tig:8.9:type unit does not match required type int
+error: cannot static link into the TOP levelval it = () : unit
+testcases/test22.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP leveltestcases/test22.tig:7.2:field nam not found in record type {id:int, name:string}
+testcases/test22.tig:7.2:type string does not match required type impossibility
+val it = () : unit
+testcases/test23.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP leveltestcases/test23.tig:7.2:type int does not match required type string
+error: cannot static link into the TOP leveltestcases/test23.tig:8.2:type string does not match required type int
+val it = () : unit
+testcases/test24.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP leveltestcases/test24.tig:5.2:cannot index non-array type
+val it = () : unit
+testcases/test25.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP leveltestcases/test25.tig:5.2:must reference record type got int
+val it = () : unit
+testcases/test26.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test26.tig:3.1:type string does not match required type int
+val it = () : unit
+testcases/test27.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test28.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test28.tig:7.2:record types do not match
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test29.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test29.tig:7.2:array types do not match
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test3.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test30.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test31.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test31.tig:3.2:type string does not match required type int
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test32.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test32.tig:6.11:type string does not match required type int
+error: cannot static link into the TOP levelval it = () : unit
+testcases/test33.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test33.tig:3.10:undefined type rectype
+testcases/test33.tig:3.10:declared type not record type: rectype
+error: cannot static link into the TOP levelval it = () : unit
+testcases/test34.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test34.tig:5.2:type string does not match required type int
+error: cannot static link into the TOP levelval it = () : unit
+testcases/test35.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test35.tig:5.2:type string does not match required type int
+testcases/test35.tig:5.2:missing param: string
+error: cannot static link into the TOP levelval it = () : unit
+testcases/test36.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test36.tig:5.2:too many args provided: 1
+error: cannot static link into the TOP levelval it = () : unit
+testcases/test37.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test38.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test39.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test4.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelval it = () : unit
+testcases/test40.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelval it = () : unit
+testcases/test41.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test42.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test43.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP leveltestcases/test43.tig:6.2:type unit does not match required type int
+val it = () : unit
+testcases/test44.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test45.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test46.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelError mismatched typeserror: cannot static link into the TOP levelError mismatched typesval it = () : unit
+testcases/test47.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelval it = () : unit
+testcases/test48.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test49.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/test49.tig:5.10:missing required field id from type {id:int, name:string}
+testcases/test49.tig:5.10:missing required field name from type {id:int, name:string}
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test5.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test6.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test7.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+error: cannot static link into the TOP levelerror: cannot static link into the TOP levelerror: cannot static link into the TOP levelval it = () : unit
+testcases/test8.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/test9.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+val it = () : unit
+testcases/testempty.tig
+val it = () : unit
+TYPECHECKING=============>
+val it = () : unit
+testcases/testempty.tig:3.25:syntax error: deleting  RBRACE VAR
+testcases/testempty.tig:4.14:syntax error: deleting  ASSIGN INT IN
+testcases/testempty.tig:5.8:syntax error: deleting  END SEMICOLON INT
+testcases/testempty.tig:7.1:syntax error found at END
+
+uncaught exception Error
+  raised at: ir_translation/parse.sml:20.43-20.57
+- 

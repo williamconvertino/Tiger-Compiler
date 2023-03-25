@@ -9,7 +9,7 @@ sig
     val transDec: venv * tenv * Temp.label option * Absyn.dec * Translate.level -> {venv: venv, tenv: tenv, exp: Translate.exp option}
     val transTy:  tenv * Absyn.ty -> Types.ty
 
-    val transProg : Absyn.exp -> unit
+    val transProg : Absyn.exp -> Translate.frag list
 
 end =
 
@@ -416,9 +416,9 @@ struct
     end
 
     fun transProg exp = 
-        let val mainLevel  = Translate.newLevel {parent=Translate.outermost, name=(Temp.namedlabel "tigmain"), formals=[]}
-        in
-            (transExp (Env.base_venv, Env.base_tenv, NONE, mainLevel) exp; ())
-        end
+    let val mainLevel  = Translate.newLevel {parent=Translate.outermost, name=(Temp.namedlabel "tigmain"), formals=[]}
+    in 
+    (transExp (Env.base_venv, Env.base_tenv, NONE, Translate.outermost) exp; T.getResult())
+    end
 
 end
