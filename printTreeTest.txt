@@ -1,0 +1,20 @@
+CM.make "ir_translation/sources.cm";
+
+print "testcases/test1.tig\n";
+
+let val fragList = Main.compile "testcases/test1.tig"
+(* fun printStuff (frag :: list) =
+case frag of
+     PROC(rec) = (Printtree.printtree(MipsFrame.procEntryExit1(rec)); printStuff (list))
+   | STRING (label', str) = (print ("Label: " ^ (Symbol.name label') ^ " String Literal: " ^ lit ^ "\n"); printStuff (list))
+| printStuff (frag::[]) =
+case frag of
+     PROC(rec) = Printtree.printtree(MipsFrame.procEntryExit1(rec))
+   | STRING (label', str) = print ("Label: " ^ (Symbol.name label') ^ " String Literal: " ^ lit ^ "\n")
+| printStuff ([]) = print("done")
+in
+printStuff fragList
+end
+
+*)
+    

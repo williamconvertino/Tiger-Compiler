@@ -1,5 +1,5 @@
 structure Main : sig 
-    val compile : string -> unit 
+    val compile : string -> Translate.frag list 
     val escape  : string -> unit
 end =
 struct 

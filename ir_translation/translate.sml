@@ -3,7 +3,7 @@ sig
   type exp
   type level
   type access (* not the same as Frame.access *)
-  
+  type frag 
   val outermost : level
   val newLevel : {parent: level, name: Temp.label, formals: bool list} -> level
   val formals: level -> access list
@@ -32,10 +32,9 @@ sig
   val fieldVar : exp * int -> exp
   val arrayExp : exp * exp -> exp
   val recordExp : exp list -> exp
-    
   val procEntryExit : {level: level, body: exp} -> unit
-  val getResult : unit -> MipsFrame.frag list 
-  val rememberedFrags : MipsFrame.frag list ref 
+  val getResult : unit -> frag list 
+  val rememberedFrags : frag list ref
   val stringVar : string -> exp
   val ifExp : exp * exp * exp -> exp
 
@@ -51,6 +50,7 @@ structure Translate : TRANSLATE = struct
                | Cx of Temp.label * Temp.label -> Tree.stm
   
   datatype level = TOP | LEVEL of (level * Frame.frame) * unit ref
+  type frag = Frame.frag
   type access = level * Frame.access
   val outermost: level = TOP
 
@@ -93,7 +93,8 @@ structure Translate : TRANSLATE = struct
     | unCx (Ex (T.CONST 1)) = (fn (t,f) => T.JUMP(T.NAME t, [t]))
     | unCx (Ex e) = (fn (t,f) => T.CJUMP (T.NE, e, T.CONST 0, t, f))
     | unCx (Cx c) = c
-    | unCx (Nx _) = (print "error cannot unwrap Cx from Nx"; (fn (t,f) => T.LABEL(Temp.newlabel())))
+    | unCx (Nx _) = (fn (t,f) => T.EXP(T.CONST(0))) (* this should not happen in
+  valid Tiger program, but kept for error purposes*)
 
   fun unNx (Ex e) = Tree.EXP(e)
     | unNx (Cx c) = 
@@ -106,10 +107,28 @@ structure Translate : TRANSLATE = struct
   fun nop () = Nx(T.EXP(T.CONST(0)))
 
   fun staticLink (defLevel as LEVEL(_, defId), LEVEL((currParent, currFrame), currId)) =
-        if defId = currId then T.TEMP(MipsFrame.FP) else T.MEM(staticLink(defLevel, currParent))
-  |   staticLink (_, _) = (print("error: cannot static link into the TOP level"); T.TEMP(MipsFrame.FP))
+    let fun checkLevel true = T.TEMP(MipsFrame.FP)
+    |   checkLevel false = 
+          let val linkOp = staticLink(defLevel, currParent)
+          in
+            case linkOp of
+                 SOME(link) => T.MEM(link)
+               | NONE=> (print("error: def level changed during static link computation\n");  T.CONST(0))
+          end
+    in
+      SOME(checkLevel((defId = currId)))
+    end
+    |  staticLink (TOP, _) = (print ("error: current level became TOP during static link computation\n"); SOME(T.CONST(0)))
 
-  fun simpleVar ((defLevel, frameAccess), useLevel) = Ex(MipsFrame.exp frameAccess (staticLink (defLevel, useLevel)))
+  fun simpleVar ((defLevel, frameAccess), useLevel) = 
+    let val linkOp = staticLink (defLevel, useLevel)
+    in
+      case linkOp of
+           SOME(link) => Ex(MipsFrame.exp frameAccess link)
+         | NONE       => (print ("error: variable cannot be accessed in TOP level\n"); Ex(T.CONST(0)))
+     end
+
+
 
   fun subscriptVar (baseAddr, index) = Ex(T.MEM(T.BINOP(T.PLUS,
     T.MEM(unEx(baseAddr)), T.BINOP(T.MUL, unEx(index), T.CONST( MipsFrame.wordSize) ))))
@@ -161,21 +180,24 @@ structure Translate : TRANSLATE = struct
              |   trOpStr (A.GtOp) = Ex(MipsFrame.externalCall("stringGtOp",[tleft,tright]))
              |   trOpStr (A.GeOp) = Ex(MipsFrame.externalCall("stringGeOp",[tleft,tright]))            
              |   trOpStr (A.NeqOp) = Cx(fn (t,f) => T.CJUMP(T.NE, tleft, tright, t, f))
-             |   trOpStr _ = (print ("Error should not reach STRING with any INT operand"); nop())
+             |   trOpStr _ = (print ("error: should not reach STRING with any INT operand\n"); nop())
     in
       case ty of
            Types.INT => trOp oper
          | Types.STRING => trOpStr oper
-         | _ => (print("Error mismatched types"); nop())
+         | _ =>  nop()
     end
          
          
          
    fun call (label, formalExps, defLevel, currLevel) = 
-        let val staticLink = staticLink (defLevel, currLevel)
+        let val linkOp  = staticLink (defLevel, currLevel)
             val unwrappedFormals = List.map unEx formalExps
         in
-          Ex(T.CALL(T.NAME(label), staticLink::unwrappedFormals))
+        case linkOp of
+             SOME(link) => Ex(T.CALL(T.NAME(label),link::unwrappedFormals))
+           | NONE       => Ex(T.CALL(T.NAME(label),unwrappedFormals))
+
         end
 
   fun assign (varexp, valexp) = Nx(T.MOVE(unEx(varexp), unEx(valexp)))

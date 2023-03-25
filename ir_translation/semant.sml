@@ -9,7 +9,7 @@ sig
     val transDec: venv * tenv * Temp.label option * Absyn.dec * Translate.level -> {venv: venv, tenv: tenv, exp: Translate.exp option}
     val transTy:  tenv * Absyn.ty -> Types.ty
 
-    val transProg : Absyn.exp -> unit
+    val transProg : Absyn.exp -> Translate.frag list
 
 end =
 
@@ -153,8 +153,8 @@ struct
                         
                         val level' = Translate.newLevel {parent=level, name=(Temp.newlabel()), formals=(List.map #escape params')}
                         
-                        val venv' = S.enter(venv, name, E.FunEntry{formals= List.map #ty params', result=result_ty, level=level', label=(Temp.newlabel())})
-                        fun enterparams (venv, {name, ty, escape}::params) = 
+                       val venv' = S.enter(venv, name, E.FunEntry{formals=List.map #ty params', result=result_ty, level=level, label=(Temp.newlabel())})  
+                      fun enterparams (venv, {name, ty, escape}::params) = 
                             let val access = Translate.allocLocal level' escape
                             in
                                 S.enter(enterparams (venv, params), name, E.VarEntry{ty=ty, access=access})
@@ -415,6 +415,10 @@ struct
         trexp
     end
 
-    fun transProg exp = (transExp (Env.base_venv, Env.base_tenv, NONE, Translate.outermost) exp; ())
+    fun transProg exp = 
+    let val mainLevel  = Translate.newLevel {parent=Translate.outermost, name=(Temp.namedlabel "tigmain"), formals=[]}
+    in 
+    (transExp (Env.base_venv, Env.base_tenv, NONE, Translate.outermost) exp; T.getResult())
+    end
 
 end

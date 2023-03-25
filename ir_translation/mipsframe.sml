@@ -15,7 +15,7 @@ sig
   val wordSize: int
   val exp : access -> Tree.exp -> Tree.exp
   val externalCall: string * Tree.exp list -> Tree.exp
-  val procEntryExit1 : frame * Tree.stm -> Tree.stm
+  val procEntryExit1 :  Tree.stm * frame -> Tree.stm
 
   val RV : Temp.temp
 end
@@ -62,7 +62,7 @@ structure MipsFrame : FRAME = struct
     fun rollupSeq (stm::[]) = stm
     |   rollupSeq (stm::stmlist) = T.SEQ(stm, rollupSeq(stmlist))
 
-    fun procEntryExit1(frame, body) = 
+    fun procEntryExit1(body, frame) = 
       let val (label, formals, numLocals, _) = frame
           fun moveInRegForms (formals, 4) = []
           |   moveInRegForms (InReg(temp)::formals, regCount) = T.MOVE(T.TEMP(temp), T.TEMP(4 + regCount)) :: moveInRegForms(formals, regCount + 1)
@@ -86,6 +86,7 @@ structure MipsFrame : FRAME = struct
         ])
       end
 
+   fun procEntryExitl(body,frame) = body
 
 end
 
