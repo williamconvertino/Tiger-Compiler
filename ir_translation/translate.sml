@@ -129,32 +129,6 @@ structure Translate : TRANSLATE = struct
       | NONE       => (print ("error: variable cannot be accessed in TOP level\n"); Ex(T.CONST(0)))
     end
 
-    
-
-  fun fieldVar (baseAddr, index) = Ex(T.MEM(T.BINOP(T.PLUS,
-        T.MEM(unEx(baseAddr)), T.CONST(index * MipsFrame.wordSize))))
-
-
-  fun recordExp (fields) =
-    let val r = Temp.newtemp()
-        val moveStms = List.foldr (fn (field, moveExps) => 
-          T.MOVE(
-            T.MEM(
-              T.BINOP(T.PLUS, 
-                T.TEMP(r), 
-                T.CONST((List.length moveExps) * MipsFrame.wordSize)
-              )
-            ),
-            unEx field
-          ) :: moveExps) [] fields
-    in
-      Ex(T.ESEQ(rollupSeq ([
-        T.MOVE(T.TEMP(r), MipsFrame.externalCall("malloc", [T.CONST((List.length fields) * MipsFrame.wordSize)])),
-        rollupSeq moveStms
-        ]), 
-        T.TEMP(r)
-      ))
-    end
 
     fun opExp (oper, left, right,ty) =
        let val tleft = unEx(left)
@@ -303,20 +277,75 @@ structure Translate : TRANSLATE = struct
   
 
   fun arrayExp (arrsize, initVal) = 
-    let val ba = MipsFrame.externalCall("initArray",[unEx(arrsize), unEx(initVal)])
-    in (assign(Ex(ba),arrsize);Ex(T.BINOP(T.PLUS,ba,T.CONST(MipsFrame.wordSize))))
+    let val extraSize = T.BINOP(T.PLUS, unEx(arrsize), T.CONST(MipsFrame.wordSize))
+        val r = Temp.newtemp()
+        val mallocExp = MipsFrame.externalCall("initArray", [extraSize, unEx(initVal)])
+    in 
+        Ex(T.ESEQ(
+          rollupSeq [
+            T.MOVE(T.TEMP(r), mallocExp),
+            T.MOVE(T.MEM(T.TEMP(r)), unEx(arrsize))
+          ],
+          T.BINOP(T.PLUS, T.TEMP(r), T.CONST(MipsFrame.wordSize))
+        ))
     end
 
   fun subscriptVar (baseAddr, index) =
     let val ind = unEx(index)
-        val size =
-          T.MEM(T.BINOP(T.MINUS,unEx(baseAddr),T.CONST(MipsFrame.wordSize)))
-        val condUB = Cx((fn (t,f) => T.CJUMP(T.GE,ind, size, t,f)))
-        val inBounds = Ex(T.MEM(T.BINOP(T.PLUS,T.MEM(unEx(baseAddr)),
-        T.BINOP(T.MUL, unEx(index),T.CONST(MipsFrame.wordSize) ))))
-        val outBounds = (print("Out of Bounds Array Access"); nop()) 
+        val size = T.MEM(T.BINOP(T.MINUS, unEx(baseAddr), T.CONST(MipsFrame.wordSize)))
+        val lowerCheck = Temp.newlabel()
+        val inboundLabel = Temp.newlabel()
+        val outBoundLabel = Temp.newlabel()
      in
-       ifExp(condUB,outBounds,inBounds)
+       Ex(T.ESEQ(
+        rollupSeq ([
+          T.CJUMP(T.LT, ind, size, lowerCheck, outBoundLabel),
+          T.LABEL(lowerCheck),
+          T.CJUMP(T.GE, ind, T.CONST(0), inboundLabel, outBoundLabel),
+          
+          T.LABEL(outBoundLabel),
+          unNx(call(Temp.namedlabel "print", [stringVar ("Error array index out of bounds\n")], TOP, TOP)),
+          unNx(call(Temp.namedlabel "exit", [Ex(T.CONST(1))], TOP, TOP)),
+
+          T.LABEL(inboundLabel)
+        ]),
+        T.MEM(
+          T.BINOP(T.PLUS, 
+            T.MEM(unEx(baseAddr)), 
+            T.BINOP(T.MUL, 
+              unEx(index),
+              T.CONST(MipsFrame.wordSize) 
+            )
+          )
+        )
+       ))
      end
+
+
+
+  fun fieldVar (baseAddr, index) = Ex(T.MEM(T.BINOP(T.PLUS,
+        T.MEM(unEx(baseAddr)), T.CONST(index * MipsFrame.wordSize))))
+
+
+  fun recordExp (fields) =
+    let val r = Temp.newtemp()
+        val moveStms = List.foldr (fn (field, moveExps) => 
+          T.MOVE(
+            T.MEM(
+              T.BINOP(T.PLUS, 
+                T.TEMP(r), 
+                T.CONST((List.length moveExps) * MipsFrame.wordSize)
+              )
+            ),
+            unEx field
+          ) :: moveExps) [] fields
+    in
+      Ex(T.ESEQ(rollupSeq ([
+        T.MOVE(T.TEMP(r), MipsFrame.externalCall("malloc", [T.CONST((List.length fields) * MipsFrame.wordSize)])),
+        rollupSeq moveStms
+        ]), 
+        T.TEMP(r)
+      ))
+    end
 
 end
