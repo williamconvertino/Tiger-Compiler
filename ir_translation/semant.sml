@@ -167,6 +167,7 @@ struct
                         val {exp=bodyexp, ty=bodyty} = transExp(venv''', tenv, NONE, level') body
                     in 
                         ( 
+                            T.procEntryExit({level=level', body=bodyexp});
                             Types.checkType(bodyty, result_ty, pos);
                             {venv=venv'', tenv=tenv, exp=NONE}
                         )

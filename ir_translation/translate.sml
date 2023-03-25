@@ -242,8 +242,7 @@ structure Translate : TRANSLATE = struct
   
     fun procEntryExit {level=level, body=exp} = 
       case level of
-            LEVEL((level', frame'), un) => rememberedFrags :=
-            Frame.PROC({body=(unNx(exp)), frame=frame'})::(!rememberedFrags)
+            LEVEL((level', frame'), un) => rememberedFrags := Frame.PROC({body=(unNx(exp)), frame=frame'})::(!rememberedFrags)
 
     fun stringVar lit = 
       let fun getLab () =
@@ -278,7 +277,6 @@ structure Translate : TRANSLATE = struct
      in
        helper (s1,t',e)
      end
-
 
 
 end

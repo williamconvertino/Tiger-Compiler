@@ -3,20 +3,21 @@ sig
   type access
   type frame = Temp.label * access list * int ref * Tree.exp list
   datatype frag = PROC of {body: Tree.stm, frame: frame}
-                             | STRING of Temp.label * string
+                | STRING of Temp.label * string
   val newFrame : {name: Temp.label, formals: bool list} -> frame
   val name : frame -> Temp.label
   val formals : frame -> access list
   val allocLocal : frame -> bool -> access
   val allocR0 : unit -> access
 
+  val SP : Temp.temp
   val FP : Temp.temp
   val wordSize: int
   val exp : access -> Tree.exp -> Tree.exp
   val externalCall: string * Tree.exp list -> Tree.exp
   val procEntryExit1 : frame * Tree.stm -> Tree.stm
 
-  (* val RV : Temp.temp *)
+  val RV : Temp.temp
 end
 
 structure MipsFrame : FRAME = struct 
@@ -47,15 +48,43 @@ structure MipsFrame : FRAME = struct
     |   allocLocal _ false                = InReg (Temp.newtemp())
 
     fun allocR0 () = InReg(0)
+    val RV = 2
+    val SP = 29
     val FP = 30
     val wordSize = 4
+    val calleeSavedRegs = [16, 17, 18, 19, 20, 21, 22, 23, 29]
 
     fun exp (InFrame(frameOffset)) frameAddr = T.MEM(T.BINOP(T.PLUS, frameAddr, T.CONST(frameOffset)))
     |   exp (InReg(r)) _ = T.TEMP(r)
 
     fun externalCall (s, args) = T.CALL(T.NAME(Temp.namedlabel s), args)
 
-    fun procEntryExit1(frame,body) = body
+    fun rollupSeq (stm::[]) = stm
+    |   rollupSeq (stm::stmlist) = T.SEQ(stm, rollupSeq(stmlist))
+
+    fun procEntryExit1(frame, body) = 
+      let val (label, formals, numLocals, _) = frame
+          fun moveInRegForms (formals, 4) = []
+          |   moveInRegForms (InReg(temp)::formals, regCount) = T.MOVE(T.TEMP(temp), T.TEMP(4 + regCount)) :: moveInRegForms(formals, regCount + 1)
+          |   moveInRegForms (InFrame(_)::formals, regCount) = moveInRegForms(formals, regCount)
+          |   moveInRegForms ([], regCount) = []
+          
+          fun moveCalleeSaved ([]) = ([], [])
+          |   moveCalleeSaved (reg::regs) = 
+                let val (stores, loads) = moveCalleeSaved(regs)
+                    val stackAddr = exp (allocLocal frame true) (T.TEMP(SP))
+                in
+                (T.MOVE(stackAddr, T.TEMP(reg))::stores, T.MOVE(T.TEMP(reg), stackAddr)::loads)
+                end
+          val (loads, stores) = moveCalleeSaved(calleeSavedRegs)
+      in
+        rollupSeq ([
+          rollupSeq (moveInRegForms (formals, 0)),
+          rollupSeq (loads),
+          body,
+          rollupSeq (stores)
+        ])
+      end
 
 
 end
