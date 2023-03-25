@@ -273,18 +273,21 @@ structure Translate : TRANSLATE = struct
           val t = Temp.newlabel()
           val f = Temp.newlabel()
           val r = Temp.newtemp()
-          val s1 = unCx(test)
+          val cond = (unCx(test))(t, f)
           
-          fun helper (s1, (v as _), (v' as _)) =
-          let val s2 = unEx (v)
-              val s3 = unEx(v')
-          in
-            Ex(T.ESEQ(T.SEQ(s1(t,f),T.SEQ(T.LABEL(t),
-            T.SEQ(T.MOVE(s2,T.TEMP(r)),T.SEQ(T.JUMP(T.NAME(join),[join]),
-            T.SEQ(T.LABEL(f),T.SEQ(T.MOVE(s3,T.TEMP(r)),T.JUMP(T.NAME(join),[join]))))))),T.TEMP(r)))
-          end
      in
-       helper (s1,t',e)
+       Ex(T.ESEQ(
+        rollupSeq ([
+          cond,
+          T.LABEL(t),
+          T.MOVE(T.TEMP(r), unEx(t')),
+          T.JUMP(T.NAME(join), [join]),
+          T.LABEL(f),
+          T.MOVE(T.TEMP(r), unEx(e)),
+          T.LABEL(join)
+        ]),
+        T.TEMP(r)
+       ))
      end
   
 
