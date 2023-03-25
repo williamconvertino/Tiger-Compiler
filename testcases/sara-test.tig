@@ -1,12 +1,8 @@
 /* correct declarations */
 let
 
-type rectype1 = {name:string, address:string, id: int , age: int}
-
-var rec1 := rectype1 {name="Kapoios", address="Kapou", id=02432, age=44}
-
+var b := nil
 in
-
-rec1.name := "sdf"
+b
 
 end
