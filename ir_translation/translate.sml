@@ -93,7 +93,7 @@ structure Translate : TRANSLATE = struct
     | unCx (Ex (T.CONST 1)) = (fn (t,f) => T.JUMP(T.NAME t, [t]))
     | unCx (Ex e) = (fn (t,f) => T.CJUMP (T.NE, e, T.CONST 0, t, f))
     | unCx (Cx c) = c
-    | unCx (Nx _) = (print "error cannot unwrap Cx from Nx"; (fn (t,f) => T.LABEL(Temp.newlabel())))
+    | unCx (Nx _) = (fn (t,f) => T.EXP(T.CONST(0))) (* this should not happen in valid Tiger program, but kept for error purposes*)
 
   fun unNx (Ex e) = Tree.EXP(e)
     | unNx (Cx c) = 
@@ -177,12 +177,12 @@ structure Translate : TRANSLATE = struct
              |   trOpStr (A.GtOp) = Ex(MipsFrame.externalCall("stringGtOp",[tleft,tright]))
              |   trOpStr (A.GeOp) = Ex(MipsFrame.externalCall("stringGeOp",[tleft,tright]))            
              |   trOpStr (A.NeqOp) = Cx(fn (t,f) => T.CJUMP(T.NE, tleft, tright, t, f))
-             |   trOpStr _ = (print ("Error should not reach STRING with any INT operand"); nop())
+             |   trOpStr _ = (print ("error: should not reach STRING with any INT operand\n"); nop())
     in
       case ty of
            Types.INT => trOp oper
          | Types.STRING => trOpStr oper
-         | _ => (print("Error mismatched types"); nop())
+         | _ => nop()
     end
          
          
