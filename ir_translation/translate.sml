@@ -232,7 +232,11 @@ structure Translate : TRANSLATE = struct
 
 
     val rememberedFrags = ref [] : Frame.frag list ref
-    fun getResult () = !rememberedFrags;
+    fun getResult () = 
+      let val frags = !rememberedFrags
+      in
+        rememberedFrags := []; frags
+      end
 
   
     fun procEntryExit {level=level, body=exp} = 
