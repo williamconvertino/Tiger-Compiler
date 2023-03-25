@@ -160,9 +160,10 @@ struct
                         
                         val params' = List.map transparam params
                         
-                        val level' = Translate.newLevel {parent=level, name=(Temp.newlabel()), formals=(List.map #escape params')}
+                        val funlabel = Temp.newlabel()
+                        val level' = Translate.newLevel {parent=level, name=funlabel, formals=(List.map #escape params')}
                         
-                        val venv' = S.enter(venv, name, E.FunEntry{formals= List.map #ty params', result=result_ty, level=level, label=(Temp.newlabel())})
+                        val venv' = S.enter(venv, name, E.FunEntry{formals= List.map #ty params', result=result_ty, level=level, label=funlabel})
                         fun enterparams (venv, {name, ty, escape}::params) = 
                             let val access = Translate.allocLocal level' escape
                             in

@@ -241,7 +241,7 @@ structure Translate : TRANSLATE = struct
   
     fun procEntryExit {level=level, body=exp} = 
       case level of
-            LEVEL((level', frame'), un) => rememberedFrags := Frame.PROC({body=(unNx(exp)), frame=frame'})::(!rememberedFrags)
+            LEVEL((parent, frame), un) => rememberedFrags := Frame.PROC({body=(unNx(exp)), frame=frame})::(!rememberedFrags)
          | TOP => print("Error should not reach TOP level at procEntry")
 
     fun stringVar lit = 
