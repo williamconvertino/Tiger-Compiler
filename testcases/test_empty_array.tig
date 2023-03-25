@@ -1,0 +1,7 @@
+let
+    type arrty = array of int
+
+    var arr := arrty[0] of 10
+in
+    arr
+end
