@@ -1,19 +1,20 @@
+let
+    var testString := "  New line should be here
 
-val testString = "  New line should be here
 
 
-
-and
-    there
-        are
-            tabs
-                here
-" 
-
-val testString2 = "
-anotherNewline
     and
-            tabs
-"
+        there
+            are
+                tabs
+                    here
+    " 
 
-val testString3 = ""
+    var testString2 := "
+    anotherNewline
+        and
+                tabs
+    "
+
+    var testString3 := ""
+in end

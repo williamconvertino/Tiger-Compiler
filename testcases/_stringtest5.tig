@@ -1,10 +1,12 @@
-val myString1 = "\123 is another one we need to check. I don't know what it means."
-val myString2 = "\123"
+let
+var myString1 := "\123 is another one we need to check. I don't know what it means."
+var myString2 := "\123"
 
-val myString1 = "\23 is just a number? Maybe?"
-val myString2 = "\23"
+var myString1 := "\23 is just a number? Maybe?"
+var myString2 := "\23"
 
-val myString1 = "\\ is just a backslash. \\ is pretty interesting, huh?"
-val myString2 = "\\"
-
-
+var myString1 := "\\ is just a backslash. \\ is pretty interesting, huh?"
+var myString2 := "\\"
+in
+    myString1
+end

@@ -1,4 +1,8 @@
-val myString1 = "\"To be or not to be\" is a quote."
-val myString2 = "\"\"\" is a quotation mark."
-val myString2 = "\"What if we end with a qmark?\""
-val myString4 = "\""
+let 
+var myString1 := "\"To be or not to be\" is a quote."
+var myString2 := "\"\"\" is a quotation mark."
+var myString2 := "\"What if we end with a qmark?\""
+var myString4 := "\""
+in
+myString1
+end
