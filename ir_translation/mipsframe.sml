@@ -76,7 +76,10 @@ structure MipsFrame : FRAME = struct
           |   moveInRegForms (InFrame(_)::formals, regCount) = moveInRegForms(formals, regCount)
           |   moveInRegForms ([], regCount) = []
           
-          fun moveCalleeSaved ([]) = ([], [])
+          fun moveCalleeSaved ([]) = (
+                [T.MOVE(T.TEMP(SP), T.BINOP(T.PLUS, T.TEMP(SP), T.CONST(List.length(calleeSavedRegs) * wordSize)))],
+                [T.MOVE(T.TEMP(SP), T.BINOP(T.MINUS, T.TEMP(SP), T.CONST(List.length(calleeSavedRegs) * wordSize)))] 
+              )
           |   moveCalleeSaved (reg::regs) = 
                 let val (stores, loads) = moveCalleeSaved(regs)
                     val stackAddr = exp (allocLocal frame true) (T.TEMP(SP))
@@ -89,7 +92,7 @@ structure MipsFrame : FRAME = struct
           rollupSeq (moveInRegForms (formals, 0)),
           rollupSeq (loads),
           body,
-          rollupSeq (stores)
+          rollupSeq (List.rev stores)
         ])
       end
 
