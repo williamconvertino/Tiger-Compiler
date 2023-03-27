@@ -12,16 +12,14 @@ structure MipsGen : CODEGEN =
         
         structure Frame : FRAME = MipsFrame
         
-        fun munchStm stm = 
-            case stm of
-                (T.SEQ(a,b)) =>
-            (* TODO *)
+        structure T = Tree
 
-        fun munchExp exp = 
-            case exp of
-                (T.CONST const) =>
-            |   (T.BINOP(p,a,b)) =>
-            (* TODO *)
+        fun munchStm stm = case stm of
+            (T.MOVE (T.TEMP i, e2)) => (munchExp(e2) ; emit "ADD")
+
+        fun munchExp exp = case exp of
+            (T.TEMP t) => ()
+        
 
         val codegen : Frame.frame -> Tree.stm -> Assem.instr list =
             (* TODO *)
