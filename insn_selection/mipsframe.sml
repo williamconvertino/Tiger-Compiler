@@ -131,17 +131,42 @@ structure MipsFrame : FRAME = struct
         ])
       end
    
-(*
-   callersaves = [t0,t1,t2,t3,t4,t5,t6,t7,t8,t9]
-   calleesaves = [s0,s1,s2,s3,s4,s5,s6,s7]
-   specialregs = [zero,ra,SP,RV]
-   argregs = [a0,a1,a2,a3]
-   *)
-   fun procEntryExit2(frame, body) =
+  val ra = Temp.newtemp()
+  val zero = Temp.newtemp()
+  val a0 = Temp.newtemp()
+  val a1 = Temp.newtemp()
+  val a2 = Temp.newtemp()
+  val a3 = Temp.newtemp()
+  val s0 = Temp.newtemp()
+  val s1 = Temp.newtemp()
+  val s2 = Temp.newtemp()
+  val s3 = Temp.newtemp()
+  val s4 = Temp.newtemp()
+  val s5 = Temp.newtemp()
+  val s6 = Temp.newtemp()
+  val s7 = Temp.newtemp()
+  val t0 = Temp.newtemp()
+  val t1 = Temp.newtemp()
+  val t2 = Temp.newtemp()
+  val t3 = Temp.newtemp()
+  val t4 = Temp.newtemp()
+  val t5 = Temp.newtemp()
+  val t6 = Temp.newtemp()
+  val t7 = Temp.newtemp()
+  val t8 = Temp.newtemp()
+  val t9 = Temp.newtemp()
+
+  val callersaves = [t0,t1,t2,t3,t4,t5,t6,t7,t8,t9]
+  val calleesaves = [s0,s1,s2,s3,s4,s5,s6,s7]
+  val specialregs = [zero,ra,SP,RV]
+  val argregs = [a0,a1,a2,a3]
+  
+   fun procEntryExit2(frame, body) = body
+(*   fun procEntryExit2(frame, body) =
      body @
      [A.OPER{assem="",dst=[],
      src =[zero,ra,SP]@calleeSavedRegs, (*calleesaves,*)
-     jump=SOME[]}]
+     jump=SOME[]}]*)
 
 end
 
