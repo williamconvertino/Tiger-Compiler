@@ -25,23 +25,23 @@ structure MipsGen : CODEGEN =
 
                 
                 fun munchExp exp = case exp of
-                    (T.MEM (T.BINOP (T.PLUS, e1, T.CONST i))) => (munchExp e1; emit "LOAD")
-                |   (T.MEM (T.BINOP (T.PLUS, T.CONST i, e1))) => (munchExp e1; emit "LOAD")
-                |   (T.MEM(T.CONST i)) => (emit "LOAD")
-                |   (T.MEM(e1)) => (munchExp e1; emit "LOAD")
-                |   (T.BINOP (T.PLUS, e1, T.CONST i)) => (munchExp e1; emit "ADDI")
-                |   (T.BINOP (T.PLUS, T.CONST i, e1)) => (munchExp e1; emit "ADDI")
-                |   (T.CONST i) => (emit "ADDI")
-                |   (T.BINOP (T.PLUS, e1, e2)) => (munchExp e1; munchExp e2; emit "ADD")
+                    (T.MEM (T.BINOP (T.PLUS, e1, T.CONST i))) => (munchExp e1; emit (A.LABEL({assem="LOAD",lab=Temp.newlabel()})))
+                |   (T.MEM (T.BINOP (T.PLUS, T.CONST i, e1))) => (munchExp e1; emit (A.LABEL({assem="LOAD",lab=Temp.newlabel()})))
+                |   (T.MEM(T.CONST i)) => (emit (A.LABEL{assem="LOAD",lab=Temp.newlabel()}))
+                |   (T.MEM(e1)) => (munchExp e1; emit (A.LABEL{assem="LOAD",lab=Temp.newlabel()}))
+                |   (T.BINOP (T.PLUS, e1, T.CONST i)) => (munchExp e1; emit (A.LABEL({assem="ADDI",lab=Temp.newlabel()})))
+                |   (T.BINOP (T.PLUS, T.CONST i, e1)) => (munchExp e1; emit (A.LABEL{assem="ADDI",lab=Temp.newlabel()}))
+                |   (T.CONST i) => (emit (A.LABEL{assem="ADDI",lab=Temp.newlabel()}))
+                |   (T.BINOP (T.PLUS, e1, e2)) => (munchExp e1; munchExp e2; emit (A.LABEL{assem="ADD",lab=Temp.newlabel()}))
                 |   (T.TEMP t) => ()
 
                 fun munchStm stm = case stm of
-                    (T.MOVE (T.MEM (T.BINOP( T.PLUS, e1, T.CONST i)), e2)) => (munchExp e1; munchExp e2; emit "STORE")
-                |   (T.MOVE (T.MEM (T.BINOP( T.PLUS, T.CONST i, e1)), e2)) => (munchExp e1; munchExp e2; emit "STORE")
-                |   (T.MOVE(T.MEM(e1)/T.MEM(e2))) => (munchExp e1; munchExp e2; emit "MOVEM")
-                |   (T.MOVE(T.MEM(T.CONST i) , e2)) => (munchExp e2; emit "STORE")
-                |   (T.MOVE(T.MEM(e1), e2)) => (munchExp e1; munchExp e2; emit "STORE")
-                |   (T.MOVE(T.TEMP i, e2)) => (munchExp e2; emit "ADD")
+                    (T.MOVE (T.MEM (T.BINOP( T.PLUS, e1, T.CONST i)), e2)) => (munchExp e1; munchExp e2; emit (A.LABEL{assem="STORE",lab=Temp.newlabel()}))
+                |   (T.MOVE (T.MEM (T.BINOP( T.PLUS, T.CONST i, e1)), e2)) => (munchExp e1; munchExp e2; emit (A.LABEL{assem="STORE",lab=Temp.newlabel()}))
+                |   (T.MOVE(T.MEM(e1),T.MEM(e2))) => (munchExp e1; munchExp e2; emit (A.LABEL{assem="MOVEM",lab=Temp.newlabel()}))
+                |   (T.MOVE(T.MEM(T.CONST i) , e2)) => (munchExp e2; emit (A.LABEL{assem="STORE",lab=Temp.newlabel()}))
+                |   (T.MOVE(T.MEM(e1), e2)) => (munchExp e1; munchExp e2; emit (A.LABEL{assem="STORE",lab=Temp.newlabel()}))
+                |   (T.MOVE(T.TEMP i, e2)) => (munchExp e2; emit (A.LABEL{assem="ADD",lab=Temp.newlabel()}))
 
             in
                 munchStm stm; rev(!ilist)

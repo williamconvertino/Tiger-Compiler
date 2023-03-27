@@ -7,7 +7,7 @@ end =
 struct 
     structure Tr = Translate
     structure F = Frame
-    structure R = RegAlloc
+    (*structure R = RegAlloc*)
 
     fun escape filename =
         let val absyn = Parse.parse filename
