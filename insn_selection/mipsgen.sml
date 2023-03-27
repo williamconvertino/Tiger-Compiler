@@ -14,21 +14,16 @@ structure MipsGen : CODEGEN =
         
         structure T = Tree
 
-        fun codegen frame (stm: Tree.stm) : Assem.Instr list =
+        structure A = Assem
+
+        fun codegen frame (stm: Tree.stm) : Assem.instr list =
             let
                 val ilist = ref (nil: A.instr list)
                 
                 fun emit x= ilist := x :: !ilist
                 fun result(gen) = let val t = Temp.newtemp() in gen t; t end
 
-                fun munchStm stm = case stm of
-                    (T.MOVE (T.MEM (T.BINOP( T.PLUS, e1, T.CONST i)), e2)) => (munchExp e1; munchExp e2; emit "STORE")
-                |   (T.MOVE (T.MEM (T.BINOP( T.PLUS, T.CONST i, e1)), e2)) => (munchExp e1; munchExp e2; emit "STORE")
-                |   (T.MOVE(T.MEM(e1)/T.MEM(e2))) => (munchExp e1; munchExp e2; emit "MOVEM")
-                |   (T.MOVE(T.MEM(T.CONST i) , e2)) => (munchExp e2; emit "STORE")
-                |   (T.MOVE(T.MEM(e1), e2)) => (munchExp e1; munchExp e2; emit "STORE")
-                |   (T.MOVE(T.TEMP i, e2)) => (munchExp e2; emit "ADD")
-
+                
                 fun munchExp exp = case exp of
                     (T.MEM (T.BINOP (T.PLUS, e1, T.CONST i))) => (munchExp e1; emit "LOAD")
                 |   (T.MEM (T.BINOP (T.PLUS, T.CONST i, e1))) => (munchExp e1; emit "LOAD")
@@ -39,6 +34,15 @@ structure MipsGen : CODEGEN =
                 |   (T.CONST i) => (emit "ADDI")
                 |   (T.BINOP (T.PLUS, e1, e2)) => (munchExp e1; munchExp e2; emit "ADD")
                 |   (T.TEMP t) => ()
+
+                fun munchStm stm = case stm of
+                    (T.MOVE (T.MEM (T.BINOP( T.PLUS, e1, T.CONST i)), e2)) => (munchExp e1; munchExp e2; emit "STORE")
+                |   (T.MOVE (T.MEM (T.BINOP( T.PLUS, T.CONST i, e1)), e2)) => (munchExp e1; munchExp e2; emit "STORE")
+                |   (T.MOVE(T.MEM(e1)/T.MEM(e2))) => (munchExp e1; munchExp e2; emit "MOVEM")
+                |   (T.MOVE(T.MEM(T.CONST i) , e2)) => (munchExp e2; emit "STORE")
+                |   (T.MOVE(T.MEM(e1), e2)) => (munchExp e1; munchExp e2; emit "STORE")
+                |   (T.MOVE(T.TEMP i, e2)) => (munchExp e2; emit "ADD")
+
             in
                 munchStm stm; rev(!ilist)
             end
