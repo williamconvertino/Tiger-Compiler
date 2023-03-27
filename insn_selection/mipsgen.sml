@@ -14,7 +14,7 @@ structure MipsGen : CODEGEN =
         
         structure T = Tree
 
-        fun codegen frame (stm Tree.stm) : Assem.Instr list =
+        fun codegen frame (stm: Tree.stm) : Assem.Instr list =
             let
                 val ilist = ref (nil: A.instr list)
                 
