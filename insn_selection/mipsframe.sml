@@ -61,6 +61,7 @@ structure MipsFrame : FRAME = struct
     datatype access = InFrame of int | InReg of Temp.temp
 
     structure T = Tree
+    structure A = Assem
     
    
     type frame = Temp.label * access list * int ref * Tree.exp list
@@ -162,11 +163,11 @@ structure MipsFrame : FRAME = struct
   val argregs = [a0,a1,a2,a3]
   
    fun procEntryExit2(frame, body) = body
-(*   fun procEntryExit2(frame, body) =
+   fun procEntryExit2(frame, body) =
      body @
      [A.OPER{assem="",dst=[],
-     src =[zero,ra,SP]@calleeSavedRegs, (*calleesaves,*)
-     jump=SOME[]}]*)
+     src =[zero,ra,SP]@calleesaves,
+     jump=SOME[]}]
 
 end
 
