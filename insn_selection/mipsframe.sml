@@ -9,17 +9,52 @@ sig
   val formals : frame -> access list
   val allocLocal : frame -> bool -> access
   val allocR0 : unit -> access
-
+  (*Special Regs*)
   val SP : Temp.temp
   val FP : Temp.temp
+  val RV : Temp.temp
+  val ra : Temp.temp
+  val zero : Temp.temp
+  val specialregs : Temp.temp list
+  (*Argument Registers*)
+  val a0 : Temp.temp
+  val a1 : Temp.temp
+  val a2 : Temp.temp
+  val a3 : Temp.temp
+  val argregs : Temp.temp list
+  (*Callee Save Registers*)
+  val s0 : Temp.temp
+  val s1 : Temp.temp
+  val s2 : Temp.temp
+  val s3 : Temp.temp
+  val s4 : Temp.temp
+  val s5 : Temp.temp
+  val s6 : Temp.temp
+  val s7 : Temp.temp
+  val calleesaves : Temp.temp list
+  (*Caller Saved*)
+  val t0 : Temp.temp
+  val t1 : Temp.temp
+  val t2 : Temp.temp
+  val t3 : Temp.temp
+  val t4 : Temp.temp
+  val t5 : Temp.temp
+  val t6 : Temp.temp
+  val t7 : Temp.temp
+  val t8 : Temp.temp
+  val t9 : Temp.temp
+  val callersaves : Temp.temp list
+  (*Return Values*)
+  (*val v0 : Temp.temp
+  val v1 : Temp.temp*)
+
   val wordSize: int
   val exp : access -> Tree.exp -> Tree.exp
   val externalCall: string * Tree.exp list -> Tree.exp
   val procEntryExit1 :  Tree.stm * frame -> Tree.stm
-
+  val procEntryExit2 : frame * Assem.instr list -> Assem.instr list
   val printAccess: access -> unit
 
-  val RV : Temp.temp
 end
 
 structure MipsFrame : FRAME = struct 
@@ -27,7 +62,7 @@ structure MipsFrame : FRAME = struct
 
     structure T = Tree
     
-
+   
     type frame = Temp.label * access list * int ref * Tree.exp list
      datatype frag = PROC of {body: Tree.stm, frame: frame}
                                   | STRING of Temp.label * string
@@ -95,8 +130,18 @@ structure MipsFrame : FRAME = struct
           rollupSeq (List.rev stores)
         ])
       end
-
-   fun procEntryExitl(body,frame) = body
+   
+(*
+   callersaves = [t0,t1,t2,t3,t4,t5,t6,t7,t8,t9]
+   calleesaves = [s0,s1,s2,s3,s4,s5,s6,s7]
+   specialregs = [zero,ra,SP,RV]
+   argregs = [a0,a1,a2,a3]
+   *)
+   fun procEntryExit2(frame, body) =
+     body @
+     [A.OPER{assem="",dst=[],
+     src =[zero,ra,SP]@calleeSavedRegs, (*calleesaves,*)
+     jump=SOME[]}]
 
 end
 
