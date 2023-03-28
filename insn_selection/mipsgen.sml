@@ -22,10 +22,14 @@ structure MipsGen : CODEGEN =
                 fun emit x= ilist := x :: !ilist
                 fun result(gen) = let val t = Temp.newtemp() in gen t; t end
 
+                fun munchArgs (i,args) = 
+                let val arg = List.nth(Frame.argregs, i) 
+                    fun temp_move ()= munchStm(T.MOVE(T.TEMP(arg),List.nth(args,i) ))
+                in
+                    temp_move(); arg::munchArgs (i+1,args)
+                end
 
-                fun munchArgs (i,args) = let val t = Temp.newtemp()::[] in t end 
-
-                fun munchExp(T.MEM(T.BINOP(T.PLUS,e1,T.CONST i))) = 
+                and munchExp(T.MEM(T.BINOP(T.PLUS,e1,T.CONST i))) = 
                     result(fn r => emit(A.OPER 
                             {assem="LOAD 'd0 <- M['s0+" ^ Int.toString i ^ "]\n", 
                             src =[munchExp e1], dst=[r], jump=NONE}))
@@ -161,14 +165,14 @@ structure MipsGen : CODEGEN =
                     emit(A.OPER{assem="ADD 'd0 <- 's0 + r0\n",
                                 src=[munchExp e2],
                                 dst=[i],jump=NONE})
-                | munchStm(T.CJUMP(test, e1, e2,t,f) ) =
+                | munchStm(T.CJUMP(test, e1, e2,lab1,lab2) ) =
                     emit(A.OPER{assem="CJUMP 'to 's0 or 's1\n",
                                 src=[munchExp e1,munchExp e2],
-                                dst=[],jump=SOME([t,f])})
-                | munchStm(T.JUMP(e1,t) ) =
+                                dst=[],jump=SOME([lab1,lab2])})
+                | munchStm(T.JUMP(e1,lab) ) =
                     emit(A.OPER{assem="JUMP 'to s0\n",
                                 src=[munchExp e1],
-                                dst=[],jump=SOME(t)})
+                                dst=[],jump=SOME(lab)})
                 | munchStm(T.EXP(T.CALL(e,args))) =
                     emit(A.OPER{assem="CALL 's0\n",
                                 src=munchExp(e)::munchArgs(0,args),
