@@ -161,20 +161,25 @@ structure MipsFrame : FRAME = struct
   val t9 = Temp.newtemp()
 
   val callersaves = [t0,t1,t2,t3,t4,t5,t6,t7,t8,t9]
+  val callersavesstr = ["t0","t1","t2","t3","t4","t5","t6","t7","t8","t9"]
   val calleesaves = [s0,s1,s2,s3,s4,s5,s6,s7]
+  val calleesavesstr = ["s0","s1","s2","s3","s4","s5","s6","s7"]
   val specialregs = [zero,ra,SP,RV]
+  val specialregsstr = ["zero","ra","SP","RV"]
   val argregs = [a0,a1,a2,a3]
+  val argregsstr = ["a0","a1","a2","a3"]
   
   fun string (label, str) = Symbol.name (label) ^ str
-   fun procEntryExit2(frame, body) = body
    fun procEntryExit2(frame, body) =
      body @
      [A.OPER{assem="",dst=[],
      src =[zero,ra,SP]@calleesaves,
      jump=SOME[]}]
   
+  val allRegStrList = callersavesstr@calleesavesstr@specialregsstr@argregsstr
   val allRegList = callersaves@calleesaves@specialregs@argregs
-  val tempMap = foldr (fn(t,table) => Temp.Table.enter(table,t,Temp.makestring(t))) Temp.Table.empty allRegList
+  val tempMap = Array.foldri 
+  (fn(ind,t,table) => Temp.Table.enter(table,t,List.nth(allRegStrList,ind))) Temp.Table.empty (Array.fromList allRegList)
 
   fun getRegisterName t = case Temp.Table.look (tempMap,t) of
                     SOME (regstr) => regstr 
