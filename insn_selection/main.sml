@@ -18,7 +18,7 @@ struct
     fun getsome (SOME x) = x
 
     fun emitproc out (F.PROC{body,frame}) =
-      let val _ = print ("emit " ^ Frame.name frame ^ "\n")
+      let val _ = print ("emit " ^ F.string(Frame.name frame,  "\n"))
 (*        val _ = Printtree.printtree(out,body); *)
           val stms = Canon.linearize body
 (*        val _ = app (fn s => Printtree.printtree(out,s)) stms; *)
@@ -37,12 +37,12 @@ struct
     
     fun compile filename = 
         let val absyn = Parse.parse filename
-            val frags = (FindEscape.prog absyn; Semant.transProg absyn)
+            val frags = (FindEscape.findEscape absyn; Semant.transProg absyn)
         in 
-          (*  FindEscape.findEscape absyn;
-            Semant.transProg absyn*)
-             withOpenFile (filename ^ ".s")
-             (fn out => (app (emitproc out) frags))
+            withOpenFile (filename ^ ".s")
+            (fn out => (app (emitproc out) frags));
+            frags
+             
         end
 
     fun debugCompile filename = 

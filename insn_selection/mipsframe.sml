@@ -1,10 +1,12 @@
 signature FRAME =
 sig 
   type access
+  type register
   type frame = Temp.label * access list * int ref * Tree.exp list
   datatype frag = PROC of {body: Tree.stm, frame: frame}
                 | STRING of Temp.label * string
   val newFrame : {name: Temp.label, formals: bool list} -> frame
+  val string : Temp.label * string -> string
   val name : frame -> Temp.label
   val formals : frame -> access list
   val allocLocal : frame -> bool -> access
@@ -47,7 +49,8 @@ sig
   (*Return Values*)
   (*val v0 : Temp.temp
   val v1 : Temp.temp*)
-
+  val tempMap : register Temp.Table.table
+  val getRegisterName : Temp.temp -> string
   val wordSize: int
   val exp : access -> Tree.exp -> Tree.exp
   val externalCall: string * Tree.exp list -> Tree.exp
@@ -63,7 +66,7 @@ structure MipsFrame : FRAME = struct
     structure T = Tree
     structure A = Assem
     
-   
+     type register = string
     type frame = Temp.label * access list * int ref * Tree.exp list
      datatype frag = PROC of {body: Tree.stm, frame: frame}
                                   | STRING of Temp.label * string
@@ -162,12 +165,16 @@ structure MipsFrame : FRAME = struct
   val specialregs = [zero,ra,SP,RV]
   val argregs = [a0,a1,a2,a3]
   
+  fun string (label, str) = Symbol.name (label) ^ str
    fun procEntryExit2(frame, body) = body
    fun procEntryExit2(frame, body) =
      body @
      [A.OPER{assem="",dst=[],
      src =[zero,ra,SP]@calleesaves,
      jump=SOME[]}]
+  
+  val tempMap = Temp.Table.empty 
+  fun getRegisterName t = ""
 
 end
 
