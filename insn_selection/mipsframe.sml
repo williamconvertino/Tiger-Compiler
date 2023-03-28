@@ -173,8 +173,12 @@ structure MipsFrame : FRAME = struct
      src =[zero,ra,SP]@calleesaves,
      jump=SOME[]}]
   
-  val tempMap = Temp.Table.empty 
-  fun getRegisterName t = ""
+  val allRegList = callersaves@calleesaves@specialregs@argregs
+  val tempMap = foldr (fn(t,table) => Temp.Table.enter(table,t,Temp.makestring(t))) Temp.Table.empty allRegList
+
+  fun getRegisterName t = case Temp.Table.look (tempMap,t) of
+                    SOME (regstr) => regstr 
+                    | NONE => Temp.makestring t
 
 end
 
