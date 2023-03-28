@@ -113,9 +113,23 @@ structure MipsGen : CODEGEN =
                     result(fn r => emit(A.OPER 
                         {assem="XOR 'd0 <- 's0 xor'sl\n", 
                         src=[munchExp e1, munchExp e2], dst=[r], jump=NONE}))
+                | munchExp(T.ESEQ (e1,e2)) = (munchStm e1; munchExp e2)
+                | munchExp(T.NAME t) = 
+                    result(fn r => emit(A.OPER 
+                        {assem="Not sure what goes here "^Symbol.name t^"\n", 
+                        src=[], dst=[r], jump=NONE}))
+                | munchExp(T.CALL (T.NAME(t),args)) = 
+                    result(fn r => emit(A.OPER 
+                        {assem="CALL "^Symbol.name t^"\n", 
+                        src=munchArgs(0,args), dst=[MipsFrame.ra], jump=NONE}))
                 | munchExp(T.TEMP t) = t
                 
-                fun munchStm(T.SEQ(a,b)) = (munchStm a; munchStm b)
+                and munchStm(T.SEQ(a,b)) = (munchStm a; munchStm b)
+                | munchStm(T.MOVE(T.ESEQ(s1,e1), e2)) =
+                    (munchStm s1; 
+                    emit(A.OPER{assem="STORE M['s0] <- 'd0\n",
+                                src=[ munchExp e1],
+                                dst=[munchExp e2],jump=NONE}))
                 | munchStm(T.MOVE(T.MEM(T.BINOP(T.PLUS,e1,T.CONST i)),e2)) =
                     emit(A.OPER{assem="STORE M['s0+" ^ Int.toString i ^ "] <- 'sl\n",
                                 src=[munchExp e1, munchExp e2],
@@ -131,22 +145,35 @@ structure MipsGen : CODEGEN =
                 | munchStm(T.MOVE(T.MEM(T.CONST i),e2)) =
                     emit(A.OPER{assem="STORE M[r0+" ^ Int.toString i ^ "] <- 's0\n",
                                 src=[munchExp e2], dst=[],jump=NONE})
+                | munchStm(T.MOVE(T.MEM(e1),T.CONST i)) =
+                    emit(A.OPER{assem="STORE M['s0] <- " ^ Int.toString i ^ "\n",
+                                src=[munchExp e1],
+                                dst= [] ,jump=NONE})
                 | munchStm(T.MOVE(T.MEM(e1),e2)) =
                     emit(A.OPER{assem="STORE M['s0] <- 'sl\n",
                                 src=[munchExp e1, munchExp e2],
                                 dst= [] ,jump=NONE})
+                | munchStm(T.MOVE(T.TEMP i, T.CONST j ) ) =
+                    emit(A.OPER{assem="ADD 'd0 <- " ^ Int.toString j ^ " + r0\n",
+                                src=[],
+                                dst=[i],jump=NONE})
                 | munchStm(T.MOVE(T.TEMP i, e2) ) =
                     emit(A.OPER{assem="ADD 'd0 <- 's0 + r0\n",
                                 src=[munchExp e2],
                                 dst=[i],jump=NONE})
                 | munchStm(T.CJUMP(test, e1, e2,t,f) ) =
-                    emit(A.OPER{assem="ADD 'd0 <- 's0 + r0\n",
+                    emit(A.OPER{assem="CJUMP 'to 's0 or 's1\n",
                                 src=[munchExp e1,munchExp e2],
                                 dst=[],jump=SOME([t,f])})
+                | munchStm(T.JUMP(e1,t) ) =
+                    emit(A.OPER{assem="JUMP 'to s0\n",
+                                src=[munchExp e1],
+                                dst=[],jump=SOME(t)})
                 | munchStm(T.EXP(T.CALL(e,args))) =
                     emit(A.OPER{assem="CALL 's0\n",
                                 src=munchExp(e)::munchArgs(0,args),
                                 dst=MipsFrame.calleesaves, jump=NONE})
+                | munchStm(T.EXP e1) = (munchExp e1; ())
                 | munchStm(T.LABEL lab) =
                     emit(A.LABEL{assem=MipsFrame.string(lab, ":\n"), lab=lab})
             in

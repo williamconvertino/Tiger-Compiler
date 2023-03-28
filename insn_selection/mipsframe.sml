@@ -56,6 +56,7 @@ sig
   val externalCall: string * Tree.exp list -> Tree.exp
   val procEntryExit1 :  Tree.stm * frame -> Tree.stm
   val procEntryExit2 : frame * Assem.instr list -> Assem.instr list
+  val procEntryExit3 : frame * Assem.instr -> {prolog:string, body:Assem.instr, epilog: string}
   val printAccess: access -> unit
 
 end
@@ -175,7 +176,10 @@ structure MipsFrame : FRAME = struct
      [A.OPER{assem="",dst=[],
      src =[zero,ra,SP]@calleesaves,
      jump=SOME[]}]
-  
+  fun procEntryExit3(frame, body) =
+    {prolog = "PROCEDURE " ^ Symbol.name (name frame) ^ "\n",
+          body = body,
+          epilog = "END " ^ Symbol.name (name frame) ^ "\n"}
   val allRegStrList = callersavesstr@calleesavesstr@specialregsstr@argregsstr
   val allRegList = callersaves@calleesaves@specialregs@argregs
   val tempMap = Array.foldri 

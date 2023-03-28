@@ -1,8 +1,2 @@
 /* correct declarations */
-let
-
-var b := nil
-in
-b
-
-end
+5 & 5
