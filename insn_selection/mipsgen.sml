@@ -149,22 +149,51 @@ structure MipsGen : CODEGEN =
                     emit(A.MOVE{assem="move 'd0, 's0\n",
                                 src=(munchExp e2),
                                 dst=t})
-                | munchStm(T.MOVE(_)) = print ("error: must move into MEM or TEMP")
-                
-
-                (* relop = EQ | NE | LT | GT | LE | GE 
-                | ULT | ULE | UGT | UGE *)
+                | munchStm(T.MOVE(_)) = print ("error: must move into MEM or TEMP\n")
                 
                 (* Branches *)
                 | munchStm(T.CJUMP(T.EQ, e1, e2, t, f) ) =
                     emit(A.OPER{assem="beq 's0, 's1, "^ (Symbol.name t) ^"\n",
                                 src=[munchExp e1, munchExp e2],
                                 dst=[],jump=SOME([t,f])})
-                
-                | munchStm(T.CJUMP(test, e1, e2, t, f) ) =
-                    emit(A.OPER{assem="CJUMP 'to 's0 or 's1\n",
-                                src=[munchExp e1,munchExp e2],
+                | munchStm(T.CJUMP(T.NE, e1, e2, t, f) ) =
+                    emit(A.OPER{assem="bne 's0, 's1, "^ (Symbol.name t) ^"\n",
+                                src=[munchExp e1, munchExp e2],
                                 dst=[],jump=SOME([t,f])})
+                | munchStm(T.CJUMP(T.LT, e1, T.CONST(0), t, f) ) =
+                    emit(A.OPER{assem="bltz 's0, "^ (Symbol.name t) ^"\n",
+                                src=[munchExp e1],
+                                dst=[],jump=SOME([t,f])})
+                | munchStm(T.CJUMP(T.LT, e1, e2, t, f) ) =
+                    emit(A.OPER{assem="blt 's0, 's1, "^ (Symbol.name t) ^"\n",
+                                src=[munchExp e1, munchExp e2],
+                                dst=[],jump=SOME([t,f])})
+                | munchStm(T.CJUMP(T.GT, e1, T.CONST(0), t, f) ) =
+                    emit(A.OPER{assem="bgtz 's0, "^ (Symbol.name t) ^"\n",
+                                src=[munchExp e1],
+                                dst=[],jump=SOME([t,f])})
+                | munchStm(T.CJUMP(T.GT, e1, e2, t, f) ) =
+                    emit(A.OPER{assem="bgt 's0, 's1, "^ (Symbol.name t) ^"\n",
+                                src=[munchExp e1, munchExp e2],
+                                dst=[],jump=SOME([t,f])})
+                | munchStm(T.CJUMP(T.LE, e1, T.CONST(0), t, f) ) =
+                    emit(A.OPER{assem="blez 's0, "^ (Symbol.name t) ^"\n",
+                                src=[munchExp e1],
+                                dst=[],jump=SOME([t,f])})
+                | munchStm(T.CJUMP(T.LE, e1, e2, t, f) ) =
+                    emit(A.OPER{assem="ble 's0, 's1, "^ (Symbol.name t) ^"\n",
+                                src=[munchExp e1, munchExp e2],
+                                dst=[],jump=SOME([t,f])})
+                | munchStm(T.CJUMP(T.GE, e1, T.CONST(0), t, f) ) =
+                    emit(A.OPER{assem="bgez 's0, "^ (Symbol.name t) ^"\n",
+                                src=[munchExp e1],
+                                dst=[],jump=SOME([t,f])})
+                | munchStm(T.CJUMP(T.GE, e1, e2, t, f) ) =
+                    emit(A.OPER{assem="bge 's0, 's1, "^ (Symbol.name t) ^"\n",
+                                src=[munchExp e1, munchExp e2],
+                                dst=[],jump=SOME([t,f])})
+                | munchStm(T.CJUMP(testop, e1, e2, t, f)) = print "error: unsigned comparison not implemented\n"
+                
                 | munchStm(T.JUMP(T.NAME(t), labs) ) =
                     emit(A.OPER{assem="j " ^ Symbol.name t ^ "\n",
                                 src=[],
