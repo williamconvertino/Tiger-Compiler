@@ -365,7 +365,7 @@ structure Translate : TRANSLATE = struct
         rollupSeq ([
           T.CJUMP(T.EQ, unEx(baseAddr), T.CONST(0), nullPointerLabel, validPointerLabel),
           T.LABEL(nullPointerLabel),
-          unNx(call(Temp.namedlabel "print", [stringVar ("Error cannot derefernece null pointer\n")], TOP, TOP)),
+          unNx(call(Temp.namedlabel "print", [stringVar ("Error cannot dereference null pointer\n")], TOP, TOP)),
           unNx(call(Temp.namedlabel "exit", [Ex(T.CONST(1))], TOP, TOP)),
           T.LABEL(validPointerLabel)
         ]),
