@@ -53,6 +53,7 @@ structure MipsGen : CODEGEN =
                     result(fn r => emit(A.OPER 
                         {assem="addi 'd0, 's0, " ^ Int.toString i ^ "\n",
                         src=[munchExp e1], dst=[r], jump=NONE}))
+                | munchExp(T.CONST 0) = 0
                 | munchExp(T.CONST i) =
                     result(fn r => emit(A.OPER
                         {assem="addi 'd0, $r0, " ^ Int.toString i ^ "\n", 
@@ -149,10 +150,21 @@ structure MipsGen : CODEGEN =
                                 src=(munchExp e2),
                                 dst=t})
                 | munchStm(T.MOVE(_)) = print ("error: must move into MEM or TEMP")
-                | munchStm(T.CJUMP(test, e1, e2, lab1, lab2) ) =
+                
+
+                (* relop = EQ | NE | LT | GT | LE | GE 
+                | ULT | ULE | UGT | UGE *)
+                
+                (* Branches *)
+                | munchStm(T.CJUMP(T.EQ, e1, e2, t, f) ) =
+                    emit(A.OPER{assem="beq 's0, 's1, "^ (Symbol.name t) ^"\n",
+                                src=[munchExp e1, munchExp e2],
+                                dst=[],jump=SOME([t,f])})
+                
+                | munchStm(T.CJUMP(test, e1, e2, t, f) ) =
                     emit(A.OPER{assem="CJUMP 'to 's0 or 's1\n",
                                 src=[munchExp e1,munchExp e2],
-                                dst=[],jump=SOME([lab1,lab2])})
+                                dst=[],jump=SOME([t,f])})
                 | munchStm(T.JUMP(T.NAME(t), labs) ) =
                     emit(A.OPER{assem="j " ^ Symbol.name t ^ "\n",
                                 src=[],
