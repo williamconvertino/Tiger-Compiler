@@ -24,13 +24,13 @@ structure MipsGen : CODEGEN =
 
 
                 fun checkImmed (i) =
-                    let open Word
-                        infix andb >>
-                        val word = Word.fromInt i
-                        val upper = Word.toInt (word >> (Word.fromInt 16))
-                        val lower = Word.toInt (word andb (Word.fromInt 65536))
-                        fun loadLargeImmed () =
-                            let val bigI = Temp.newtemp()
+                    let fun loadLargeImmed () =
+                            let open Word
+                                infix andb >>
+                                val word = Word.fromInt i
+                                val upper = Word.toInt (word >> (Word.fromInt 16))
+                                val lower = Word.toInt (word andb (Word.fromInt 65536))
+                                val bigI = Temp.newtemp()
                             in
                                 emit(A.OPER {
                                     assem="lui 'd0, " ^ Int.toString upper ^ "\n", 
@@ -43,7 +43,7 @@ structure MipsGen : CODEGEN =
                                 SOME(bigI)
                             end
                     in
-                        if (upper = 0) 
+                        if (i < 65536 andalso i > ~65537) 
                         then NONE
                         else loadLargeImmed ()
                     end
@@ -57,42 +57,88 @@ structure MipsGen : CODEGEN =
                 end
 
                 and munchExp(T.MEM(T.BINOP(T.PLUS, e1, T.CONST i))) = 
-                    result(fn r => emit(A.OPER 
-                        {assem="lw 'd0, " ^ Int.toString i ^ "('s0)\n", 
-                        src =[munchExp e1], dst=[r], jump=NONE}))
-                | munchExp(T.MEM(T.BINOP(T.PLUS,T.CONST i,e1))) =
-                    result(fn r => emit(A.OPER
-                        {assem="lw 'd0, " ^ Int.toString i ^ "('s0)\n", 
-                        src=[munchExp e1], dst=[r], jump=NONE}))
+                    let val check = checkImmed(i)
+                    in
+                        case check of
+                            SOME(r) => munchExp(T.MEM(T.TEMP(r)))
+                        |   NONE    => result(fn r => emit(A.OPER 
+                            {assem="lw 'd0, " ^ Int.toString i ^ "('s0)\n", 
+                            src =[munchExp e1], dst=[r], jump=NONE})) 
+                    end
+                | munchExp(T.MEM(T.BINOP(T.PLUS, T.CONST i, e1))) =
+                    let val check = checkImmed(i)
+                    in
+                        case check of
+                            SOME(r) => munchExp(T.MEM(T.TEMP(r)))
+                        |   NONE    => result(fn r => emit(A.OPER 
+                            {assem="lw 'd0, " ^ Int.toString i ^ "('s0)\n", 
+                            src =[munchExp e1], dst=[r], jump=NONE})) 
+                    end
                 | munchExp(T.MEM(T.CONST i)) =
-                    result(fn r => emit(A.OPER 
+                    let val check = checkImmed(i)
+                    in
+                        case check of
+                            SOME(r) => munchExp(T.MEM(T.TEMP(r)))
+                        |   NONE    => result(fn r => emit(A.OPER 
                         {assem="lw 'd0, " ^ Int.toString i ^ "($r0)\n", 
                         src=[], dst=[r], jump=NONE}))
+                    end
                 | munchExp(T.MEM(e1)) =
                     result(fn r => emit(A.OPER 
                         {assem="lw 'd0, 0('s0)\n", 
                         src=[munchExp e1], dst=[r], jump=NONE}))
                 | munchExp(T.BINOP(T.PLUS, e1, T.CONST i)) =
-                    result(fn r => emit(A.OPER
+                    let val check = checkImmed(i)
+                    in
+                        case check of
+                            SOME(r) => munchExp(T.BINOP(T.PLUS, e1, T.TEMP(r)))
+                        |   NONE    => result(fn r => emit(A.OPER
                         {assem="addi 'd0, 's0, " ^ Int.toString i ^ "\n",
                         src=[munchExp e1], dst=[r], jump=NONE}))
+                    end
                 | munchExp(T.BINOP(T.PLUS, T.CONST i, e1)) = 
-                    result(fn r => emit(A.OPER 
+                    let val check = checkImmed(i)
+                    in
+                        case check of
+                            SOME(r) => munchExp(T.BINOP(T.PLUS, e1, T.TEMP(r)))
+                        |   NONE    => result(fn r => emit(A.OPER
                         {assem="addi 'd0, 's0, " ^ Int.toString i ^ "\n",
                         src=[munchExp e1], dst=[r], jump=NONE}))
+                    end
                 | munchExp(T.CONST 0) = 0
                 | munchExp(T.CONST i) =
-                    result(fn r => emit(A.OPER
+                    let val check = checkImmed(i)
+                    in
+                        case check of
+                            SOME(r) => r
+                        |   NONE    => result(fn r => emit(A.OPER
                         {assem="addi 'd0, $r0, " ^ Int.toString i ^ "\n", 
                         src=[], dst=[r], jump=NONE}))
+                    end
                 | munchExp(T.BINOP(T.PLUS, e1, e2)) =
                     result(fn r => emit(A.OPER 
                         {assem="add 'd0, 's0, 's1\n", 
                         src=[munchExp e1, munchExp e2], dst=[r], jump=NONE}))                
                 | munchExp(T.BINOP(T.MINUS, e1, T.CONST i)) =
-                    result(fn r => emit(A.OPER 
-                        {assem="addi 'd0, 's0, " ^ Int.toString (~1 * i) ^ "\n",    
-                        src=[munchExp e1], dst=[r], jump=NONE}))
+                    let val check = checkImmed(i)
+                    in
+                        case check of
+                            SOME(r) => munchExp(T.BINOP(T.MINUS, e1, T.TEMP(r)))
+                        |   NONE    => result(fn r => (
+                                if (i = ~65536) then (
+                                    emit(A.OPER 
+                                    {assem="addi 'd0, 's0, " ^ Int.toString (~1 * (i+10)) ^ "\n",    
+                                    src=[munchExp e1], dst=[r], jump=NONE});
+                                    emit(A.OPER 
+                                    {assem="addi 'd0, 's0, " ^ Int.toString (~10) ^ "\n",    
+                                    src=[r], dst=[r], jump=NONE})
+                                )
+                                else emit(A.OPER 
+                                    {assem="addi 'd0, 's0, " ^ Int.toString (~1 * i) ^ "\n",    
+                                    src=[munchExp e1], dst=[r], jump=NONE})   
+                        ))
+                    end
+                    
                 | munchExp(T.BINOP(T.MINUS, e1, e2)) =
                     result(fn r => emit(A.OPER 
                         {assem="sub 'd0, 's0, 's1\n", 
@@ -110,25 +156,41 @@ structure MipsGen : CODEGEN =
                         {assem="andi 'd0, 's0, " ^ Int.toString i ^ "\n",
                         src=[munchExp e1], dst=[r], jump=NONE}))
                 | munchExp(T.BINOP(T.AND, T.CONST i, e1)) =
-                    result(fn r => emit(A.OPER 
+                    let val check = checkImmed(i)
+                    in
+                        case check of
+                            SOME(r) => munchExp(T.BINOP(T.AND, e1, T.TEMP(r)))
+                        |   NONE    => result(fn r => emit(A.OPER 
                         {assem="andi 'd0, 's0, " ^ Int.toString i ^ "\n",
                         src=[munchExp e1], dst=[r], jump=NONE}))
+                    end
                 | munchExp(T.BINOP(T.AND, e1, e2)) =
                     result(fn r => emit(A.OPER 
                         {assem="and 'd0, 's0, 's1\n", 
                         src=[munchExp e1, munchExp e2], dst=[r], jump=NONE}))
                 | munchExp(T.BINOP(T.OR, e1, T.CONST i)) =
-                    result(fn r => emit(A.OPER 
+                    let val check = checkImmed(i)
+                    in
+                        case check of
+                            SOME(r) => munchExp(T.BINOP(T.OR, e1, T.TEMP(r)))
+                        |   NONE    => result(fn r => emit(A.OPER 
                         {assem="ori 'd0, 's0, " ^ Int.toString i ^ "\n", 
                         src=[munchExp e1], dst=[r], jump=NONE}))
+                    end
                 | munchExp(T.BINOP(T.OR, T.CONST i, e1)) =
-                    result(fn r => emit(A.OPER 
+                    let val check = checkImmed(i)
+                    in
+                        case check of
+                            SOME(r) => munchExp(T.BINOP(T.OR, e1, T.TEMP(r)))
+                        |   NONE    => result(fn r => emit(A.OPER 
                         {assem="ori 'd0, 's0, " ^ Int.toString i ^ "\n", 
                         src=[munchExp e1], dst=[r], jump=NONE}))
+                    end
                 | munchExp(T.BINOP(T.OR, e1, e2)) =
                     result(fn r => emit(A.OPER 
                         {assem="or 'd0, 's0, 'sl\n", 
                         src=[munchExp e1, munchExp e2], dst=[r], jump=NONE}))
+                (* Tiger can't do shift so need need to check CONST here... *)
                 | munchExp(T.BINOP(T.RSHIFT, e1, T.CONST i)) =
                     result(fn r => emit(A.OPER 
                         {assem="srl 'd0, 's0, " ^ Int.toString i ^ "\n", 
@@ -154,24 +216,50 @@ structure MipsGen : CODEGEN =
                 
                 and munchStm(T.SEQ(a, b)) = (munchStm a; munchStm b)
                 | munchStm(T.MOVE(T.MEM(T.BINOP(T.PLUS, e1, T.CONST i)), e2)) =
-                    emit(A.OPER{assem="sw 's1, " ^ Int.toString i ^ "('s0)\n",
-                                src=[munchExp e1, munchExp e2],
-                                dst=[],jump=NONE})
+                    let val check = checkImmed(i)
+                    in
+                        case check of
+                            SOME(r) => munchStm(T.MOVE(T.MEM(T.BINOP(T.PLUS, e1, T.TEMP(r))), e2))
+                        |   NONE    => 
+                                emit(A.OPER{assem="sw 's1, " ^ Int.toString i ^ "('s0)\n",
+                                    src=[munchExp e1, munchExp e2],
+                                    dst=[],jump=NONE})
+                    end
                 | munchStm(T.MOVE(T.MEM(T.BINOP(T.PLUS, T.CONST i, e1)), e2)) =
-                    emit(A.OPER{assem="sw 's1, " ^ Int.toString i ^ "('s0)\n",
-                                src=[munchExp e1, munchExp e2],
-                                dst=[],jump=NONE})
+                    let val check = checkImmed(i)
+                    in
+                        case check of
+                            SOME(r) => munchStm(T.MOVE(T.MEM(T.BINOP(T.PLUS, e1, T.TEMP(r))), e2))
+                        |   NONE    => 
+                                emit(A.OPER{assem="sw 's1, " ^ Int.toString i ^ "('s0)\n",
+                                    src=[munchExp e1, munchExp e2],
+                                    dst=[],jump=NONE})
+                    end
                 | munchStm(T.MOVE(T.MEM(T.CONST i), e2)) =
-                    emit(A.OPER{assem="sw 's0, " ^ Int.toString i ^ "($r0)\n",
-                                src=[munchExp e2], dst=[],jump=NONE})
+                    let val check = checkImmed(i)
+                    in
+                        case check of
+                            SOME(r) => munchStm(T.MOVE(T.MEM(T.TEMP(r)), e2))
+                        |   NONE    => 
+                                emit(A.OPER{assem="sw 's0, " ^ Int.toString i ^ "($r0)\n",
+                                    src=[munchExp e2], dst=[],jump=NONE})
+                    end
+                    
                 | munchStm(T.MOVE(T.MEM(e1), e2)) =
                     emit(A.OPER{assem="sw 's1, 0('s0)\n",
                                 src=[munchExp e1, munchExp e2],
                                 dst=[] ,jump=NONE})
-                | munchStm(T.MOVE(T.TEMP t, T.CONST j)) =
-                    emit(A.OPER{assem="li 'd0, " ^ Int.toString j ^ "\n",
+                | munchStm(T.MOVE(T.TEMP t, T.CONST i)) =
+                    let val check = checkImmed(i)
+                    in
+                        case check of
+                            SOME(r) => munchStm(T.MOVE(T.TEMP t, T.TEMP r))
+                        |   NONE    => 
+                                emit(A.OPER{assem="li 'd0, " ^ Int.toString i ^ "\n",
                                 src=[],
                                 dst=[t], jump=NONE})
+                    end
+                    
                 | munchStm(T.MOVE(T.TEMP t, e2) ) =
                     emit(A.MOVE{assem="move 'd0, 's0\n",
                                 src=(munchExp e2),
