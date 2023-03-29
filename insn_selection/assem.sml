@@ -8,8 +8,8 @@ structure Assem = struct
 			    dst: temp list,
 			    src: temp list,
 			    jump: label list option}
-                 | LABEL of {assem: string, lab: Temp.label}
-                 | MOVE of {assem: string, 
+			| LABEL of {assem: string, lab: Temp.label}
+			| MOVE of {assem: string, 
 			    dst: temp,
 			    src: temp}
 
