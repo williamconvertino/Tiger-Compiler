@@ -153,12 +153,16 @@ structure MipsGen : CODEGEN =
                     emit(A.OPER{assem="CJUMP 'to 's0 or 's1\n",
                                 src=[munchExp e1,munchExp e2],
                                 dst=[],jump=SOME([lab1,lab2])})
-                | munchStm(T.JUMP(e1,lab) ) =
-                    emit(A.OPER{assem="JUMP 'to s0\n",
+                | munchStm(T.JUMP(T.NAME(t), labs) ) =
+                    emit(A.OPER{assem="j " ^ Symbol.name t ^ "\n",
+                                src=[],
+                                dst=[], jump=SOME(labs)})
+                | munchStm(T.JUMP(e1, labs) ) =
+                    emit(A.OPER{assem="jr 's0\n",
                                 src=[munchExp e1],
-                                dst=[],jump=SOME(lab)})
+                                dst=[], jump=SOME(labs)})
                 | munchStm(T.EXP(T.CONST(0))) = ()
-                | munchStm(T.EXP(T.CALL(e,args))) =
+                | munchStm(T.EXP(T.CALL(e, args))) =
                     emit(A.OPER{assem="CALL 's0\n",
                                 src=munchExp(e)::munchArgs(0,args),
                                 dst=MipsFrame.calleesaves, jump=NONE})
