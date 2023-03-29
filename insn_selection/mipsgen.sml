@@ -22,6 +22,33 @@ structure MipsGen : CODEGEN =
                 fun emit x = ilist := x :: !ilist
                 fun result(gen) = let val t = Temp.newtemp() in gen t; t end
 
+
+                fun checkImmed (i) =
+                    let open Word
+                        infix andb >>
+                        val word = Word.fromInt i
+                        val upper = Word.toInt (word >> (Word.fromInt 16))
+                        val lower = Word.toInt (word andb (Word.fromInt 65536))
+                        fun loadLargeImmed () =
+                            let val bigI = Temp.newtemp()
+                            in
+                                emit(A.OPER {
+                                    assem="lui 'd0, " ^ Int.toString upper ^ "\n", 
+                                    src=[], dst=[bigI], jump=NONE
+                                });
+                                emit(A.OPER {
+                                    assem="ori 'd0, 's0, " ^ Int.toString lower ^ "\n", 
+                                    src =[bigI], dst=[bigI], jump=NONE
+                                });
+                                SOME(bigI)
+                            end
+                    in
+                        if (upper = 0) 
+                        then NONE
+                        else loadLargeImmed ()
+                    end
+                    
+
                 fun munchArgs (i,args) = 
                 let val arg = List.nth(Frame.argregs, i) 
                     fun temp_move ()= munchStm(T.MOVE(T.TEMP(arg),List.nth(args,i) ))
