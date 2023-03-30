@@ -6,7 +6,6 @@ sig
   type frag 
   val outermost : level
   val newLevel : {parent: level, name: Temp.label, formals: bool list} -> level
-  val topLevel : unit -> level
   val formals: level -> access list
   val allocLocal: level -> bool -> access
 
@@ -66,9 +65,6 @@ structure Translate : TRANSLATE = struct
 
   fun newLevel {parent, name, formals} = LEVEL((parent, MipsFrame.newFrame
     {name=name, formals=(true::formals)}), ref ())
-
-  fun topLevel () = LEVEL((outermost, MipsFrame.newFrame{name=(Temp.namedlabel "tigmain"), formals=[]}), ref ())
-
 
   fun formals (TOP) = []
   |   formals (LEVEL(level)) =
@@ -257,18 +253,19 @@ structure Translate : TRANSLATE = struct
 
     fun stringVar lit = 
       let fun getLab () =
-        case List.find 
-            (fn(remfrag) => (case remfrag of 
-                  Frame.PROC(_) => false
-                | Frame.STRING(lab, lit') => String.compare(lit, lit') = EQUAL))
-            (!rememberedFrags)
-            of
-            SOME(Frame.STRING(lab, lit')) => (print("found same label\n") ; lab)
-            | SOME (_) => Temp.newlabel()
-            | NONE => Temp.newlabel()
+            case List.find 
+                (fn(remfrag) => (case remfrag of 
+                      Frame.PROC(_) => false
+                    | Frame.STRING(lab, lit') => String.compare(lit, lit') = EQUAL))
+                (!rememberedFrags)
+                of
+                SOME(Frame.STRING(lab, lit')) => (lab, false)
+                | SOME (_) => (Temp.newlabel(), true)
+                | NONE => (Temp.newlabel(), true)
+          val (lab, new) = getLab ()
         in
-          (rememberedFrags := Frame.STRING((getLab(),lit))::(!rememberedFrags);
-          Ex(T.NAME(getLab ())))
+          if (new) then rememberedFrags := Frame.STRING((lab, lit))::(!rememberedFrags) else ();
+          Ex(T.NAME(lab))
         end
  
   fun ifExp (test, t', e) =
