@@ -180,13 +180,16 @@ structure MipsFrame : FRAME = struct
 
   fun procEntryExit2(frame, body) =
      body @
-     [A.OPER{assem="",dst=[],
-     src =[zero,ra,SP]@calleesaves,
+     [A.OPER{assem="", dst=[],
+     src =[zero, ra, SP] @c alleesaves,
      jump=SOME[]}]
+
+
   fun procEntryExit3(frame, body) =
     {prolog = "PROCEDURE " ^ Symbol.name (name frame) ^ "\n",
           body = body,
           epilog = "END " ^ Symbol.name (name frame) ^ "\n"}
+          
   val allRegStrList = callersavesstr@calleesavesstr@specialregsstr@argregsstr
   val allRegList = callersaves@calleesaves@specialregs@argregs
   val tempMap = Array.foldri 
