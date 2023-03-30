@@ -6,6 +6,7 @@ sig
   type frag 
   val outermost : level
   val newLevel : {parent: level, name: Temp.label, formals: bool list} -> level
+  val topLevel : unit -> level
   val formals: level -> access list
   val allocLocal: level -> bool -> access
 
@@ -65,6 +66,8 @@ structure Translate : TRANSLATE = struct
 
   fun newLevel {parent, name, formals} = LEVEL((parent, MipsFrame.newFrame
     {name=name, formals=(true::formals)}), ref ())
+
+  fun topLevel () = LEVEL((outermost, MipsFrame.newFrame{name=(Temp.namedlabel "tigmain"), formals=[]}), ref ())
 
 
   fun formals (TOP) = []

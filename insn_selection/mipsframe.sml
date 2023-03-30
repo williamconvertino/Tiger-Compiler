@@ -109,6 +109,7 @@ structure MipsFrame : FRAME = struct
           |   setupFormals ([], _, _)                               = []
 
           val formals = setupFormals (formals, 0, 0)
+          val _ = print ((Int.toString (List.length formals)) ^ "\n")
       in 
         (name, formals, ref 0, [])
       end
@@ -157,6 +158,7 @@ structure MipsFrame : FRAME = struct
                 (T.MOVE(stackAddr, T.TEMP(reg))::stores, T.MOVE(T.TEMP(reg), stackAddr)::loads)
                 end
           val (loads, stores) = moveCalleeSaved(calleeSavedRegs)
+          val _ = print ((Int.toString (List.length formals)) ^ "\n")
       in
         rollupSeq ([
           rollupSeq (moveInRegForms (formals, 0)),
