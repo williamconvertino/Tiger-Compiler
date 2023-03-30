@@ -67,7 +67,37 @@ structure MipsFrame : FRAME = struct
     structure T = Tree
     structure A = Assem
     
-     type register = string
+
+    val zero = 0
+    val RV = 2
+    val v1 = 3
+    val a0 = 4
+    val a1 = 5
+    val a2 = 6
+    val a3 = 7
+    val t0 = 8
+    val t1 = 9
+    val t2 = 10
+    val t3 = 11
+    val t4 = 12
+    val t5 = 13
+    val t6 = 14
+    val t7 = 15
+    val s0 = 16
+    val s1 = 17
+    val s2 = 18
+    val s3 = 19
+    val s4 = 20
+    val s5 = 21
+    val s6 = 22
+    val s7 = 23
+    val t8 = 24
+    val t9 = 25
+    val SP = 29
+    val FP = 30
+    val ra = 31
+
+    type register = string
     type frame = Temp.label * access list * int ref * Tree.exp list
      datatype frag = PROC of {body: Tree.stm, frame: frame}
                                   | STRING of Temp.label * string
@@ -94,9 +124,7 @@ structure MipsFrame : FRAME = struct
     |   allocLocal _ false                = InReg (Temp.newtemp())
 
     fun allocR0 () = InReg(0)
-    val RV = 2
-    val SP = 29
-    val FP = 30
+    
     val wordSize = 4
     val calleeSavedRegs = [16, 17, 18, 19, 20, 21, 22, 23, 29]
 
@@ -136,42 +164,19 @@ structure MipsFrame : FRAME = struct
         ])
       end
    
-  val ra = Temp.newtemp()
-  val zero = Temp.newtemp()
-  val a0 = Temp.newtemp()
-  val a1 = Temp.newtemp()
-  val a2 = Temp.newtemp()
-  val a3 = Temp.newtemp()
-  val s0 = Temp.newtemp()
-  val s1 = Temp.newtemp()
-  val s2 = Temp.newtemp()
-  val s3 = Temp.newtemp()
-  val s4 = Temp.newtemp()
-  val s5 = Temp.newtemp()
-  val s6 = Temp.newtemp()
-  val s7 = Temp.newtemp()
-  val t0 = Temp.newtemp()
-  val t1 = Temp.newtemp()
-  val t2 = Temp.newtemp()
-  val t3 = Temp.newtemp()
-  val t4 = Temp.newtemp()
-  val t5 = Temp.newtemp()
-  val t6 = Temp.newtemp()
-  val t7 = Temp.newtemp()
-  val t8 = Temp.newtemp()
-  val t9 = Temp.newtemp()
 
-  val callersaves = [t0,t1,t2,t3,t4,t5,t6,t7,t8,t9]
-  val callersavesstr = ["t0","t1","t2","t3","t4","t5","t6","t7","t8","t9"]
+  val callersaves = [t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,RV, v1, ra]
+  val callersavesstr = ["t0","t1","t2","t3","t4","t5","t6","t7","t8","t9", "v0", "v1", "ra"]
   val calleesaves = [s0,s1,s2,s3,s4,s5,s6,s7]
   val calleesavesstr = ["s0","s1","s2","s3","s4","s5","s6","s7"]
-  val specialregs = [zero,ra,SP,RV]
-  val specialregsstr = ["zero","ra","SP","RV"]
-  val argregs = [a0,a1,a2,a3]
+  val specialregs = [zero, ra, SP, RV]
+  val specialregsstr = ["zero", "ra", "SP", "RV"]
+  val argregs = [a0, a1, a2, a3]
   val argregsstr = ["a0","a1","a2","a3"]
   
-  fun string (label, str) = Symbol.name (label) ^ str
-   fun procEntryExit2(frame, body) =
+  fun string (label, str) = Symbol.name (label) ^ ": .asciiz " ^ str
+
+  fun procEntryExit2(frame, body) =
      body @
      [A.OPER{assem="",dst=[],
      src =[zero,ra,SP]@calleesaves,

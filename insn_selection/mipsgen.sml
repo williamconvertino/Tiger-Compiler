@@ -203,17 +203,23 @@ structure MipsGen : CODEGEN =
                     result(fn r => emit(A.OPER 
                         {assem="xor 'd0, 's0, 's1\n", 
                         src=[munchExp e1, munchExp e2], dst=[r], jump=NONE}))
+                | munchExp(T.BINOP(testOp, e1, e2)) = 0
                 | munchExp(T.ESEQ (e1, e2)) = (munchStm e1; munchExp e2)
                 | munchExp(T.NAME t) = 
                     result(fn r => emit(A.OPER 
                         {assem="la 'd0, " ^ (Symbol.name t) ^ "\n", 
                         src=[], dst=[r], jump=NONE}))
-                | munchExp(T.CALL (T.NAME(t), args)) = 
-                    result(fn r => emit(A.OPER 
-                        {assem="jal " ^ Symbol.name t ^"\n", 
-                        src=munchArgs(0,args), dst=[MipsFrame.ra], jump=NONE}))
+                | munchExp(T.CALL(e, args)) =
+                    (emit(A.OPER{assem="jal 's0\n",
+                                src=munchExp(e) :: munchArgs(0, args),
+                                dst=MipsFrame.callersaves, 
+                                jump=NONE}); MipsFrame.RV)
                 | munchExp(T.TEMP t) = t
                 
+
+
+
+
                 and munchStm(T.SEQ(a, b)) = (munchStm a; munchStm b)
                 | munchStm(T.MOVE(T.MEM(T.BINOP(T.PLUS, e1, T.CONST i)), e2)) =
                     let val check = checkImmed(i)
@@ -318,10 +324,6 @@ structure MipsGen : CODEGEN =
                                 src=[munchExp e1],
                                 dst=[], jump=SOME(labs)})
                 | munchStm(T.EXP(T.CONST(0))) = ()
-                | munchStm(T.EXP(T.CALL(e, args))) =
-                    emit(A.OPER{assem="CALL 's0\n",
-                                src=munchExp(e)::munchArgs(0,args),
-                                dst=MipsFrame.calleesaves, jump=NONE})
                 | munchStm(T.EXP e1) = (munchExp e1; ())
                 | munchStm(T.LABEL lab) =
                     emit(A.LABEL{assem=MipsFrame.string(lab, ":\n"), lab=lab})
