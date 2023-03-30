@@ -141,7 +141,9 @@ structure MipsFrame : FRAME = struct
       let val (label, formals, numLocals, _) = frame
           fun moveInRegForms (formals, 4) = []
           |   moveInRegForms (InReg(temp)::formals, regCount) = T.MOVE(T.TEMP(temp), T.TEMP(4 + regCount)) :: moveInRegForms(formals, regCount + 1)
-          |   moveInRegForms (InFrame(_)::formals, regCount) = moveInRegForms(formals, regCount)
+          |   moveInRegForms (InFrame(_)::formals, regCount) = (
+                T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP(FP), T.CONST(regCount * wordSize))), T.TEMP(4 + regCount)) :: moveInRegForms(formals, regCount + 1)
+          )
           |   moveInRegForms ([], regCount) = []
           
           fun moveCalleeSaved ([]) = (
