@@ -174,7 +174,7 @@ structure MipsFrame : FRAME = struct
   val argregs = [a0, a1, a2, a3]
   val argregsstr = ["a0","a1","a2","a3"]
   
-  fun string (label, str) = Symbol.name (label) ^ ": .asciiz " ^ str
+  fun string (label, str) = Symbol.name (label) ^ ": .asciiz \"" ^ str ^ "\"\n"
 
   fun procEntryExit2(frame, body) =
      body @

@@ -49,12 +49,13 @@ structure MipsGen : CODEGEN =
                     end
                     
 
-                fun munchArgs (i,args) = 
-                let val arg = List.nth(Frame.argregs, i) 
-                    fun temp_move ()= munchStm(T.MOVE(T.TEMP(arg),List.nth(args,i) ))
-                in
-                    temp_move(); arg::munchArgs (i+1,args)
-                end
+                fun munchArgs (i, args) = 
+                    let val arg = List.nth(Frame.argregs, i) 
+                        fun temp_move ()= munchStm(T.MOVE(T.TEMP(arg), List.nth(args,i)))
+                    in
+                        (* temp_move(); arg::munchArgs (i+1,args) *)
+                        []
+                    end
 
                 and munchExp(T.MEM(T.BINOP(T.PLUS, e1, T.CONST i))) = 
                     let val check = checkImmed(i)
@@ -326,7 +327,7 @@ structure MipsGen : CODEGEN =
                 | munchStm(T.EXP(T.CONST(0))) = ()
                 | munchStm(T.EXP e1) = (munchExp e1; ())
                 | munchStm(T.LABEL lab) =
-                    emit(A.LABEL{assem=MipsFrame.string(lab, ":\n"), lab=lab})
+                    emit(A.LABEL{assem=((Symbol.name lab) ^ ":\n"), lab=lab})
             in
                 munchStm stm; rev(!ilist)
             end
