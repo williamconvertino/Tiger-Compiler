@@ -49,13 +49,35 @@ structure MipsGen : CODEGEN =
                     end
                     
 
-                fun munchArgs (i, args) = 
+                (* fun munchArgs (i, args) = 
                     let val arg = List.nth(Frame.argregs, i) 
                         fun temp_move ()= munchStm(T.MOVE(T.TEMP(arg), List.nth(args,i)))
                     in
                         (* temp_move(); arg::munchArgs (i+1,args) *)
                         []
+                    end *)
+
+                fun munchArgs (args) =
+                    let fun muncher (i, arg::args) = 
+                        let val temp = munchExp(arg)
+                        in
+                            (if (i < 4) 
+                            then (
+                                munchStm(T.MOVE(T.TEMP((List.nth (MipsFrame.argregs, i))), T.TEMP(temp)))
+                            )
+                            else (
+                                munchStm(T.MOVE(T.MEM(T.BINOP(T.MINUS, T.TEMP(MipsFrame.SP), T.CONST((List.length args - i) * MipsFrame.wordSize))), T.TEMP(temp)))
+                            ));
+                            temp :: muncher(i+1, args)
+                        end
+                        |   muncher (i, []) = []
+
+                    in
+                        munchStm(T.MOVE(T.TEMP(MipsFrame.SP), T.BINOP(T.MINUS, T.TEMP(MipsFrame.SP), T.CONST(List.length args * MipsFrame.wordSize))));
+                        muncher (0, args)
                     end
+
+
 
                 and munchExp(T.MEM(T.BINOP(T.PLUS, e1, T.CONST i))) = 
                     let val check = checkImmed(i)
@@ -210,9 +232,14 @@ structure MipsGen : CODEGEN =
                     result(fn r => emit(A.OPER 
                         {assem="la 'd0, " ^ (Symbol.name t) ^ "\n", 
                         src=[], dst=[r], jump=NONE}))
+                | munchExp(T.CALL(T.NAME(l), args)) =
+                    (emit(A.OPER{assem="jal " ^ (Symbol.name l) ^ "\n",
+                                src=munchArgs(args),
+                                dst=MipsFrame.callersaves, 
+                                jump=SOME([l])}); MipsFrame.RV)
                 | munchExp(T.CALL(e, args)) =
                     (emit(A.OPER{assem="jal 's0\n",
-                                src=munchExp(e) :: munchArgs(0, args),
+                                src=munchExp(e) :: munchArgs(args),
                                 dst=MipsFrame.callersaves, 
                                 jump=NONE}); MipsFrame.RV)
                 | munchExp(T.TEMP t) = t
