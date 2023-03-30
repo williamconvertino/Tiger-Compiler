@@ -49,14 +49,6 @@ structure MipsGen : CODEGEN =
                     end
                     
 
-                (* fun munchArgs (i, args) = 
-                    let val arg = List.nth(Frame.argregs, i) 
-                        fun temp_move ()= munchStm(T.MOVE(T.TEMP(arg), List.nth(args,i)))
-                    in
-                        (* temp_move(); arg::munchArgs (i+1,args) *)
-                        []
-                    end *)
-
                 fun munchArgs (args) =
                     let fun muncher (i, arg::args) = 
                         let val temp = munchExp(arg)
