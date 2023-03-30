@@ -260,10 +260,10 @@ structure Translate : TRANSLATE = struct
         case List.find 
             (fn(remfrag) => (case remfrag of 
                   Frame.PROC(_) => false
-                | Frame.STRING(lab,lit') => String.compare(lit, lit') = EQUAL))
+                | Frame.STRING(lab, lit') => String.compare(lit, lit') = EQUAL))
             (!rememberedFrags)
             of
-            SOME(Frame.STRING(lab,lit')) => lab
+            SOME(Frame.STRING(lab, lit')) => (print("found same label\n") ; lab)
             | SOME (_) => Temp.newlabel()
             | NONE => Temp.newlabel()
         in

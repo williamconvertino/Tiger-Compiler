@@ -181,7 +181,7 @@ structure MipsFrame : FRAME = struct
   fun procEntryExit2(frame, body) =
      body @
      [A.OPER{assem="", dst=[],
-     src =[zero, ra, SP] @c alleesaves,
+     src =[zero, ra, SP] @ calleesaves,
      jump=SOME[]}]
 
 
