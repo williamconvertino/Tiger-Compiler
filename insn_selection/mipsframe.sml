@@ -54,7 +54,7 @@ sig
   val wordSize: int
   val exp : access -> Tree.exp -> Tree.exp
   val externalCall: string * Tree.exp list -> Tree.exp
-  val procEntryExit1 :  Tree.stm * frame -> Tree.stm
+  val procEntryExit1 :  Tree.exp * frame -> Tree.stm
   val procEntryExit2 : frame * Assem.instr list -> Assem.instr list
   val procEntryExit3 : frame * Assem.instr -> {prolog:string, body:Assem.instr, epilog: string}
   val printAccess: access -> unit
@@ -147,8 +147,8 @@ structure MipsFrame : FRAME = struct
           |   moveInRegForms ([], regCount) = []
           
           fun moveCalleeSaved ([]) = (
-                [T.MOVE(T.TEMP(SP), T.BINOP(T.PLUS, T.TEMP(SP), T.CONST(List.length(calleeSavedRegs) * wordSize)))],
-                [T.MOVE(T.TEMP(SP), T.BINOP(T.MINUS, T.TEMP(SP), T.CONST(List.length(calleeSavedRegs) * wordSize)))] 
+                [T.MOVE(T.TEMP(SP), T.BINOP(T.MINUS, T.TEMP(SP), T.CONST(List.length(calleeSavedRegs) * wordSize)))],
+                [T.MOVE(T.TEMP(SP), T.BINOP(T.PLUS, T.TEMP(SP), T.CONST(List.length(calleeSavedRegs) * wordSize)))] 
               )
           |   moveCalleeSaved (reg::regs) = 
                 let val (stores, loads) = moveCalleeSaved(regs)
@@ -161,7 +161,7 @@ structure MipsFrame : FRAME = struct
         rollupSeq ([
           rollupSeq (moveInRegForms (formals, 0)),
           rollupSeq (loads),
-          body,
+          T.MOVE(T.TEMP(RV), body),
           rollupSeq (List.rev stores)
         ])
       end

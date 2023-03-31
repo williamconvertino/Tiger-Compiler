@@ -244,7 +244,7 @@ structure Translate : TRANSLATE = struct
 
   
     fun procEntryExit {level=level, body=exp} =
-      let fun applyViewShift (frame) = MipsFrame.procEntryExit1(unNx(exp), frame)
+      let fun applyViewShift (frame) = MipsFrame.procEntryExit1(unEx(exp), frame)
       in
         case level of
           LEVEL((parent, frame), _) => rememberedFrags := Frame.PROC({body=(applyViewShift(frame)), frame=frame})::(!rememberedFrags)
