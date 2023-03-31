@@ -1,5 +1,5 @@
 structure Main : sig
-    val compile : string -> Translate.frag list 
+    val compile : string -> unit
     val escape  : string -> unit
     val debugCompile : string -> unit
 end =
@@ -38,13 +38,14 @@ struct
         let val absyn = Parse.parse filename
             val frags = (FindEscape.findEscape absyn; Semant.transProg absyn)
         in             
-            List.app (emitproc TextIO.stdOut) frags;
-            frags
-            (* withOpenFile (filename ^ ".s") (fn out => (List.app (emitproc out) frags))   *)
+            (* List.app (emitproc TextIO.stdOut) frags;
+            frags *)
+            withOpenFile (filename ^ ".s") (fn out => (List.app (emitproc out) frags))  
         end
 
     fun debugCompile filename = 
-        let val frags = compile (filename)
+        let val absyn = Parse.parse filename
+            val frags = (FindEscape.findEscape absyn; Semant.transProg absyn)
             fun printFrags ([]) = ()
             |   printFrags (MipsFrame.PROC({body, frame})::frags) = 
                     let val (label, _, _, _) = frame
@@ -59,6 +60,7 @@ struct
                     printFrags(frags)
                 )
         in
+            List.app (emitproc TextIO.stdOut) frags;
             printFrags (List.rev (frags))
         end
 
