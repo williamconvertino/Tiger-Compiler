@@ -285,11 +285,14 @@ structure MipsGen : CODEGEN =
                                 src=[],
                                 dst=[t], jump=NONE})
                     end
-                    
                 | munchStm(T.MOVE(T.TEMP t, e2) ) =
-                    emit(A.MOVE{assem="move `d0, `s0\n",
-                                src=(munchExp e2),
+                    let val resReg = munchExp e2
+                    in
+                        if (t = resReg) then () else emit(A.MOVE{assem="move `d0, `s0\n",
+                                src=(resReg),
                                 dst=t})
+                    end
+                    
                 | munchStm(T.MOVE(_)) = print ("error: must move into MEM or TEMP\n")
                 
                 (* Branches *)

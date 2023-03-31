@@ -56,7 +56,7 @@ sig
   val externalCall: string * Tree.exp list -> Tree.exp
   val procEntryExit1 :  Tree.exp * frame -> Tree.stm
   val procEntryExit2 : frame * Assem.instr list -> Assem.instr list
-  val procEntryExit3 : frame * Assem.instr -> {prolog:string, body:Assem.instr, epilog: string}
+  val procEntryExit3 : frame * Assem.instr list -> {prolog:string, body:Assem.instr list, epilog: string}
   val printAccess: access -> unit
 
 end
@@ -160,9 +160,9 @@ structure MipsFrame : FRAME = struct
       in
         rollupSeq ([
           rollupSeq (moveInRegForms (formals, 0)),
-          rollupSeq (loads),
-          T.MOVE(T.TEMP(RV), body),
-          rollupSeq (List.rev stores)
+          (* rollupSeq (loads), *)
+          T.MOVE(T.TEMP(RV), body)
+          (* rollupSeq (List.rev stores) *)
         ])
       end
    

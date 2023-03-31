@@ -160,7 +160,7 @@ struct
                         
                         val params' = List.map transparam params
                         
-                        val funlabel = Temp.newlabel()
+                        val funlabel = Temp.namedlabel (Symbol.name name)
                         val level' = Translate.newLevel {parent=level, name=funlabel, formals=(List.map #escape params')}
                         val formalAccesses = T.formals level'
 
