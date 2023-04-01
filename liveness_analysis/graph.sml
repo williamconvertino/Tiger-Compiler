@@ -12,11 +12,13 @@ struct
   fun isBogus(NODE{succ= ~1::_,...}) = true
     | isBogus _ = false
 
-  structure A = DynamicArrayFn(struct open Array
-				    type elem = noderep
-				    type vector = noderep vector
-				    type array = noderep array
-                             end)
+  structure A = DynamicArrayFn(
+            struct 
+              open Array
+              type elem = noderep
+              type vector = noderep vector
+              type array = noderep array
+            end)
 
   type graph = A.array
 
