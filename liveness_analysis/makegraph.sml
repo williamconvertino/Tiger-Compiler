@@ -4,16 +4,17 @@ sig
 end =
 struct
     structure Graph = Flow.Graph
+    structure A = Assem
     
     fun instrs2graph assemList = 
         let
-            fun helper (flowGraph, nodeList, []) =
-                (flowGraph, nodeList)
-            |   helper (flowGraph, nodeList, (assemItem::rst)) =
-                    helper(flowGraph, nodeList, rst)
+
+            fun helper ((A.OPER {assem, dst, src, jump}),   (flowGraph, nodeList)) = (flowGraph, nodeList)
+            |   helper ((A.LABEL {assem, lab}),             (flowGraph, nodeList)) = (flowGraph, nodeList)
+            |   helper ((A.MOVE {assem, dst, src}),         (flowGraph, nodeList)) = (flowGraph, nodeList)
                 
         in
-            helper(Flow.FGRAPH { control = Graph.newGraph(), def = Graph.Table.empty, use = Graph.Table.empty, ismove = Graph.Table.empty}, [], assemList)
+            foldl helper (Flow.FGRAPH { control = Graph.newGraph(), def = Graph.Table.empty, use = Graph.Table.empty, ismove = Graph.Table.empty}, []) assemList
         end
         
 
