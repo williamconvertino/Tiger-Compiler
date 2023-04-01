@@ -6,11 +6,20 @@ struct
     structure Graph = Flow.Graph
     
     fun instrs2graph assemList = 
-        (Flow.FGRAPH {
-            control = Graph.newGraph(), 
-            def = Graph.Table.empty,
-            use = Graph.Table.empty,
-            ismove = Graph.Table.empty
-        }, [])
+        let
+            fun helper (currentControlGraph, currentNodeList, []) =
+                (Flow.FGRAPH {  
+                    control = currentControlGraph, 
+                    def = Graph.Table.empty,
+                    use = Graph.Table.empty,
+                    ismove = Graph.Table.empty
+                }, currentNodeList)
+            |   helper (currentControlGraph, currentNodeList, (assemItem::rst)) =
+                    helper(currentControlGraph, currentNodeList, rst)
+                
+        in
+            helper(Graph.newGraph(), [], assemList)
+        end
+        
 
 end
