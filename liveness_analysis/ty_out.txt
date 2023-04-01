@@ -1,0 +1,418 @@
+---
+test:  ../testcases/_absyntFixes1.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/_absyntFixes2.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/_absyntFixes3.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/_absyntFixes4.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/_absyntFixes5.tig
+../testcases/_absyntFixes5.tig:1.5:syntax error: inserting  DOT
+../testcases/_absyntFixes5.tig:1.1:undefined variable val
+../testcases/_absyntFixes5.tig:1.1:must reference record type got impossibility
+../testcases/_absyntFixes5.tig:1.1:type string does not match required type impossibility
+val it = () : unit
+
+---
+---
+test:  ../testcases/_absyntFixes6.tig
+../testcases/_absyntFixes6.tig:1.5:syntax error: inserting  DOT
+../testcases/_absyntFixes6.tig:1.1:undefined variable val
+../testcases/_absyntFixes6.tig:1.1:must reference record type got impossibility
+../testcases/_absyntFixes6.tig:1.1:type string does not match required type impossibility
+val it = () : unit
+
+---
+---
+test:  ../testcases/_parseTest1.tig
+../testcases/_parseTest1.tig:3.5:type unit does not match required type int
+val it = () : unit
+
+---
+---
+test:  ../testcases/_parseTest2.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/_stringtest1.tig
+../testcases/_stringtest1.tig:1.1:syntax error: deleting  LET ID
+../testcases/_stringtest1.tig:3.5:syntax error: replacing  ID with  AND
+../testcases/_stringtest1.tig:4.5:syntax error: replacing  ID with  AND
+../testcases/_stringtest1.tig:4.21:syntax error: replacing  STRING with  LET
+../testcases/_stringtest1.tig:2.9:undefined variable myString1
+../testcases/_stringtest1.tig:2.9:types impossibility and string cannot be compared using this comparison operator
+../testcases/_stringtest1.tig:3.9:undefined variable myString2
+../testcases/_stringtest1.tig:3.9:types impossibility and string cannot be compared using this comparison operator
+../testcases/_stringtest1.tig:4.9:undefined variable myString3
+../testcases/_stringtest1.tig:6.5:undefined variable myString1
+../testcases/_stringtest1.tig:4.9:types impossibility and impossibility cannot be compared using this comparison operator
+val it = () : unit
+
+---
+---
+test:  ../testcases/_stringtest2.tig
+sml compiler error
+---
+---
+test:  ../testcases/_stringtest3.tig
+sml compiler error
+---
+---
+test:  ../testcases/_stringtest4.tig
+sml compiler error
+---
+---
+test:  ../testcases/_stringtest5.tig
+sml compiler error
+---
+---
+test:  ../testcases/_stringtest6.tig
+sml compiler error
+---
+---
+test:  ../testcases/_stringtest7.tig
+sml compiler error
+---
+---
+test:  ../testcases/merge.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/queens.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/sara-test.tig
+../testcases/sara-test.tig:4.1:variable cannot have type of nil: b
+val it = () : unit
+
+---
+---
+test:  ../testcases/sara-test1.tig
+sml compiler error
+---
+---
+test:  ../testcases/sara-test3.tig
+../testcases/sara-test3.tig:4.4:function f not declared
+val it = () : unit
+
+---
+---
+test:  ../testcases/test.tig
+../testcases/test.tig:2.5:variable cannot have type of nil: var1
+../testcases/test.tig:6.5:duplicate mutually recursive type name not allowed ty1
+../testcases/test.tig:10.5:duplicate mutually recursive function name not allowed a
+error: rollupSeq called with empty list.
+../testcases/test.tig:49.5:break not contained within loop
+../testcases/test.tig:57.44:break not contained within loop
+val it = () : unit
+
+---
+---
+test:  ../testcases/test1.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test10.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test11.tig
+../testcases/test11.tig:2.1:type string does not match required type int
+val it = () : unit
+
+---
+---
+test:  ../testcases/test12.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test13.tig
+../testcases/test13.tig:3.1:type string does not match required type int
+val it = () : unit
+
+---
+---
+test:  ../testcases/test14.tig
+../testcases/test14.tig:12.5:type array of int does not match required type {id:int, name:string}
+val it = () : unit
+
+---
+---
+test:  ../testcases/test15.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test16.tig
+../testcases/test16.tig:4.1:cycle detected in type dec d
+../testcases/test16.tig:5.1:cycle detected in type dec c
+../testcases/test16.tig:6.1:cycle detected in type dec a
+../testcases/test16.tig:7.1:cycle detected in type dec c
+val it = () : unit
+
+---
+---
+test:  ../testcases/test17.tig
+../testcases/test17.tig:4.23:undefined type treelist
+../testcases/test17.tig:4.23:undefined type treelist
+val it = () : unit
+
+---
+---
+test:  ../testcases/test18.tig
+../testcases/test18.tig:5.4:function do_nothing2 not declared
+val it = () : unit
+
+---
+---
+test:  ../testcases/test19.tig
+../testcases/test19.tig:8.16:undefined variable a
+val it = () : unit
+
+---
+---
+test:  ../testcases/test2.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test20.tig
+../testcases/test20.tig:3.18:undefined variable i
+val it = () : unit
+
+---
+---
+test:  ../testcases/test21.tig
+../testcases/test21.tig:8.9:type unit does not match required type int
+val it = () : unit
+
+---
+---
+test:  ../testcases/test22.tig
+../testcases/test22.tig:7.2:field nam not found in record type {id:int, name:string}
+../testcases/test22.tig:7.2:type string does not match required type impossibility
+val it = () : unit
+
+---
+---
+test:  ../testcases/test23.tig
+../testcases/test23.tig:7.2:type int does not match required type string
+../testcases/test23.tig:8.2:type string does not match required type int
+val it = () : unit
+
+---
+---
+test:  ../testcases/test24.tig
+../testcases/test24.tig:5.2:cannot index non-array type
+val it = () : unit
+
+---
+---
+test:  ../testcases/test25.tig
+../testcases/test25.tig:5.2:must reference record type got int
+val it = () : unit
+
+---
+---
+test:  ../testcases/test26.tig
+../testcases/test26.tig:3.1:type string does not match required type int
+val it = () : unit
+
+---
+---
+test:  ../testcases/test27.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test28.tig
+../testcases/test28.tig:7.2:record types do not match
+val it = () : unit
+
+---
+---
+test:  ../testcases/test29.tig
+../testcases/test29.tig:7.2:array types do not match
+val it = () : unit
+
+---
+---
+test:  ../testcases/test3.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test30.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test31.tig
+../testcases/test31.tig:3.2:type string does not match required type int
+val it = () : unit
+
+---
+---
+test:  ../testcases/test32.tig
+../testcases/test32.tig:6.11:type string does not match required type int
+val it = () : unit
+
+---
+---
+test:  ../testcases/test33.tig
+../testcases/test33.tig:3.10:undefined type rectype
+../testcases/test33.tig:3.10:declared type not record type: rectype
+val it = () : unit
+
+---
+---
+test:  ../testcases/test34.tig
+../testcases/test34.tig:5.2:type string does not match required type int
+val it = () : unit
+
+---
+---
+test:  ../testcases/test35.tig
+../testcases/test35.tig:5.2:type string does not match required type int
+../testcases/test35.tig:5.2:missing param: string
+val it = () : unit
+
+---
+---
+test:  ../testcases/test36.tig
+../testcases/test36.tig:5.2:too many args provided: 1
+val it = () : unit
+
+---
+---
+test:  ../testcases/test37.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test38.tig
+../testcases/test38.tig:6.2:duplicate mutually recursive type name not allowed a
+val it = () : unit
+
+---
+---
+test:  ../testcases/test39.tig
+../testcases/test39.tig:6.2:duplicate mutually recursive function name not allowed g
+val it = () : unit
+
+---
+---
+test:  ../testcases/test4.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test40.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test41.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test42.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test43.tig
+../testcases/test43.tig:6.2:type unit does not match required type int
+val it = () : unit
+
+---
+---
+test:  ../testcases/test44.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test45.tig
+../testcases/test45.tig:5.2:variable cannot have type of nil: a
+val it = () : unit
+
+---
+---
+test:  ../testcases/test46.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test47.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test48.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test49.tig
+../testcases/test49.tig:5.10:missing required field id from type {id:int, name:string}
+../testcases/test49.tig:5.10:missing required field name from type {id:int, name:string}
+val it = () : unit
+
+---
+---
+test:  ../testcases/test5.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test6.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test7.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test8.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test9.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/test_escape.tig
+val it = () : unit
+
+---
+---
+test:  ../testcases/testempty.tig
+val it = () : unit
+
+---
+These tests raised an sml error:  ['../testcases/_stringtest2.tig', '../testcases/_stringtest3.tig', '../testcases/_stringtest4.tig', '../testcases/_stringtest5.tig', '../testcases/_stringtest6.tig', '../testcases/_stringtest7.tig', '../testcases/sara-test1.tig']
