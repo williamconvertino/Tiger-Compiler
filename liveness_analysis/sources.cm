@@ -29,3 +29,4 @@ flowgraph.sml
 graph.sig
 graph.sml
 mipsgen.sml
+makegraph.sml
