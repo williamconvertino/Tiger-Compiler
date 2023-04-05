@@ -1,0 +1,7 @@
+let
+    var test2 := if "a" > "b" then 1 else 0
+    var test3 := if "f" < "r" then 1 else 0
+    var test4 := if "c" == "c" then 1 else 0
+in
+    
+end
