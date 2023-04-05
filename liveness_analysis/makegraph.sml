@@ -10,8 +10,9 @@ struct
     fun instrs2graph assemList = 
         let
             
-            val LT : Graph.node Symbol.table ref = ref Symbol.empty
-    
+            val LabelMap : Graph.node Symbol.table ref = ref Symbol.empty
+            val JumpNodesToProcess : Graph.node list ref = ref []
+
             fun addEdge (graph, node, targetLabel) = () 
 
             fun addEdges (graph, node, NONE) = []
