@@ -13,9 +13,8 @@ struct
     
     fun instrs2graph assemList =
         let
-            fun generateEdges (labelMap, jumpMap) = () 
+            fun generateEdges (labelMap, jumpMap) = (T.listItems jumpMap)
 
-            (* processList (graph, nodeList, labelMap, jumpMap, rst) *)
             fun processList (graph, nodeList, labelMap, jumpMap, []) = (generateEdges (labelMap, jumpMap); (graph, nodeList)) 
             |   processList ((Flow.FGRAPH {control, def, use, ismove}), nodeList, labelMap, jumpMap, (assem::rst)) = 
                 let 
@@ -31,7 +30,7 @@ struct
                         |   _ => labelMap
                     val newJumpMap =
                         case assem of
-                            (A.OPER {assem, dst, src, jump}) => T.enter (jumpMap, newNode, jump)
+                            (A.OPER {assem, dst, src, jump=SOME jump}) => T.enter (jumpMap, newNode, jump)
                         |   _ => jumpMap
                 in
                     processList (newGraph, newNode :: nodeList, newLabelMap, newJumpMap, rst)
