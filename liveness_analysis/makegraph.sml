@@ -11,7 +11,7 @@ struct
         let
             fun generateEdges (graph, labelMap, jumpList) = 
                 let
-                    fun addEdge (srcNode, SOME dstNode) = Graph.mk_edge({from=srcNode,to=dstNode})
+                    fun addEdge (srcNode, SOME dstNode) = (print("\nAdding edge between " ^ (Graph.nodename srcNode) ^ " and " ^ (Graph.nodename dstNode)); Graph.mk_edge({from=srcNode,to=dstNode}))
                     |   addEdge (srcNode, NONE) = ErrorMsg.impossible "Error: Label specified by Jump command was not found."
 
                     fun findAndConnectNodes (node, label) = addEdge (node, (Symbol.look(labelMap, label)))
@@ -35,13 +35,14 @@ struct
                         |   _ => labelMap
                     val newJumpList =
                         case assem of
-                            (A.OPER {assem, dst, src, jump=SOME jump}) => (newNode,jump) :: jumpList
+                            (A.OPER {assem, dst, src, jump = SOME j}) => (newNode,j) :: jumpList
                         |   _ => jumpList
                     val debugPrint = 
                         case assem of
-                            (A.OPER {assem, dst, src, jump}) => print(Graph.nodename newNode ^ " " ^ assem ^ "\n")
-                        |   (A.MOVE {assem, dst, src}) =>       print(Graph.nodename newNode ^ " " ^ assem ^ "\n")
-                        |   (A.LABEL {assem, lab}) =>           print(Graph.nodename newNode ^ " " ^ assem ^ " " ^ Symbol.name lab ^ "\n")
+                            (A.OPER {assem, dst, src, jump = NONE}) => print(Graph.nodename newNode ^ " <OPER> " ^ assem ^ "\n")
+                        |   (A.OPER {assem, dst, src, jump = SOME j}) => (print(Graph.nodename newNode ^ " <OPER> " ^ assem); map (fn j => print(" [J-" ^ Symbol.name j ^ "]")) j; print("\n"))
+                        |   (A.MOVE {assem, dst, src}) =>       print(Graph.nodename newNode ^ " <MOVE> " ^ assem ^ "\n")
+                        |   (A.LABEL {assem, lab}) =>           print(Graph.nodename newNode ^ " <LABEL> " ^ assem ^ " " ^ Symbol.name lab ^ "\n")
                 in
                     processList (newGraph, newNode :: nodeList, newLabelMap, newJumpList, rst)
                 end
