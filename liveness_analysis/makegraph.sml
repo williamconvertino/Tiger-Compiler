@@ -11,10 +11,10 @@ struct
         let
             fun generateEdges (graph, labelMap, jumpList) = 
                 let
-                    fun addEdge (srcNode, SOME dstNode) = (print("\nAdding edge between " ^ (Graph.nodename srcNode) ^ " and " ^ (Graph.nodename dstNode)); Graph.mk_edge({from=srcNode,to=dstNode}))
-                    |   addEdge (srcNode, NONE) = ErrorMsg.impossible "Error: Label specified by Jump command was not found."
+                    fun addEdge (srcNode, label, SOME dstNode) = (print("\nAdding edge between " ^ (Graph.nodename srcNode) ^ " and " ^ (Graph.nodename dstNode)); Graph.mk_edge({from=srcNode,to=dstNode}))
+                    |   addEdge (srcNode, label, NONE) = ErrorMsg.impossible ("Error: Label \"" ^ Symbol.name label ^ "\" specified by jump command was not found.")
 
-                    fun findAndConnectNodes (node, label) = addEdge (node, (Symbol.look(labelMap, label)))
+                    fun findAndConnectNodes (node, label) = addEdge (node, label, (Symbol.look(labelMap, label)))
 
                 in
                     map (fn (node, labelList) => map (fn (label) => findAndConnectNodes(node,label)) labelList) jumpList
