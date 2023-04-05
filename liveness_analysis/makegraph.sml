@@ -9,7 +9,7 @@ struct
     
     fun instrs2graph assemList =
         let
-            fun generateEdges (labelMap, jumpList) = 
+            fun generateEdges (graph, labelMap, jumpList) = 
                 let
                     fun addEdge (srcNode, SOME dstNode) = Graph.mk_edge({from=srcNode,to=dstNode})
                     |   addEdge (srcNode, NONE) = ErrorMsg.impossible "Error: Label specified by Jump command was not found."
@@ -20,7 +20,7 @@ struct
                     map (fn (node, labelList) => map (fn (label) => findAndConnectNodes(node,label)) labelList) jumpList
                 end
 
-            fun processList (graph, nodeList, labelMap, jumpList, []) = (generateEdges (labelMap, jumpList); (graph, nodeList)) 
+            fun processList (graph, nodeList, labelMap, jumpList, []) = (generateEdges (graph, labelMap, jumpList); (graph, nodeList)) 
             |   processList ((Flow.FGRAPH {control, def, use, ismove}), nodeList, labelMap, jumpList, (assem::rst)) = 
                 let 
                     val newNode = Graph.newNode(control)
@@ -37,6 +37,11 @@ struct
                         case assem of
                             (A.OPER {assem, dst, src, jump=SOME jump}) => (newNode,jump) :: jumpList
                         |   _ => jumpList
+                    val debugPrint = 
+                        case assem of
+                            (A.OPER {assem, dst, src, jump}) => print(Graph.nodename newNode ^ " " ^ assem ^ "\n")
+                        |   (A.MOVE {assem, dst, src}) =>       print(Graph.nodename newNode ^ " " ^ assem ^ "\n")
+                        |   (A.LABEL {assem, lab}) =>           print(Graph.nodename newNode ^ " " ^ assem ^ " " ^ Symbol.name lab ^ "\n")
                 in
                     processList (newGraph, newNode :: nodeList, newLabelMap, newJumpList, rst)
                 end

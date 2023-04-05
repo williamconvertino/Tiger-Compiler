@@ -26,6 +26,7 @@ struct
           val proc2 = MipsFrame.procEntryExit2(frame, instrs)
           val {prolog, body=newbody, epilog} = MipsFrame.procEntryExit3(frame, proc2)
           val format0 = Assem.format(Temp.makestring)
+          val dataflowGraph = MakeGraph.instrs2graph instrs
       in 
         TextIO.output(out, prolog);
         List.app (fn i => TextIO.output(out, format0 i)) newbody; 
