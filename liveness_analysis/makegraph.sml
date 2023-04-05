@@ -6,17 +6,22 @@ struct
     structure Graph = Flow.Graph
     structure A = Assem
     structure T = Graph.Table
-
-    (* For my own reference *)
-    (* type LM = Graph.node Symbol.table
-    type NM = Assem.label list T *)
     
     fun instrs2graph assemList =
         let
-            fun generateEdges (labelMap, jumpMap) = (T.listItems jumpMap)
+            fun generateEdges (labelMap, jumpList) = 
+                let
+                    fun addEdge (srcNode, SOME dstNode) = Graph.mk_edge({from=srcNode,to=dstNode})
+                    |   addEdge (srcNode, NONE) = ErrorMsg.impossible "Error: Label specified by Jump command was not found."
 
-            fun processList (graph, nodeList, labelMap, jumpMap, []) = (generateEdges (labelMap, jumpMap); (graph, nodeList)) 
-            |   processList ((Flow.FGRAPH {control, def, use, ismove}), nodeList, labelMap, jumpMap, (assem::rst)) = 
+                    fun findAndConnectNodes (node, label) = addEdge (node, (Symbol.look(labelMap, label)))
+
+                in
+                    map (fn (node, labelList) => map (fn (label) => findAndConnectNodes(node,label)) labelList) jumpList
+                end
+
+            fun processList (graph, nodeList, labelMap, jumpList, []) = (generateEdges (labelMap, jumpList); (graph, nodeList)) 
+            |   processList ((Flow.FGRAPH {control, def, use, ismove}), nodeList, labelMap, jumpList, (assem::rst)) = 
                 let 
                     val newNode = Graph.newNode(control)
                     val newGraph = 
@@ -28,12 +33,12 @@ struct
                         case assem of
                             (A.LABEL {assem, lab}) => Symbol.enter (labelMap, lab, newNode)
                         |   _ => labelMap
-                    val newJumpMap =
+                    val newJumpList =
                         case assem of
-                            (A.OPER {assem, dst, src, jump=SOME jump}) => T.enter (jumpMap, newNode, jump)
-                        |   _ => jumpMap
+                            (A.OPER {assem, dst, src, jump=SOME jump}) => (newNode,jump) :: jumpList
+                        |   _ => jumpList
                 in
-                    processList (newGraph, newNode :: nodeList, newLabelMap, newJumpMap, rst)
+                    processList (newGraph, newNode :: nodeList, newLabelMap, newJumpList, rst)
                 end
         
         in
@@ -41,7 +46,7 @@ struct
                 (Flow.FGRAPH { control = Graph.newGraph(), def = T.empty, use = T.empty, ismove = T.empty}),
                 [],
                 Symbol.empty,
-                T.empty,
+                [],
                 assemList
                 )
         end
