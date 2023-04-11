@@ -165,7 +165,7 @@ structure MipsFrame : FRAME = struct
           (* rollupSeq (List.rev stores) *)
         ])
       end
-   
+
 
   val callersaves = [t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,RV, v1, ra]
   val callersavesstr = ["t0","t1","t2","t3","t4","t5","t6","t7","t8","t9", "v0", "v1", "ra"]
@@ -186,9 +186,9 @@ structure MipsFrame : FRAME = struct
 
 
   fun procEntryExit3(frame, body) =
-    {prolog = "PROCEDURE " ^ Symbol.name (name frame) ^ "\n",
+    {prolog = ".text\n" ^ Symbol.name (name frame) ^ ":\n",
           body = body,
-          epilog = "END " ^ Symbol.name (name frame) ^ "\n"}
+          epilog = ".end"}
           
   val allRegStrList = callersavesstr@calleesavesstr@specialregsstr@argregsstr
   val allRegList = callersaves@calleesaves@specialregs@argregs
