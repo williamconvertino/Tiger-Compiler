@@ -186,9 +186,9 @@ structure MipsFrame : FRAME = struct
 
 
   fun procEntryExit3(frame, body) =
-    {prolog = ".text\n" ^ Symbol.name (name frame) ^ ":\n",
+    {prolog = (Symbol.name (name frame) ^ ":\n"),
           body = body,
-          epilog = ".end"}
+          epilog = ""}
           
   val allRegStrList = callersavesstr@calleesavesstr@specialregsstr@argregsstr
   val allRegList = callersaves@calleesaves@specialregs@argregs

@@ -11,20 +11,13 @@ struct
         let
             fun generateEdges (graph, labelMap, jumpList) = 
                 let
-                    fun addEdge (srcNode, label, SOME dstNode) = (print("\nAdding edge between " ^ (Graph.nodename srcNode) ^ " and " ^ (Graph.nodename dstNode)); Graph.mk_edge({from=srcNode,to=dstNode}))
+                    fun addEdge (srcNode, label, SOME dstNode) = (print("Adding edge between " ^ (Graph.nodename srcNode) ^ " and " ^ (Graph.nodename dstNode) ^ "\n"); Graph.mk_edge({from=srcNode,to=dstNode}))
                     |   addEdge (srcNode, label, NONE) = ErrorMsg.impossible ("Error: Label \"" ^ Symbol.name label ^ "\" specified by jump command was not found.")
 
-                    fun findAndConnectNodes (node, label) = case (Symbol.name label) of
-                            "initArray" =>  ()
-                        |   "stringEqual" =>  ()
-                        |   "stringLtOp" =>  ()
-                        |   "stringLeOp" =>  ()
-                        |   "stringGtOp" =>  ()
-                        |   "malloc" =>  ()
-                        |   _ =>            addEdge (node, label, (Symbol.look(labelMap, label)))
+                    fun findAndConnectNodes (node, label) = addEdge (node, label, (Symbol.look(labelMap, label)))
 
                 in
-                    map (fn (node, labelList) => map (fn (label) => findAndConnectNodes(node,label)) labelList) jumpList
+                    map (fn (node, labelList) => map (fn (label) => findAndConnectNodes(node, label)) labelList) jumpList
                 end
 
             fun processList (graph, nodeList, labelMap, jumpList, []) = (generateEdges (graph, labelMap, jumpList); (graph, nodeList)) 
@@ -33,8 +26,8 @@ struct
                     val newNode = Graph.newNode(control)
                     val newGraph = 
                         case assem of
-                            (A.OPER {assem, dst, src, jump}) => (Flow.FGRAPH { control = control, def = (T.enter (def, newNode, dst)),          use = (T.enter (use, newNode, src)),        ismove = ismove})
-                        |   (A.MOVE {assem, dst, src}) =>       (Flow.FGRAPH { control = control, def = (T.enter (def, newNode, (dst::[]))),    use = (T.enter (use, newNode, (src::[]))),  ismove = (T.enter (ismove, newNode, true))})
+                            (A.OPER {assem, dst, src, jump}) => (Flow.FGRAPH { control = control, def = (T.enter (def, newNode, dst)), use = (T.enter (use, newNode, src)), ismove = ismove})
+                        |   (A.MOVE {assem, dst, src}) =>       (Flow.FGRAPH { control = control, def = (T.enter (def, newNode, (dst::[]))), use = (T.enter (use, newNode, (src::[]))), ismove = (T.enter (ismove, newNode, true))})
                         |   (A.LABEL {assem, lab}) =>           (Flow.FGRAPH { control = control, def = def, use = use, ismove = ismove})
                     val newLabelMap = 
                         case assem of
@@ -42,7 +35,7 @@ struct
                         |   _ => labelMap
                     val newJumpList =
                         case assem of
-                            (A.OPER {assem, dst, src, jump = SOME j}) => (newNode,j) :: jumpList
+                            (A.OPER {assem, dst, src, jump = SOME j}) => (newNode, j) :: jumpList
                         |   _ => jumpList
                     val debugPrint = 
                         case assem of
