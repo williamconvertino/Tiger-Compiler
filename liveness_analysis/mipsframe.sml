@@ -146,7 +146,7 @@ structure MipsFrame : FRAME = struct
           )
           |   moveInRegForms ([], regCount) = []
           
-          fun moveCalleeSaved ([]) = (
+          (* fun moveCalleeSaved ([]) = (
                 [T.MOVE(T.TEMP(SP), T.BINOP(T.MINUS, T.TEMP(SP), T.CONST(List.length(calleeSavedRegs) * wordSize)))],
                 [T.MOVE(T.TEMP(SP), T.BINOP(T.PLUS, T.TEMP(SP), T.CONST(List.length(calleeSavedRegs) * wordSize)))] 
               )
@@ -155,14 +155,24 @@ structure MipsFrame : FRAME = struct
                     val stackAddr = exp (allocLocal frame true) (T.TEMP(SP))
                 in
                 (T.MOVE(stackAddr, T.TEMP(reg))::stores, T.MOVE(T.TEMP(reg), stackAddr)::loads)
+                end *)
+
+          fun moveCalleeSaved ([], stores, loads) = (stores, loads)
+          |   moveCalleeSaved (reg::regs, stores, loads) = 
+                let val (stores', loads') = moveCalleeSaved(regs, stores, loads)
+                    val newTemp = Temp.newtemp()
+                in
+                  (T.MOVE(T.TEMP(newTemp), T.TEMP(reg)) :: stores', T.MOVE(T.TEMP(reg), T.TEMP(newTemp)) :: loads')
                 end
-          val (loads, stores) = moveCalleeSaved(calleeSavedRegs)
+
+
+          val (stores, loads) = moveCalleeSaved(calleeSavedRegs, [], [])
       in
         rollupSeq ([
           rollupSeq (moveInRegForms (formals, 0)),
-          (* rollupSeq (loads), *)
-          T.MOVE(T.TEMP(RV), body)
-          (* rollupSeq (List.rev stores) *)
+          rollupSeq (stores),
+          T.MOVE(T.TEMP(RV), body),
+          rollupSeq (List.rev loads)
         ])
       end
 
@@ -188,7 +198,7 @@ structure MipsFrame : FRAME = struct
   fun procEntryExit3(frame, body) =
     {prolog = (Symbol.name (name frame) ^ ":\n"),
           body = body,
-          epilog = ""}
+          epilog = "jr $29\n"}
           
   val allRegStrList = callersavesstr@calleesavesstr@specialregsstr@argregsstr
   val allRegList = callersaves@calleesaves@specialregs@argregs
