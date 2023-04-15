@@ -27,6 +27,7 @@ struct
 
           (* register allocation will go here *)
           val dataflowGraph = MakeGraph.instrs2graph proc2
+          val interferenceGraph = Interference.dataflow2interference dataflowGraph
 
 
           val {prolog, body=newbody, epilog} = MipsFrame.procEntryExit3(frame, proc2)
@@ -46,7 +47,8 @@ struct
        end
     
     fun compile filename = 
-        let val absyn = Parse.parse filename
+        let val _ = Temp.reset ()
+            val absyn = Parse.parse filename
             val frags = (FindEscape.findEscape absyn; Semant.transProg absyn)
         in             
             (* List.app (emitproc TextIO.stdOut) frags;
