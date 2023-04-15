@@ -49,8 +49,8 @@ sig
   (*Return Values*)
   (*val v0 : Temp.temp
   val v1 : Temp.temp*)
-  val tempMap : register Temp.Table.table
-  val getRegisterName : Temp.temp -> string
+  (* val tempMap : register Temp.Table.table
+  val getRegisterName : Temp.temp -> string *)
   val wordSize: int
   val exp : access -> Tree.exp -> Tree.exp
   val externalCall: string * Tree.exp list -> Tree.exp
@@ -118,7 +118,7 @@ structure MipsFrame : FRAME = struct
     
 
     fun printAccess (InFrame(addr)) = print("in frame addr: " ^ Int.toString(addr) ^ "\n")
-    |   printAccess (InReg(temp)) = print("in reg: " ^ Int.toString(temp) ^ "\n")
+    |   printAccess (InReg(temp)) = print("in reg: " ^ (Temp.makestring temp) ^ "\n")
 
     fun allocLocal (_, _, locals, _) true = (locals := !locals + 1 ; InFrame (!locals * ~4))
     |   allocLocal _ false                = InReg (Temp.newtemp())
@@ -126,7 +126,7 @@ structure MipsFrame : FRAME = struct
     fun allocR0 () = InReg(0)
     
     val wordSize = 4
-    val calleeSavedRegs = [16, 17, 18, 19, 20, 21, 22, 23, 29]
+    val calleeSavedRegs = [s0, s1, s2, s3, s4, s5, s6, s7, SP]
 
     fun exp (InFrame(frameOffset)) frameAddr = T.MEM(T.BINOP(T.PLUS, frameAddr, T.CONST(frameOffset)))
     |   exp (InReg(r)) _ = T.TEMP(r)
@@ -140,9 +140,9 @@ structure MipsFrame : FRAME = struct
     fun procEntryExit1(body, frame) = 
       let val (label, formals, numLocals, _) = frame
           fun moveInRegForms (formals, 4) = []
-          |   moveInRegForms (InReg(temp)::formals, regCount) = T.MOVE(T.TEMP(temp), T.TEMP(4 + regCount)) :: moveInRegForms(formals, regCount + 1)
+          |   moveInRegForms (InReg(temp)::formals, regCount) = T.MOVE(T.TEMP(temp), T.TEMP((4 + regCount))) :: moveInRegForms(formals, regCount + 1)
           |   moveInRegForms (InFrame(_)::formals, regCount) = (
-                T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP(FP), T.CONST(regCount * wordSize))), T.TEMP(4 + regCount)) :: moveInRegForms(formals, regCount + 1)
+                T.MOVE(T.MEM(T.BINOP(T.PLUS, T.TEMP(FP), T.CONST(regCount * wordSize))), T.TEMP((4 + regCount))) :: moveInRegForms(formals, regCount + 1)
           )
           |   moveInRegForms ([], regCount) = []
           
@@ -198,16 +198,17 @@ structure MipsFrame : FRAME = struct
   fun procEntryExit3(frame, body) =
     {prolog = (Symbol.name (name frame) ^ ":\n"),
           body = body,
-          epilog = "jr $29\n"}
+          epilog = "jr $31\n"}
           
   val allRegStrList = callersavesstr@calleesavesstr@specialregsstr@argregsstr
   val allRegList = callersaves@calleesaves@specialregs@argregs
-  val tempMap = Array.foldri 
+  
+  (* val tempMap = Array.foldri 
   (fn(ind,t,table) => Temp.Table.enter(table,t,List.nth(allRegStrList,ind))) Temp.Table.empty (Array.fromList allRegList)
 
   fun getRegisterName t = case Temp.Table.look (tempMap,t) of
                     SOME (regstr) => regstr 
-                    | NONE => Temp.makestring t
+                    | NONE => Temp.makestring t *)
 
 end
 

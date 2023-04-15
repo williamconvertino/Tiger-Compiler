@@ -25,8 +25,8 @@ main.sml
 printtree.sml
 canon.sml
 assem.sml
+funcgraph.sig
+funcgraph.sml
 flowgraph.sml
-graph.sig
-graph.sml
 mipsgen.sml
 makegraph.sml

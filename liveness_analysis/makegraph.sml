@@ -1,87 +1,64 @@
 structure MakeGraph:
 sig
-    val instrs2graph: Assem.instr list -> Flow.flowgraph * Flow.Graph.node list
+    val instrs2graph: Assem.instr list -> Flow.graph
 end =
 struct
     structure Graph = Flow.Graph
     structure A = Assem
-    structure T = Graph.Table
-    
+
+    structure S = IntRedBlackSet
+
+
     fun instrs2graph assemList =
-        let
-            fun generateEdges (graph, labelMap, jumpList) = 
-                let
-                    fun addEdge (srcNode, label, SOME dstNode) = (print("Adding edge between " ^ (Graph.nodename srcNode) ^ " and " ^ (Graph.nodename dstNode) ^ "\n"); Graph.mk_edge({from=srcNode,to=dstNode}))
-                    |   addEdge (srcNode, label, NONE) = ErrorMsg.impossible ("Error: Label \"" ^ Symbol.name label ^ "\" specified by jump command was not found.")
+        let fun blockify (graph, currentBlock, []) = graph
+            |   blockify (graph, currentBlock, instr::instrs) =
+                    let val {instrs=blockinstrs, defs=blockdefs, uses=blockuses, targets=blocktargets} = currentBlock
+                        fun procInstr (A.LABEL {assem, lab}) = 
+                                let val block' = {instrs=(instr :: blockinstrs), defs=blockdefs, uses=blockuses, targets=blocktargets}
+                                in
+                                    (Flow.addBlock(graph, block'), Block.withLabel lab)
+                                end
+                        |   procInstr (A.MOVE {assem, dst, src}) = 
+                                let val defs' = S.add(blockdefs, dst)
+                                    val uses' = S.add(S.subtract(blockuses, dst), src)
+                                in
+                                    (graph, {instrs=(instr :: blockinstrs), defs=defs', uses=uses', targets=blocktargets})
+                                end
+                        |   procInstr (A.OPER {assem, dst=dsts, src=srcs, jump=NONE}) =
+                                let val defs' = S.addList(blockdefs, dsts)
+                                    val uses' = S.addList(S.subtractList(blockuses, dsts), srcs)
+                                in
+                                    (graph, {instrs=(instr :: blockinstrs), defs=defs', uses=uses', targets=blocktargets}) 
+                                end
+                        |   procInstr (A.OPER {assem, dst=dsts, src=srcs, jump=SOME(jmps)}) =
+                                let val {instrs=blockinstrs, defs=blockdefs, uses=blockuses, targets=blocktargets} = Block.empty
+                                    val defs' = S.addList(blockdefs, dsts)
+                                    val uses' = S.addList(S.subtractList(blockuses, dsts), srcs)
+                                in
+                                    (graph, {instrs=(instr :: blockinstrs), defs=defs', uses=uses', targets=Block.TargetSet.addList(blocktargets, jmps)}) 
+                                end
 
-                    fun findAndConnectNodes (node, label) = addEdge (node, label, (Symbol.look(labelMap, label)))
+                        val (graph', block') = procInstr(instr)
 
-                in
-                    map (fn (node, labelList) => map (fn (label) => findAndConnectNodes(node, label)) labelList) jumpList
-                end
+                    in
+                       blockify(graph', block', instrs)
+                    end
 
-            fun processList (graph, nodeList, labelMap, jumpList, []) = (generateEdges (graph, labelMap, jumpList); (graph, nodeList)) 
-            |   processList ((Flow.FGRAPH {control, def, use, ismove}), nodeList, labelMap, jumpList, (assem::rst)) = 
-                let 
-                    val newNode = Graph.newNode(control)
-                    val newGraph = 
-                        case assem of
-                            (A.OPER {assem, dst, src, jump}) => (Flow.FGRAPH { control = control, def = (T.enter (def, newNode, dst)), use = (T.enter (use, newNode, src)), ismove = ismove})
-                        |   (A.MOVE {assem, dst, src}) =>       (Flow.FGRAPH { control = control, def = (T.enter (def, newNode, (dst::[]))), use = (T.enter (use, newNode, (src::[]))), ismove = (T.enter (ismove, newNode, true))})
-                        |   (A.LABEL {assem, lab}) =>           (Flow.FGRAPH { control = control, def = def, use = use, ismove = ismove})
-                    val newLabelMap = 
-                        case assem of
-                            (A.LABEL {assem, lab}) => Symbol.enter (labelMap, lab, newNode)
-                        |   _ => labelMap
-                    val newJumpList =
-                        case assem of
-                            (A.OPER {assem, dst, src, jump = SOME j}) => (newNode, j) :: jumpList
-                        |   _ => jumpList
-                    val debugPrint = 
-                        case assem of
-                            (A.OPER {assem, dst, src, jump = NONE}) =>      print(Graph.nodename newNode ^ " <OPER> " ^ assem ^ "\n")
-                        |   (A.OPER {assem, dst, src, jump = SOME j}) =>    (print(Graph.nodename newNode ^ " <OPER> " ^ assem); map (fn j => print(" [J-" ^ Symbol.name j ^ "]")) j; print("\n"))
-                        |   (A.MOVE {assem, dst, src}) =>                   print(Graph.nodename newNode ^ " <MOVE> " ^ assem ^ "\n")
-                        |   (A.LABEL {assem, lab}) =>                       print(Graph.nodename newNode ^ " <LABEL> " ^ assem ^ " " ^ Symbol.name lab ^ "\n")
-                in
-                    processList (newGraph, newNode :: nodeList, newLabelMap, newJumpList, rst)
-                end
+            fun connectBlocks (graph, []) = graph
+            |   connectBlocks (graph, node::nodes) =
+                    let val {instrs, defs, uses, targets} = Graph.nodeInfo node
+                        val graph' = Block.TargetSet.foldr (fn (label, graph) => Graph.addEdge(graph, {from=(Graph.getNodeID node), to=label})) graph targets
+                    in
+                        connectBlocks(graph', nodes)   
+                    end
+
+            val graph = blockify (Graph.empty, Block.empty, (List.rev assemList));
+            val graph' = connectBlocks(graph, Graph.nodes(graph))
+
         
         in
-            processList (
-                (Flow.FGRAPH { control = Graph.newGraph(), def = T.empty, use = T.empty, ismove = T.empty}),
-                [],
-                Symbol.empty,
-                [],
-                assemList
-                )
-        end
-
-
-    fun instrs2graphOLD assemList = 
-        let
-            
-            val LabelMap : Graph.node Symbol.table ref = ref Symbol.empty
-            val JumpNodesToProcess : Graph.node list ref = ref []
-
-            fun addEdge (graph, node, targetLabel) = () 
-
-            fun addEdges (graph, node, NONE) = []
-            |   addEdges (graph, node, SOME labelList) = (map (fn label => addEdge(graph, node, label)) labelList);
-
-            fun makeFlowGraph (assem, ((Flow.FGRAPH {control, def, use, ismove}), nodeList)) =
-                let
-                    val node = Graph.newNode(control)
-                in
-                    case assem of
-                        (A.OPER {assem, dst, src, jump}) => (addEdges(control, node, jump); (Flow.FGRAPH { control = control, def = (T.enter (def, node, dst)), use = (T.enter (use, node, src)), ismove = ismove}, node :: nodeList))
-                    |   (A.MOVE {assem, dst, src}) =>       (Flow.FGRAPH { control = control, def = (T.enter (def, node, (dst::[]))), use = (T.enter (use, node, (src::[]))), ismove = (T.enter (ismove, node, true))}, node :: nodeList)
-                    |   (A.LABEL {assem, lab}) =>           (Flow.FGRAPH { control = control, def = def, use = use, ismove = ismove}, node :: nodeList)
-                end
-        
-        in
-            foldl makeFlowGraph (Flow.FGRAPH { control = Graph.newGraph(), def = T.empty, use = T.empty, ismove = T.empty}, []) assemList
+            Flow.debugGraph graph';
+            graph'
         end
         
-
 end
