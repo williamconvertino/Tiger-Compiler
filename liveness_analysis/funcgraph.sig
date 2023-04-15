@@ -15,6 +15,10 @@ val addNode: 'a graph * nodeID * 'a -> 'a graph
 (* add a node, and return it immediately w/ the new graph*)
 val addNode': 'a graph * nodeID * 'a -> 'a graph * 'a node
 
+
+(* add a node if it doesn't exist*)
+val addNodeIfNotExists: 'a graph * nodeID * 'a -> 'a graph
+
 (* remove a node (and all of its edges). 
  *  raises NoSuchNode(nodeId) if not present 
  *)

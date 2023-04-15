@@ -33,6 +33,9 @@ fun addNode'(g,nid,d) =
     in
 	(g',n)
     end
+
+fun addNodeIfNotExists (graph, nid, data) = if (NodeMap.inDomain(graph, nid)) then graph else addNode(graph, nid, data)
+	
 fun changeNodeData(g,nid,d) =
     let val (_,_,s,p) = getNode(g,nid)
     in

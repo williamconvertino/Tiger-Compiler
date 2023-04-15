@@ -25,9 +25,12 @@ struct
           val instrs = List.concat(List.map (MipsGen.codegen frame) stms')
           val proc2 = MipsFrame.procEntryExit2(frame, instrs)
 
-          (* register allocation will go here *)
+          (* Dataflow analysis and register allocation*)
+          
           val dataflowGraph = MakeGraph.instrs2graph proc2
+          (* val _ = Flow.debugGraph dataflowGraph *)
           val interferenceGraph = Interference.dataflow2interference dataflowGraph
+          val _ = Interference.printGraph interferenceGraph
 
 
           val {prolog, body=newbody, epilog} = MipsFrame.procEntryExit3(frame, proc2)

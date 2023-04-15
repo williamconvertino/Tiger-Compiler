@@ -61,6 +61,27 @@ end
 
 structure Interference =
 struct
+
+    structure A = Assem
+    structure S = IntRedBlackSet
+
+    structure TempPairKey : ORD_KEY = 
+        struct 
+            type ord_key = (Temp.temp * Temp.temp)
+            val compare = (fn ((t1, t2), (t1', t2')) => (
+                let val t1cmp = Int.compare(t1, t1')
+                    val t2cmp = Int.compare(t2, t2')
+
+                in
+                    case (t1cmp, t2cmp) of
+                        (EQUAL, _) => t2cmp
+                    |   (t1cmp, _) => t1cmp
+                end
+            ))
+        end
+    
+    structure PairSet = SplaySetFn(TempPairKey)
+
     (* Interference Graph *)
     structure TempKey : ORD_KEY = 
         struct 
@@ -70,19 +91,49 @@ struct
 
     structure Graph = FuncGraph(TempKey)
 
-    type iNode = {temp: Temp.temp, moves: IntRedBlackSet.set}
-    type iGraph = iNode Graph.graph
+    type Graph = Temp.temp Graph.graph
 
 
     fun dataflow2interference dataflowGraph =
-            let val liveness = Liveness.dataflow2liveness dataflowGraph
+        let val liveness = Liveness.dataflow2liveness dataflowGraph
+            fun addNodes (graph, temps) = S.foldl (fn (temp, graph) => Graph.addNodeIfNotExists(graph, temp, temp)) graph temps
+            fun addEdges (graph, temp, liveTemps) = S.foldl (fn (liveTemp, graph) => Graph.doubleEdge(graph, temp, liveTemp)) graph liveTemps
+
+            fun procInstr (A.LABEL {assem, lab}, accumulator) = accumulator
+            |   procInstr (A.MOVE {assem, dst, src}, (graph, moves, liveOut)) = 
+                    let val moves' = PairSet.add(moves, (dst, src))
+                        val graph' = addNodes(graph, S.addList(liveOut, [src, dst]))
+                        val graph'' = addEdges (graph', dst, S.subtractList(liveOut, [src, dst]))
+                        val liveOut' = S.add(S.subtract(liveOut, dst), src)
+                    in
+                        (graph'', moves', liveOut')
+                    end
+            |   procInstr (A.OPER {assem, dst=dsts, src=srcs, jump}, (graph, moves, liveOut)) =
+                    let val graph' = addNodes(graph, S.addList(S.addList(liveOut, dsts), srcs))
+                        val graph'' = List.foldl (fn (dst, graph) => addEdges (graph, dst, S.subtract(liveOut, dst))) graph' dsts
+                        val liveOut' = S.addList(S.subtractList(liveOut, dsts), srcs)
+                    in
+                        (graph'', moves, liveOut') 
+                    end
+                    
         in
-            Liveness.printGraph (dataflowGraph, liveness);
-            ()
+            (* Liveness.printGraph (dataflowGraph, liveness); *)
+            Flow.Graph.foldNodes 
+                (fn (node, (graph, moves)) => (
+                    let val {li, lo} = Liveness.LivenessMap.lookup(liveness, (Flow.Graph.getNodeID node))
+                        val {instrs, defs, uses, targets} = Flow.Graph.nodeInfo node
+                        val (graph', moves', lo') = List.foldr procInstr (graph, PairSet.empty, lo) instrs
+                    in
+                        (graph', moves')
+                    end
+                ))
+                (Graph.empty, PairSet.empty)
+                dataflowGraph
+
         end
 
 
-    fun printGraph graph = Graph.printGraph (fn (id) => (Int.toString id)) (fn (id, inode) => (Int.toString id)) graph
+    fun printGraph (graph, moves) = Graph.printGraph (fn (id) => (Int.toString id)) (fn (id, node) => (Int.toString id)) graph
 end
 
 
