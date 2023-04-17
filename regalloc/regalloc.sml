@@ -75,15 +75,20 @@ struct
                                         nontrivialAdj < numColors
                                     end
                                 fun squasher (linkedId, (graph, moves, pairs)) = 
-                                    let val graph' = squash(graph, nodeId, linkedId)
-                                        val moves' = squash(moves, nodeId, linkedId)
-                                        val moves'' = if IG.degree(IG.getNode(moves', nodeId)) = 0 then IG.removeNode(moves', nodeId) else moves'
+                                    let fun safesquasher () =
+                                        let val graph' = squash(graph, nodeId, linkedId)
+                                            val moves' = squash(moves, nodeId, linkedId)
+                                            val moves'' = if IG.degree(IG.getNode(moves', nodeId)) = 0 then IG.removeNode(moves', nodeId) else moves'
+                                        in
+                                            (* If node not precolored and briggs then squash. *)
+                                            if (linkedId > 31 andalso briggs(graph', nodeId)) then 
+                                                (graph', moves'', (nodeId, linkedId) :: pairs)
+                                            else
+                                                (graph, moves, pairs)
+                                        end
                                     in
-                                        (* If node not precolored and briggs then squash. *)
-                                        if (linkedId > 31 andalso briggs(graph', nodeId)) then 
-                                            (graph', moves'', (nodeId, linkedId) :: pairs)
-                                        else
-                                            (graph, moves, pairs)
+                                        (* added guard to make sure node not already squashed *)
+                                        if (IG.inDomain(graph, linkedId)) then safesquasher () else (graph, moves, pairs)
                                     end
                             in
                                 (* check to make sure node not already squashed *)
