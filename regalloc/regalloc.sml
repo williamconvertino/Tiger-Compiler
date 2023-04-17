@@ -4,17 +4,6 @@ sig
 end =
 struct
 
-    fun allocate instrs = 
-        let val dataflow = MakeGraph.instrs2graph instrs
-            (* val _ = Flow.debugGraph dataflowGraph *)
-            val interference = Interference.dataflow2interference dataflow
-            (* val _ = Interference.printGraph interferenceGraph *)
-        in
-            color interference;
-            instrs
-        end
-
-
     structure IG = Interference.Graph
     structure PS = Interference.PairSet
 
@@ -33,13 +22,13 @@ struct
 
     fun color (graph, moves) = 
         let val numColors = S.numItems(mipsColors)
-            val colors = S.foldl (fn (temp, colors) => M.insert(colors, temp, temp)) M.empty mipsColors
+            val initialColors = S.foldl (fn (temp, colors) => M.insert(colors, temp, temp)) M.empty mipsColors
 
             fun simplify (graph, colors, moves) = 
                 let fun folder (node, (graph, colors)) =
                         let val temp = IG.getNodeID(node)
                             val trivial = IG.inDegree(node) < numColors
-                            val precolored = S.member(colors, temp)
+                            val precolored = M.inDomain(colors, temp)
                             val frozen = IG.inDomain(moves, temp)
                             fun colorTemp ((graph', colors'), tempNode) = 
                                 let val neighboringColors = IG.foldSuccs (fn (succId, succColors) => S.add(succColors, M.lookup(colors', succId))) S.empty tempNode
@@ -51,34 +40,34 @@ struct
 
                         in
                             if (trivial andalso not(precolored) andalso not(frozen)) then (
-                                colorTemp (simplify (IG.removeNode(temp), colors, moves), node)
+                                colorTemp (simplify (IG.removeNode(graph, temp), colors, moves), node)
                             )
                             else
                                 (graph, colors)
                         end
-                    val (graph', colors') = IG.foldNodes folder graph graph
+                    val (graph', colors') = IG.foldNodes folder (graph, colors) graph
                     val fullyColored = IG.foldNodes (fn (node, check) => if (not(check)) then check else M.inDomain(colors', IG.getNodeID(node))) true graph' 
                 in
                     (* If fully colored then return. Else coalesce.*)
                     if (fullyColored) then (graph', colors') else coalesce (graph', colors', moves)
                 end
 
-            fun coalesce (graph, colors, moves) =
+            and coalesce (graph, colors, moves) =
                 let fun coalesceCycle (graph, moves, pairs) =
                     let fun squash (survivorId, squashedId) = 
                             let val survivor = IG.getNode(graph, survivorId)
                                 val squashed = IG.getNode(graph, squashedId)
-                                val adj' = S.fromList([IG.adj(survivor), IG.adj(squashed)])
+                                val adj' = S.addList(S.fromList(IG.adj(survivor)), IG.adj(squashed))
                                 val adj'' = S.subtractList(adj', [survivorId, squashedId])
-                                val graph' = IG.removeNode(squashed)
+                                val graph' = IG.remove(graph, squashed)
                             in
                                 S.foldl (fn (temp, graph) => IG.doubleEdge(graph, survivorId, temp)) graph' adj''
                             end
                         fun folder (movesNode, (graph, moves, pairs)) = 
                             let val nodeId = IG.getNodeID(movesNode)
                                 fun briggs (graph, survivorId) = 
-                                    let val adj' = IG.adj(IG.getNode(survivorId))
-                                        val nontrivialAdj = S.foldl (fn (temp, count) => if (IG.inDegree(IG.getNode(graph, temp)) < numColors) count else count + 1) 0 adj'
+                                    let val adj' = IG.adj(IG.getNode(graph, survivorId))
+                                        val nontrivialAdj = List.foldl (fn (temp, count) => if (IG.inDegree(IG.getNode(graph, temp)) < numColors) then count else count + 1) 0 adj'
                                     in
                                         nontrivialAdj < numColors
                                     end
@@ -86,10 +75,12 @@ struct
                                     let val graph' = squash(nodeId, linkedId)
                                         val moves' = squash(nodeId, linkedId)
                                         val moves'' = if IG.degree(IG.getNode(moves', nodeId)) = 0 then IG.removeNode(moves', nodeId) else moves'
-                                    if (briggs(graph', nodeId)) then 
-                                        (graph', moves'', (nodeId, linkedId) :: pairs)
-                                    else
-                                        (graph, moves, pairs)
+                                    in
+                                        if (briggs(graph', nodeId)) then 
+                                            (graph', moves'', (nodeId, linkedId) :: pairs)
+                                        else
+                                            (graph, moves, pairs)
+                                    end
                             in
                                 (* check to make sure node not already squashed *)
                                 if (IG.inDomain(moves, nodeId)) then
@@ -123,8 +114,8 @@ struct
                         unfreeze (graph, colors, moves)
                 end
             
-            fun unfreeze (graph, colors, moves) = (graph, colors)
-                let fun getMoveNodeDegree moveNode = IG.inDegree(IG.getNode(graph, IG.getNodeID(moveNode)))
+            and unfreeze (graph, colors, moves) =
+                let fun getMoveNodeDegree moveNode = IG.inDegree (IG.getNode (graph, (IG.getNodeID moveNode)))
                 
                     fun unfreezeNode frozenNode = 
                         let val moves' = IG.remove(moves, frozenNode)
@@ -133,7 +124,7 @@ struct
                         end
 
                     (* Filter move nodes to those that are trivial and are not precolored *)
-                    val uncoloredMoveNodes = List.filter (fn (node) => not (M.inDomain(colors, IG.getNodeID(node)))) IG.nodeList(moves)
+                    val uncoloredMoveNodes = List.filter (fn (node) => not (M.inDomain (colors, (IG.getNodeID node)))) (IG.nodes moves)
                     val trivialMoveNodes = List.filter (fn (node) => (getMoveNodeDegree node) < numColors) uncoloredMoveNodes
                 in
                     if ((List.length trivialMoveNodes) = 0) then
@@ -142,13 +133,13 @@ struct
                         unfreezeNode (
                             List.foldl 
                                 (fn (node, bestNode) => if (getMoveNodeDegree(node) > getMoveNodeDegree(bestNode)) then node else bestNode) 
-                                List.hd(trivialMoveNodes)
-                                List.drop(trivialMoveNodes, 1)
+                                (List.hd trivialMoveNodes)
+                                (List.drop (trivialMoveNodes, 1))
                         )
                 end
 
-            fun potentialSpill (graph, colors, moves) = 
-                let val uncoloredNodes = List.filter (fn (node) => not (M.inDomain(colors, IG.getNodeID(node)))) IG.nodeList(graph)
+            and potentialSpill (graph, colors, moves) = 
+                let val uncoloredNodes = List.filter (fn (node) => not (M.inDomain(colors, IG.getNodeID(node)))) (IG.nodes graph)
                     fun spillNode spilledNode = 
                         let val graph' = IG.remove(graph, spilledNode)
                             val (graph'', colors') = simplify (graph', colors, moves)
@@ -163,16 +154,27 @@ struct
                         end
                 in
                     spillNode (
-                        List.foldl 
-                            (fn (node, bestNode) => if (IG.inDegree(node) > IG.inDegree(bestNode)) then node else bestNode) 
-                            List.hd(uncoloredNodes)
-                            List.drop(uncoloredNodes, 1)
+                        List.foldl (fn (node, bestNode) => if (IG.inDegree(node) > IG.inDegree(bestNode)) then node else bestNode)
+                        (List.hd(uncoloredNodes))
+                        (List.drop(uncoloredNodes, 1))
                     )
                 end
 
 
             
         in
-            simplify (graph, colors, moves)
+            simplify (graph, initialColors, moves)
+        end
+
+    
+    
+    fun allocate instrs = 
+        let val dataflow = MakeGraph.instrs2graph instrs
+            (* val _ = Flow.debugGraph dataflowGraph *)
+            val interference = Interference.dataflow2interference dataflow
+            (* val _ = Interference.printGraph interferenceGraph *)
+        in
+            color interference;
+            instrs
         end
 end
