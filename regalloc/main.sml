@@ -26,10 +26,10 @@ struct
           val proc2 = MipsFrame.procEntryExit2(frame, instrs)
 
           (* Register allocation*)
-          val _ = RegisterAllocator.allocate(proc2)
+          val coloredInstrs = RegisterAllocator.allocate(proc2)
 
 
-          val {prolog, body=newbody, epilog} = MipsFrame.procEntryExit3(frame, proc2)
+          val {prolog, body=newbody, epilog} = MipsFrame.procEntryExit3(frame, coloredInstrs)
           val format0 = Assem.format(Temp.makestring)
       in 
         TextIO.output(out, prolog);

@@ -176,15 +176,41 @@ struct
         end
 
     
+    structure A = Assem
     
+    fun applyColors (instrs, coloring) = 
+        let fun color temp = M.lookup(coloring, temp)
+            fun colorInstr ((A.MOVE {assem, dst, src}) :: instrs) = 
+                    let val dst' = color dst
+                        val src' = color src
+                    in
+                        if (src' = dst') then 
+                            (colorInstr (instrs)) 
+                        else 
+                            (A.MOVE{assem=assem, dst=dst', src=src'}) :: (colorInstr (instrs))
+                    end
+            |   colorInstr ((A.OPER {assem, dst=dsts, src=srcs, jump}) :: instrs) =
+                    let val dsts' = List.map color dsts 
+                        val srcs' = List.map color srcs
+                    in
+                        (A.OPER{assem=assem, dst=dsts', src=srcs', jump=jump}) :: (colorInstr (instrs))
+                    end
+            |   colorInstr (instr :: instrs) = instr :: (colorInstr (instrs))
+            |   colorInstr ([]) = []
+
+        in
+            colorInstr (instrs)
+        end
+
     fun allocate instrs = 
         let val dataflow = MakeGraph.instrs2graph instrs
             (* val _ = Flow.debugGraph dataflow *)
             val interference = Interference.dataflow2interference dataflow
             (* val _ = Interference.printGraph interference *)
             val colors = color interference
-            (* val _ = printColors colors *)
+            val _ = printColors colors
+            val instrs' = applyColors (instrs, colors)
         in
-            instrs
+            instrs'
         end
 end
