@@ -1,6 +1,7 @@
 structure RegisterAllocator:
-sig 
+sig     
     val allocate: Assem.instr list -> Assem.instr list
+
 end =
 struct
 
@@ -16,6 +17,8 @@ struct
 
     structure S = SplaySetFn(TempKey)
     structure M = RedBlackMapFn(TempKey)
+
+    fun printColors colors = List.app (fn (key) => print ((Int.toString key) ^ "=" ^ (Int.toString (M.lookup(colors, key))) ^ "\n")) (M.listKeys(colors))
 
     val mipsColors = S.fromList([0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31])
     val mipsColorable = S.subtract(mipsColors, 0)
@@ -54,7 +57,7 @@ struct
 
             and coalesce (graph, colors, moves) =
                 let fun coalesceCycle (graph, moves, pairs) =
-                    let fun squash (survivorId, squashedId) = 
+                    let fun squash (graph, survivorId, squashedId) = 
                             let val survivor = IG.getNode(graph, survivorId)
                                 val squashed = IG.getNode(graph, squashedId)
                                 val adj' = S.addList(S.fromList(IG.adj(survivor)), IG.adj(squashed))
@@ -72,11 +75,12 @@ struct
                                         nontrivialAdj < numColors
                                     end
                                 fun squasher (linkedId, (graph, moves, pairs)) = 
-                                    let val graph' = squash(nodeId, linkedId)
-                                        val moves' = squash(nodeId, linkedId)
+                                    let val graph' = squash(graph, nodeId, linkedId)
+                                        val moves' = squash(moves, nodeId, linkedId)
                                         val moves'' = if IG.degree(IG.getNode(moves', nodeId)) = 0 then IG.removeNode(moves', nodeId) else moves'
                                     in
-                                        if (briggs(graph', nodeId)) then 
+                                        (* If node not precolored and briggs then squash. *)
+                                        if (linkedId > 31 andalso briggs(graph', nodeId)) then 
                                             (graph', moves'', (nodeId, linkedId) :: pairs)
                                         else
                                             (graph, moves, pairs)
@@ -167,17 +171,14 @@ struct
         end
 
     
-
-    fun printColors colors = List.app (fn (key) => print ((Int.toString key) ^ "=" ^ (Int.toString (M.lookup(colors, key))) ^ "\n")) (M.listKeys(colors))
-
     
     fun allocate instrs = 
         let val dataflow = MakeGraph.instrs2graph instrs
-            (* val _ = Flow.debugGraph dataflowGraph *)
+            (* val _ = Flow.debugGraph dataflow *)
             val interference = Interference.dataflow2interference dataflow
-            (* val _ = Interference.printGraph interferenceGraph *)
+            (* val _ = Interference.printGraph interference *)
             val colors = color interference
-            val _ = printColors colors
+            (* val _ = printColors colors *)
         in
             instrs
         end
