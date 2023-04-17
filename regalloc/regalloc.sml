@@ -110,7 +110,7 @@ struct
                         let val (graph', colors') = simplify (graph, colors, moves)
                             fun colorFolder ((survivor, squashed), colors) = M.insert(colors, squashed, M.lookup(colors, survivor))
                         in
-                            (graph', List.foldl colorFolder colors' pairs)
+                            List.foldl colorFolder colors' pairs
                         end
 
                     val (graph', moves', pairs) = coalesceCycle (graph, moves, [])
@@ -118,7 +118,7 @@ struct
                 in
                     (* If we squashed any pairs, then simplify/color. Else unfreeze. *)
                     if ((List.length pairs) > 0) then
-                        colorPairs (graph', colors, moves', pairs)
+                        (graph, colorPairs (graph', colors, moves', pairs))
                     else
                         unfreeze (graph, colors, moves)
                 end
@@ -132,20 +132,43 @@ struct
                             simplify (graph, colors, moves')
                         end
 
-                    val trivialMoveNodes = List.filter (fn (node) => (getMoveNodeDegree node) < numColors) IG.nodeList(moves)
+                    (* Filter move nodes to those that are trivial and are not precolored *)
+                    val uncoloredMoveNodes = List.filter (fn (node) => not (M.inDomain(colors, IG.getNodeID(node)))) IG.nodeList(moves)
+                    val trivialMoveNodes = List.filter (fn (node) => (getMoveNodeDegree node) < numColors) uncoloredMoveNodes
                 in
                     if ((List.length trivialMoveNodes) = 0) then
                         potentialSpill (graph, colors, moves)
                     else
                         unfreezeNode (
                             List.foldl 
-                                (fn (node, bestNode) => if (getMoveNodeDegree(node) > getMoveNodeDegree(bestNode) then node else bestNode)) 
+                                (fn (node, bestNode) => if (getMoveNodeDegree(node) > getMoveNodeDegree(bestNode)) then node else bestNode) 
                                 List.hd(trivialMoveNodes)
                                 List.drop(trivialMoveNodes, 1)
                         )
                 end
 
             fun potentialSpill (graph, colors, moves) = 
+                let val uncoloredNodes = List.filter (fn (node) => not (M.inDomain(colors, IG.getNodeID(node)))) IG.nodeList(graph)
+                    fun spillNode spilledNode = 
+                        let val graph' = IG.remove(graph, spilledNode)
+                            val (graph'', colors') = simplify (graph', colors, moves)
+                            val neighboringColors = IG.foldSuccs (fn (succId, succColors) => S.add(succColors, M.lookup(colors', succId))) S.empty spilledNode
+                            val possibleColors = S.toList(S.difference(mipsColorable, neighboringColors))
+
+                            (* Try to color possible spilled node. If no possible color give value of -1 to denote spill. *)
+                            val color = if ((List.length possibleColors) > 0) then List.hd (possibleColors) else ~1
+                            val colors'' = M.insert(colors', IG.getNodeID(spilledNode), color)
+                        in
+                            (graph, colors'')
+                        end
+                in
+                    spillNode (
+                        List.foldl 
+                            (fn (node, bestNode) => if (IG.inDegree(node) > IG.inDegree(bestNode)) then node else bestNode) 
+                            List.hd(uncoloredNodes)
+                            List.drop(uncoloredNodes, 1)
+                    )
+                end
 
 
             
