@@ -161,20 +161,24 @@ struct
                 end
 
 
-            
+            val (_, colors) = simplify (graph, initialColors, moves)
         in
-            simplify (graph, initialColors, moves)
+            colors
         end
 
     
+
+    fun printColors colors = List.app (fn (key) => print ((Int.toString key) ^ "=" ^ (Int.toString (M.lookup(colors, key))) ^ "\n")) (M.listKeys(colors))
+
     
     fun allocate instrs = 
         let val dataflow = MakeGraph.instrs2graph instrs
             (* val _ = Flow.debugGraph dataflowGraph *)
             val interference = Interference.dataflow2interference dataflow
             (* val _ = Interference.printGraph interferenceGraph *)
+            val colors = color interference
+            val _ = printColors colors
         in
-            color interference;
             instrs
         end
 end
