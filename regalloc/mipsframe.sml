@@ -47,10 +47,9 @@ sig
   val t9 : Temp.temp
   val callersaves : Temp.temp list
   (*Return Values*)
-  (*val v0 : Temp.temp
-  val v1 : Temp.temp*)
-  (* val tempMap : register Temp.Table.table
-  val getRegisterName : Temp.temp -> string *)
+  val v1 : Temp.temp
+  val tempMap : register Temp.Map.map
+  val getRegisterName : Temp.temp -> string 
   val wordSize: int
   val exp : access -> Tree.exp -> Tree.exp
   val externalCall: string * Tree.exp list -> Tree.exp
@@ -178,11 +177,11 @@ structure MipsFrame : FRAME = struct
 
 
   val callersaves = [t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,RV, v1, ra]
-  val callersavesstr = ["t0","t1","t2","t3","t4","t5","t6","t7","t8","t9", "v0", "v1", "ra"]
+  val callersavesstr = ["t0","t1","t2","t3","t4","t5","t6","t7","t8","t9", "RV", "v1", "ra"]
   val calleesaves = [s0,s1,s2,s3,s4,s5,s6,s7]
   val calleesavesstr = ["s0","s1","s2","s3","s4","s5","s6","s7"]
-  val specialregs = [zero, ra, SP, RV]
-  val specialregsstr = ["zero", "ra", "SP", "RV"]
+  val specialregs = [zero, ra, SP, RV, FP]
+  val specialregsstr = ["zero", "ra", "SP", "RV", "FP"]
   val argregs = [a0, a1, a2, a3]
   val argregsstr = ["a0","a1","a2","a3"]
   
@@ -203,12 +202,12 @@ structure MipsFrame : FRAME = struct
   val allRegStrList = callersavesstr@calleesavesstr@specialregsstr@argregsstr
   val allRegList = callersaves@calleesaves@specialregs@argregs
   
-  (* val tempMap = Array.foldri 
-  (fn(ind,t,table) => Temp.Table.enter(table,t,List.nth(allRegStrList,ind))) Temp.Table.empty (Array.fromList allRegList)
+  val tempMap = Array.foldri 
+  (fn(ind,t,table) => Temp.Map.insert(table,t,List.nth(allRegStrList,ind))) Temp.Map.empty (Array.fromList allRegList)
 
-  fun getRegisterName t = case Temp.Table.look (tempMap,t) of
+  fun getRegisterName t = case Temp.Map.find (tempMap,t) of
                     SOME (regstr) => regstr 
-                    | NONE => Temp.makestring t *)
+                    | NONE => Temp.makestring t 
 
 end
 

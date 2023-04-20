@@ -7,6 +7,7 @@ end =
 struct 
     structure Tr = Translate
     structure F = Frame
+    (*structure M = MipsFrame*)
     (*structure R = RegAlloc*)
 
     fun escape filename =
@@ -30,7 +31,7 @@ struct
 
 
           val {prolog, body=newbody, epilog} = MipsFrame.procEntryExit3(frame, coloredInstrs)
-          val format0 = Assem.format(Temp.makestring)
+          val format0 = Assem.format(MipsFrame.getRegisterName)
       in 
         TextIO.output(out, prolog);
         List.app (fn i => TextIO.output(out, format0 i)) newbody; 
