@@ -208,7 +208,7 @@ struct
             val interference = Interference.dataflow2interference dataflow
             (* val _ = Interference.printGraph interference *)
             val colors = color interference
-            val _ = printColors colors
+            (* val _ = printColors colors *)
             val instrs' = applyColors (instrs, colors)
         in
             instrs'
