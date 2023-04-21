@@ -177,11 +177,11 @@ structure MipsFrame : FRAME = struct
 
 
   val callersaves = [t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,RV, v1, ra]
-  val callersavesstr = ["t0","t1","t2","t3","t4","t5","t6","t7","t8","t9", "RV", "v1", "ra"]
+  val callersavesstr = ["t0","t1","t2","t3","t4","t5","t6","t7","t8","t9", "v0", "v1", "ra"]
   val calleesaves = [s0,s1,s2,s3,s4,s5,s6,s7]
   val calleesavesstr = ["s0","s1","s2","s3","s4","s5","s6","s7"]
   val specialregs = [zero, ra, SP, RV, FP]
-  val specialregsstr = ["zero", "ra", "SP", "RV", "FP"]
+  val specialregsstr = ["zero", "ra", "sp", "v0", "fp"]
   val argregs = [a0, a1, a2, a3]
   val argregsstr = ["a0","a1","a2","a3"]
   
