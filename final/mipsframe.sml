@@ -128,7 +128,7 @@ structure MipsFrame : FRAME = struct
     fun allocR0 () = InReg(0)
     
     val wordSize = 4
-    val calleeSavedRegs = [s0, s1, s2, s3, s4, s5, s6, s7, SP]
+    val calleeSavedRegs = [s0, s1, s2, s3, s4, s5, s6, s7]
 
     fun exp (InFrame(frameOffset)) frameAddr = T.MEM(T.BINOP(T.PLUS, frameAddr, T.CONST(frameOffset)))
     |   exp (InReg(r)) _ = T.TEMP(r)
