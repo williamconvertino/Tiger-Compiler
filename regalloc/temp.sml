@@ -25,7 +25,7 @@ struct
 	in 
 	    t
 	end
-    fun makestring t = "t" ^ Int.toString t
+    fun makestring t = "temp" ^ Int.toString t
 		       
     type label = Symbol.symbol
     val compare = Int.compare

@@ -201,8 +201,54 @@ struct
         in
             colorInstr (instrs)
         end
+fun spillInstruction (instrs, nodeIds) =
+        let fun verify temp = List.find (fn (x) => x=temp) nodeIds
+        fun modifySpill ((A.MOVE {assem, dst, src}) :: instrs) = 
+                    let val dst' = verify dst
+                        val src' = verify src
+                        val newT = Temp.newtemp()
+                    in
+                        if (isSome(dst')) then 
+                            (A.MOVE{assem=assem, dst=newT, src=src}) :: (A.MOVE{assem=assem, dst=dst, src=newT}) :: (modifySpill (instrs))
+                        else 
+                            if (isSome(src')) then 
+                                (A.MOVE{assem=assem, dst=dst, src=newT}) :: (A.MOVE{assem=assem, dst=newT, src=src}) :: (modifySpill (instrs)) 
+                            else 
+                                (A.MOVE{assem=assem, dst=dst, src=src}) :: (modifySpill (instrs))
+                    end
+            (*  |   modifySpill ((A.OPER {assem, dst=dsts, src=srcs, jump}) :: instrs) =
+                    let val dsts' = List.map  dsts 
+                        val srcs' = List.map color srcs
+                    in
+                        (A.OPER{assem=assem, dst=dsts', src=srcs', jump=jump}) :: (modifySpill (instrs))
+                    end*)
+            |   modifySpill (instr :: instrs) = instr :: (modifySpill (instrs))
+            |   modifySpill ([]) = []
+            in 
+                modifySpill(instrs)
+            end
+
+    fun colorTest instrs = 
+        let val dataflow = MakeGraph.instrs2graph instrs
+                (* val _ = Flow.debugGraph dataflow *)
+                val interference = Interference.dataflow2interference dataflow
+                (* val _ = Interference.printGraph interference *)
+                val colors = color interference
+                val c = M.foldri (fn (key,v, y) => case v of ~1 => key:: y | _ => y) [] colors
+        in
+            case c of 
+            [] => colors 
+            | _ => colorTest (spillInstruction (instrs, c))
+        end
 
     fun allocate instrs = 
+        let val colors = colorTest instrs
+            (*val _ = printColors colors*)
+            val instrs' = applyColors (instrs, colors)
+        in
+            instrs'
+        end
+ (*   fun allocate instrs = 
         let val dataflow = MakeGraph.instrs2graph instrs
             (* val _ = Flow.debugGraph dataflow *)
             val interference = Interference.dataflow2interference dataflow
@@ -212,5 +258,5 @@ struct
             val instrs' = applyColors (instrs, colors)
         in
             instrs'
-        end
+        end *)
 end
