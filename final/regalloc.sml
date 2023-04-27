@@ -20,7 +20,7 @@ struct
 
     fun printColors colors = List.app (fn (key) => print ((Int.toString key) ^ "=" ^ (Int.toString (M.lookup(colors, key))) ^ "\n")) (M.listKeys(colors))
 
-    val mipsColors = S.fromList([0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31])
+    val mipsColors = S.fromList([0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 29, 30, 31])
     val mipsColorable = S.subtract(mipsColors, 0)
 
     fun color (graph, moves) = 
@@ -60,7 +60,7 @@ struct
                     let fun squash (graph, survivorId, squashedId) = 
                             let val survivor = IG.getNode(graph, survivorId)
                                 val squashed = IG.getNode(graph, squashedId)
-                                val adj' = S.addList(S.fromList(IG.adj(survivor)), IG.adj(squashed))
+                                val adj' = S.fromList(IG.adj(squashed))
                                 val adj'' = S.subtractList(adj', [survivorId, squashedId])
                                 val graph' = IG.remove(graph, squashed)
                             in
@@ -68,6 +68,8 @@ struct
                             end
                         fun folder (movesNode, (graph, moves, pairs)) = 
                             let val nodeId = IG.getNodeID(movesNode)
+                                (* val _ = print("folder called with nodeId " ^ (Int.toString nodeId) ^ "\n") *)
+                                (* val _ = print((Bool.toString (IG.inDomain(graph, nodeId))) ^ " " ^ (Bool.toString (IG.inDomain(moves, nodeId))) ^ "\n") *)
                                 fun briggs (graph, survivorId) = 
                                     let val adj' = IG.adj(IG.getNode(graph, survivorId))
                                         val nontrivialAdj = List.foldl (fn (temp, count) => if (IG.inDegree(IG.getNode(graph, temp)) < numColors) then count else count + 1) 0 adj'
@@ -76,19 +78,23 @@ struct
                                     end
                                 fun squasher (linkedId, (graph, moves, pairs)) = 
                                     let fun safesquasher () =
-                                        let val graph' = squash(graph, nodeId, linkedId)
+                                        let val _ = ()
+                                            val _ = print((Bool.toString (IG.inDomain(graph, 119))) ^ "\n")
+                                            (* val _ = print((Int.toString nodeId) ^ ":" ^ (Int.toString linkedId) ^ "\n") *)
+                                            (* val _ = print((Bool.toString (IG.inDomain(graph, nodeId))) ^ " " ^ (Bool.toString (IG.inDomain(graph, linkedId))) ^ "\n") *)
+                                            val graph' = squash(graph, nodeId, linkedId)
                                             val moves' = squash(moves, nodeId, linkedId)
                                             val moves'' = if IG.degree(IG.getNode(moves', nodeId)) = 0 then IG.removeNode(moves', nodeId) else moves'
                                         in
                                             (* If node not precolored and briggs then squash. *)
-                                            if (linkedId > 31 andalso briggs(graph', nodeId)) then 
+                                            if (linkedId > 31 andalso briggs(graph', nodeId)) then
                                                 (graph', moves'', (nodeId, linkedId) :: pairs)
                                             else
                                                 (graph, moves, pairs)
                                         end
                                     in
                                         (* added guard to make sure node not already squashed *)
-                                        if (IG.inDomain(graph, linkedId)) then safesquasher () else (graph, moves, pairs)
+                                        if (IG.inDomain(graph, linkedId) andalso not(IG.isAdjacent (movesNode, ( IG.getNode (graph, linkedId) )))) then safesquasher () else (graph, moves, pairs)
                                     end
                             in
                                 (* check to make sure node not already squashed *)
@@ -151,7 +157,8 @@ struct
                 let val uncoloredNodes = List.filter (fn (node) => not (M.inDomain(colors, IG.getNodeID(node)))) (IG.nodes graph)
                     fun spillNode spilledNode = 
                         let val graph' = IG.remove(graph, spilledNode)
-                            val (graph'', colors') = simplify (graph', colors, moves)
+                            val moves' = IG.remove(moves, spilledNode)
+                            val (graph'', colors') = simplify (graph', colors, moves')
                             val neighboringColors = IG.foldSuccs (fn (succId, succColors) => S.add(succColors, M.lookup(colors', succId))) S.empty spilledNode
                             val possibleColors = S.toList(S.difference(mipsColorable, neighboringColors))
 
@@ -185,7 +192,7 @@ struct
                         val src' = color src
                     in
                         if (src' = dst') then 
-                            (colorInstr (instrs)) 
+                            (colorInstr (instrs))
                         else 
                             (A.MOVE{assem=assem, dst=dst', src=src'}) :: (colorInstr (instrs))
                     end

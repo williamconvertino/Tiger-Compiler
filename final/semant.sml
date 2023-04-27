@@ -426,7 +426,7 @@ struct
     end
 
     fun transProg exp = 
-        let val mainLevel = Translate.newLevel {parent=Translate.outermost, name=(Temp.namedlabel "tigmain"), formals=[]}
+        let val mainLevel = Translate.newLevel {parent=Translate.outermost, name=(Temp.namedlabel "tig_main"), formals=[]}
             val {exp=tigmain, ty} = transExp (Env.base_venv, Env.base_tenv, NONE, mainLevel) exp
         in 
             (T.procEntryExit{level=mainLevel, body=tigmain}; T.getResult())

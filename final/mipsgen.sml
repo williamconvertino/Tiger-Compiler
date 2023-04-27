@@ -164,13 +164,23 @@ structure MipsGen : CODEGEN =
                         {assem="sub `d0, `s0, `s1\n", 
                         src=[munchExp e1, munchExp e2], dst=[r], jump=NONE}))
                 | munchExp(T.BINOP(T.MUL, e1, e2)) =
-                    result(fn r => emit(A.OPER 
-                        {assem="mul `d0, `s0, `s1\n", 
-                        src=[munchExp e1, munchExp e2], dst=[r], jump=NONE}))
+                    result(fn r => (
+                        emit(A.OPER 
+                            {assem="mult `s0, `s1\n", 
+                            src=[munchExp e1, munchExp e2], dst=[], jump=NONE});
+                        emit(A.OPER 
+                            {assem="mflo `d0\n", 
+                            src=[], dst=[r], jump=NONE})
+                    ))
                 | munchExp(T.BINOP(T.DIV, e1, e2)) =
-                    result(fn r => emit(A.OPER 
-                        {assem="div `s0, `s1\nmflo `d0\n", 
-                        src=[munchExp e1, munchExp e2], dst=[r], jump=NONE}))
+                    result(fn r => (
+                        emit(A.OPER 
+                            {assem="div `s0, `s1\n", 
+                            src=[munchExp e1, munchExp e2], dst=[], jump=NONE});
+                        emit(A.OPER 
+                            {assem="mflo `d0\n", 
+                            src=[], dst=[r], jump=NONE})
+                    ))
                 | munchExp(T.BINOP(T.AND, e1, T.CONST i)) =
                     result(fn r => emit(A.OPER 
                         {assem="andi `d0, `s0, " ^ intToString i ^ "\n",
@@ -231,21 +241,36 @@ structure MipsGen : CODEGEN =
                         src=[], dst=[r], jump=NONE}))
                 | munchExp(T.CALL(T.NAME(l), args)) =
                     (
-                        if ((List.length args) > !(MipsFrame.maxArgs frame)) then updateMaxArgs (List.length args) else ();
-                        emit(A.OPER{assem="jal " ^ (Symbol.name l) ^ "\n",
-                                src=munchArgs(args),
-                                dst=MipsFrame.callersaves, 
-                                jump=NONE}); 
-                        MipsFrame.RV
+                        let val trashed = MipsFrame.callersaves @ MipsFrame.argregs
+                            val callerSavedTemps = List.map (fn reg => (reg, Temp.newtemp())) trashed
+                            val args = munchArgs(args)
+                        in
+                            if ((List.length args) > !(MipsFrame.maxArgs frame)) then updateMaxArgs (List.length args) else ();
+                            (* List.app (fn (reg, temp) => munchStm(T.MOVE(T.TEMP(temp), T.TEMP(reg)))) callerSavedTemps; *)
+                            emit(A.OPER{assem="jal " ^ (Symbol.name l) ^ "\n",
+                                    src=args,
+                                    dst=trashed, 
+                                    jump=NONE});
+                            (* List.app (fn (reg, temp) => munchStm(T.MOVE(T.TEMP(reg), T.TEMP(temp)))) callerSavedTemps;  *)
+                            MipsFrame.RV
+                        end
                     )
                 | munchExp(T.CALL(e, args)) =
                     (
-                        if ((List.length args) > !maxArgs) then maxArgs := (List.length args) else ();
-                        emit(A.OPER{assem="jal `s0\n",
-                                src=munchExp(e) :: munchArgs(args),
-                                dst=MipsFrame.callersaves, 
-                                jump=NONE}); 
-                        MipsFrame.RV
+                        let val trashed = MipsFrame.callersaves @ MipsFrame.argregs
+                            val callerSavedTemps = List.map (fn reg => (reg, Temp.newtemp())) trashed
+                            val target = munchExp(e)
+                            val args = munchArgs(args)
+                        in
+                            if ((List.length args) > !(MipsFrame.maxArgs frame)) then updateMaxArgs (List.length args) else ();
+                            (* List.app (fn (reg, temp) => munchStm(T.MOVE(T.TEMP(temp), T.TEMP(reg)))) callerSavedTemps; *)
+                            emit(A.OPER{assem="jalr `s0\n",
+                                    src=(target :: args),
+                                    dst=trashed, 
+                                    jump=NONE});
+                            (* List.app (fn (reg, temp) => munchStm(T.MOVE(T.TEMP(reg), T.TEMP(temp)))) callerSavedTemps;  *)
+                            MipsFrame.RV
+                        end
                     )
                 | munchExp(T.TEMP t) = t
                 

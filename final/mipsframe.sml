@@ -180,24 +180,31 @@ structure MipsFrame : FRAME = struct
   fun string (label, str) = Symbol.name (label) ^ ": .asciiz \"" ^ str ^ "\"\n"
 
   fun procEntryExit2(frame, body) =
-     [
-      A.OPER{assem="addi `d0, `s0, -" ^ Int.toString (4 * (!(maxArgs frame))) ^ "\n",
-        src=[SP], dst=[SP], jump=NONE}
-     ] @
-     body @
-     [
-      A.OPER{assem="addi `d0, `s0, " ^ Int.toString (4 * (!(maxArgs frame))) ^ "\n",
-        src=[SP], dst=[SP], jump=NONE},
-      A.OPER{assem="", dst=[],
-        src =[zero, ra, SP] @ calleesaves,
-        jump=SOME[]}
-     ]
+      let val raTemp = Temp.newtemp ()
+      in
+        [
+          A.OPER{assem="addi `d0, `s0, -" ^ Int.toString (4 * ((!(maxArgs frame)) + 1)) ^ "\n",
+            src=[SP], dst=[SP], jump=NONE},
+          A.OPER{assem="sw `s0, 8(`s1)\n",
+            src=[ra, SP], dst=[], jump=NONE}
+        ] @
+        body @
+        [
+          A.OPER{assem="lw `d0, 8($sp)\n",
+            src=[SP], dst=[ra], jump=NONE},
+          A.OPER{assem="addi `d0, `s0, " ^ Int.toString (4 * ((!(maxArgs frame)) + 1)) ^ "\n",
+            src=[SP], dst=[SP], jump=NONE},
+          A.OPER{assem="", dst=[],
+            src =[zero, ra, SP] @ calleesaves,
+            jump=SOME[]}
+        ]
+      end
 
 
   fun procEntryExit3(frame, body) =
     {prolog = (Symbol.name (name frame) ^ ":\n"),
           body = body,
-          epilog = "jr $31\n"}
+          epilog = "jr $ra\n"}
           
   val allRegStrList = callersavesstr@calleesavesstr@specialregsstr@argregsstr
   val allRegList = callersaves@calleesaves@specialregs@argregs

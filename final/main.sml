@@ -26,6 +26,7 @@ struct
 
           (* Register allocation*)
           val coloredInstrs = RegisterAllocator.allocate(proc2)
+          (* val coloredInstrs = proc2 *)
 
 
           val {prolog, body=newbody, epilog} = MipsFrame.procEntryExit3(frame, coloredInstrs)
