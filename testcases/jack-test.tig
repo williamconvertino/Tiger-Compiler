@@ -1,18 +1,25 @@
-/* define a recursive function */
-/* let
+let
+    type lst = {val: string, next: lst}
 
-function sayhi() =
-	let
-        var message := "yoyo"
-        function sayworld(s: string) = (print(message); print(s))
-    in
-        print("this is a message\n");
-        /* sayworld("wassup "); */
-        print("transmission over\n")
-    end
 
+    function printList (lst: lst) =
+        if lst = nil then print("END\n")
+        else (print(lst.val); printList(lst.next))
+
+    var list3 := lst {val="how you?", next=nil}
+    var list2 := lst {val="world", next=list3}
+    var list1 := lst {val="hello", next=list2}
 in
-	sayhi()
-end */
+    printList(list1)
+end
 
-print("abcdef")
+/* let
+    type tst = {val: string}
+
+    function compare(x: tst, y: tst) = if x = nil then print("DONE\n") else print(y.val)
+
+    var a := tst{val="hello"}
+    var b := tst{val="world"}
+in
+    compare(a, b)
+end */

@@ -154,10 +154,15 @@ structure Translate : TRANSLATE = struct
              |   trOpStr (A.GeOp) = Ex(MipsFrame.externalCall("tig_stringGeOp",[tleft,tright]))            
              |   trOpStr (A.NeqOp) = Cx(fn (t,f) => T.CJUMP(T.NE, tleft, tright, t, f))
              |   trOpStr _ = (print ("error: should not reach STRING with any INT operand\n"); nop())
+           fun trOpRec (A.EqOp) = Cx(fn (t,f) => T.CJUMP(T.EQ, tleft, tright, t, f))
+             | trOpRec (A.NeqOp) = Cx(fn (t,f) =>T.CJUMP(T.NE, tleft, tright, t, f))
+             | trOpRec _ = (print ("error: can only compare RECORD with = or <> op\n"); nop())
     in
       case ty of
            Types.INT => trOp oper
          | Types.STRING => trOpStr oper
+         | Types.RECORD(_) => trOpRec oper
+         | Types.ARRAY(_) => trOpRec oper
          | _ => nop()
     end
          
@@ -274,6 +279,9 @@ structure Translate : TRANSLATE = struct
           val f = Temp.newlabel()
           val r = Temp.newtemp()
           val cond = (unCx(test))(t, f)
+          (* val _ = Printtree.printtree (TextIO.stdOut, unNx(test)) *)
+          (* val _ = Printtree.printtree (TextIO.stdOut, unNx(t'))
+          val _ = Printtree.printtree (TextIO.stdOut, unNx(e)) *)
           
      in
        Ex(T.ESEQ(

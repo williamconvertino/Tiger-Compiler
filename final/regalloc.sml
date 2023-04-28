@@ -276,6 +276,6 @@ struct
             ) else (
                 applyColors (instrs', colors)
             )
-            (* instrs'' *)
+            (* instrs' *)
         end
 end

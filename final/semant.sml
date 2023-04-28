@@ -207,9 +207,9 @@ struct
                         |   trOpExp (A.TimesOp) = {exp=T.opExp(A.TimesOp, lexp,rexp,Types.INT), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
                         |   trOpExp (A.DivideOp) = {exp=T.opExp(A.DivideOp,lexp, rexp,Types.INT), ty=Types.closestDescendant (checkInt(lty, pos), checkInt(rty, pos))}
                         |   trOpExp (compOp) = 
-                            let val ckComp = checkComparisonOp (lty, rty, compOp,pos)
-                            in ( ckComp;
-                            {exp=T.opExp(compOp, lexp, rexp, ckComp), ty=Types.INT} )
+                            let val ckComp = checkComparisonOp (lty, rty, compOp, pos)
+                            in (
+                                {exp=T.opExp(compOp, lexp, rexp, ckComp), ty=Types.INT} )
                             end                        
                     in
                         trOpExp oper
