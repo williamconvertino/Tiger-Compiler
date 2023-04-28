@@ -128,7 +128,7 @@ structure MipsFrame : FRAME = struct
     fun allocR0 () = InReg(0)
     
     val wordSize = 4
-    val calleeSavedRegs = [s0, s1, s2, s3, s4, s5, s6, s7]
+    val calleeSavedRegs = [s0, s1, s2, s3, s4, s5, s6, s7, ra]
 
     fun exp (InFrame(frameOffset)) frameAddr = T.MEM(T.BINOP(T.PLUS, frameAddr, T.CONST(frameOffset)))
     |   exp (InReg(r)) _ = T.TEMP(r)
@@ -180,19 +180,21 @@ structure MipsFrame : FRAME = struct
   fun string (label, str) = Symbol.name (label) ^ ": .asciiz \"" ^ str ^ "\"\n"
 
   fun procEntryExit2(frame, body) =
-      let val raTemp = Temp.newtemp ()
+      let val (_, _, locals, _, maxArgs) = frame
+          val raTemp = Temp.newtemp ()
+          val frameWords = !locals + !maxArgs + 1
       in
         [
-          A.OPER{assem="addi `d0, `s0, -" ^ Int.toString (4 * ((!(maxArgs frame)) + 1)) ^ "\n",
-            src=[SP], dst=[SP], jump=NONE},
-          A.OPER{assem="sw `s0, 8(`s1)\n",
-            src=[ra, SP], dst=[], jump=NONE}
+          A.OPER{assem="addi `d0, `s0, -" ^ Int.toString (4 * frameWords) ^ "\n",
+            src=[SP], dst=[SP], jump=NONE}
+          (* A.OPER{assem="sw `s0, 8(`s1)\n",
+            src=[ra, SP], dst=[], jump=NONE} *)
         ] @
         body @
         [
-          A.OPER{assem="lw `d0, 8($sp)\n",
-            src=[SP], dst=[ra], jump=NONE},
-          A.OPER{assem="addi `d0, `s0, " ^ Int.toString (4 * ((!(maxArgs frame)) + 1)) ^ "\n",
+          (* A.OPER{assem="lw `d0, 8($sp)\n",
+            src=[SP], dst=[ra], jump=NONE}, *)
+          A.OPER{assem="addi `d0, `s0, " ^ Int.toString (4 * frameWords) ^ "\n",
             src=[SP], dst=[SP], jump=NONE},
           A.OPER{assem="", dst=[],
             src =[zero, ra, SP] @ calleesaves,
