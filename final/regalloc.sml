@@ -116,8 +116,9 @@ struct
                         (* If we squashed nodes then try to squash more. Else return *)
                         if ((List.length pairs') > (List.length pairs)) then
                             coalesceCycle (graph', moves', pairs')
-                        else
+                        else (
                             (graph, moves, pairs)
+                        )
                     end
 
                     fun colorPairs (graph, colors, moves, pairs) =
@@ -150,9 +151,9 @@ struct
                     val uncoloredMoveNodes = List.filter (fn (node) => not (M.inDomain (colors, (IG.getNodeID node)))) (IG.nodes moves)
                     val trivialMoveNodes = List.filter (fn (node) => (getMoveNodeDegree node) < numColors) uncoloredMoveNodes
                 in
-                    if ((List.length trivialMoveNodes) = 0) then
+                    if ((List.length trivialMoveNodes) = 0) then (
                         potentialSpill (graph, colors, moves)
-                    else
+                    ) else
                         unfreezeNode (
                             List.foldl 
                                 (fn (node, bestNode) => if (getMoveNodeDegree(node) > getMoveNodeDegree(bestNode)) then node else bestNode) 
@@ -165,7 +166,7 @@ struct
                 let val uncoloredNodes = List.filter (fn (node) => not (M.inDomain(colors, IG.getNodeID(node)))) (IG.nodes graph)
                     fun spillNode spilledNode = 
                         let val graph' = IG.remove(graph, spilledNode)
-                            val moves' = IG.remove(moves, spilledNode)
+                            val moves' = IG.removeNode'(moves, (IG.getNodeID spilledNode))
                             val (graph'', colors') = simplify (graph', colors, moves')
                             val neighboringColors = IG.foldSuccs (fn (succId, succColors) => S.add(succColors, M.lookup(colors', succId))) S.empty spilledNode
                             val possibleColors = S.toList(S.difference(mipsColorable, neighboringColors))
