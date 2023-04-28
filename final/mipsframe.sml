@@ -181,10 +181,12 @@ structure MipsFrame : FRAME = struct
 
   fun procEntryExit2(frame, body) =
       let val (_, _, locals, _, maxArgs) = frame
-          val raTemp = Temp.newtemp ()
+          val fpTemp = Temp.newtemp ()
           val frameWords = !locals + !maxArgs + 1
       in
         [
+          A.OPER{assem="sw `s0, -" ^ (Int.toString ((!locals + 1) * 4)) ^ "(`s1)\n",
+            src=[FP, SP], dst=[], jump=NONE},
           A.OPER{assem="move `d0, `s0\n",
             src=[SP], dst=[FP], jump=NONE},
           A.OPER{assem="addi `d0, `s0, -" ^ Int.toString (4 * frameWords) ^ "\n",
@@ -198,6 +200,8 @@ structure MipsFrame : FRAME = struct
             src=[SP], dst=[ra], jump=NONE}, *)
           A.OPER{assem="addi `d0, `s0, " ^ Int.toString (4 * frameWords) ^ "\n",
             src=[SP], dst=[SP], jump=NONE},
+          A.OPER{assem="lw `d0, -" ^ (Int.toString ((!locals + 1) * 4)) ^ "(`s0)\n",
+            src=[SP], dst=[FP], jump=NONE},
           A.OPER{assem="", dst=[],
             src =[zero, ra, SP, RV] @ calleesaves,
             jump=SOME[]}

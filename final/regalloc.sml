@@ -198,10 +198,13 @@ struct
                     let val dst' = color dst
                         val src' = color src
                     in
-                        if (src' = dst') then 
+                        if (src' = dst') then (
+                            (* print((Int.toString src') ^ " " ^ (Int.toString dst') ^ "\n"); *)
                             (colorInstr (instrs))
-                        else 
+                        ) else (
+                            (* print((Int.toString src') ^ " " ^ (Int.toString dst') ^ "\n"); *)
                             (A.MOVE{assem=assem, dst=dst', src=src'}) :: (colorInstr (instrs))
+                        )
                     end
             |   colorInstr ((A.OPER {assem, dst=dsts, src=srcs, jump}) :: instrs) =
                     let val dsts' = List.map color dsts 
