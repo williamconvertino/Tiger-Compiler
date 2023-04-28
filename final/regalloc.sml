@@ -21,7 +21,7 @@ struct
     fun printColors colors = List.app (fn (key) => print ((Int.toString key) ^ "=" ^ (Int.toString (M.lookup(colors, key))) ^ "\n")) (M.listKeys(colors))
 
     val mipsColors = S.fromList([0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 29, 30, 31])
-    val mipsColorable = S.subtractList(mipsColors, [0])
+    val mipsColorable = S.subtractList(mipsColors, [0, 2, 3, 4, 5, 6, 7])
 
     fun color (graph, moves) = 
         let val numColors = S.numItems(mipsColors)
@@ -88,14 +88,17 @@ struct
                                             (* If node not precolored and briggs then squash. *)
                                             if (linkedId > 31 andalso briggs(graph', nodeId)) then
                                                 (graph', moves'', (nodeId, linkedId) :: pairs)
-                                            else
+                                            else (
                                                 (graph, moves, pairs)
+                                            )
                                         end
                                     in
                                         (* added guard to make sure node not already squashed *)
-                                        if (IG.inDomain(graph, linkedId) andalso not(IG.isAdjacent (movesNode, ( IG.getNode (graph, linkedId) )))) 
-                                            then 
+                                        if (IG.inDomain(graph, linkedId) andalso not(IG.isAdjacent ((IG.getNode (graph, nodeId)), ( IG.getNode (graph, linkedId) )))) 
+                                        (* if (IG.inDomain(graph, linkedId) )  *)
+                                            then (
                                                 safesquasher () 
+                                            )
                                             else 
                                                 (graph, moves, pairs)
                                     end
@@ -267,5 +270,6 @@ struct
             ) else (
                 applyColors (instrs', colors)
             )
+            (* instrs' *)
         end
 end
