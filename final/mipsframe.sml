@@ -185,6 +185,8 @@ structure MipsFrame : FRAME = struct
           val frameWords = !locals + !maxArgs + 1
       in
         [
+          A.OPER{assem="move `d0, `s0\n",
+            src=[SP], dst=[FP], jump=NONE},
           A.OPER{assem="addi `d0, `s0, -" ^ Int.toString (4 * frameWords) ^ "\n",
             src=[SP], dst=[SP], jump=NONE}
           (* A.OPER{assem="sw `s0, 8(`s1)\n",
@@ -197,7 +199,7 @@ structure MipsFrame : FRAME = struct
           A.OPER{assem="addi `d0, `s0, " ^ Int.toString (4 * frameWords) ^ "\n",
             src=[SP], dst=[SP], jump=NONE},
           A.OPER{assem="", dst=[],
-            src =[zero, ra, SP] @ calleesaves,
+            src =[zero, ra, SP, RV] @ calleesaves,
             jump=SOME[]}
         ]
       end

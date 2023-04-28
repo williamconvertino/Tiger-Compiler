@@ -1,6 +1,6 @@
 structure RegisterAllocator:
 sig     
-    val allocate: Assem.instr list -> Assem.instr list
+    val allocate: MipsFrame.frame * Assem.instr list -> Assem.instr list
 
 end =
 struct
@@ -21,7 +21,7 @@ struct
     fun printColors colors = List.app (fn (key) => print ((Int.toString key) ^ "=" ^ (Int.toString (M.lookup(colors, key))) ^ "\n")) (M.listKeys(colors))
 
     val mipsColors = S.fromList([0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 29, 30, 31])
-    val mipsColorable = S.subtract(mipsColors, 0)
+    val mipsColorable = S.subtractList(mipsColors, [0])
 
     fun color (graph, moves) = 
         let val numColors = S.numItems(mipsColors)
@@ -79,7 +79,6 @@ struct
                                 fun squasher (linkedId, (graph, moves, pairs)) = 
                                     let fun safesquasher () =
                                         let val _ = ()
-                                            val _ = print((Bool.toString (IG.inDomain(graph, 119))) ^ "\n")
                                             (* val _ = print((Int.toString nodeId) ^ ":" ^ (Int.toString linkedId) ^ "\n") *)
                                             (* val _ = print((Bool.toString (IG.inDomain(graph, nodeId))) ^ " " ^ (Bool.toString (IG.inDomain(graph, linkedId))) ^ "\n") *)
                                             val graph' = squash(graph, nodeId, linkedId)
@@ -94,7 +93,11 @@ struct
                                         end
                                     in
                                         (* added guard to make sure node not already squashed *)
-                                        if (IG.inDomain(graph, linkedId) andalso not(IG.isAdjacent (movesNode, ( IG.getNode (graph, linkedId) )))) then safesquasher () else (graph, moves, pairs)
+                                        if (IG.inDomain(graph, linkedId) andalso not(IG.isAdjacent (movesNode, ( IG.getNode (graph, linkedId) )))) 
+                                            then 
+                                                safesquasher () 
+                                            else 
+                                                (graph, moves, pairs)
                                     end
                             in
                                 (* check to make sure node not already squashed *)
@@ -164,6 +167,7 @@ struct
 
                             (* Try to color possible spilled node. If no possible color give value of -1 to denote spill. *)
                             val color = if ((List.length possibleColors) > 0) then List.hd (possibleColors) else ~1
+                            (* val _ = print ("color chosen: " ^ (Int.toString color) ^ "\n") *)
                             val colors'' = M.insert(colors', IG.getNodeID(spilledNode), color)
                         in
                             (graph, colors'')
@@ -209,15 +213,59 @@ struct
             colorInstr (instrs)
         end
 
-    fun allocate instrs = 
-        let val dataflow = MakeGraph.instrs2graph instrs
+    fun spill (frame, instrs, colors) = 
+        let val spillBase = !(MipsFrame.maxArgs frame)
+            val _ = (MipsFrame.maxArgs frame) := !(MipsFrame.maxArgs frame) + (M.numItems colors)
+            fun procSpill (temp, (instrs, spillAddr)) = 
+                let val spillTemp = ref (Temp.newtemp())
+                    fun contains lst = List.exists (fn t => t = temp) lst
+                    fun replace lst = List.map (fn t => if t = temp then !spillTemp else t) lst
+
+                    fun sw () = (
+                        spillTemp := Temp.newtemp();
+                        [A.OPER{assem="sw `s0, " ^ (Int.toString spillAddr) ^ "(`s1)\n", src=[!spillTemp, MipsFrame.SP], dst=[], jump=NONE}]
+                    )
+                    fun lw () = [A.OPER{assem="lw `d0, " ^ (Int.toString spillAddr) ^ "(`s0)\n", src=[MipsFrame.SP], dst=[!spillTemp], jump=NONE}]
+                    fun procInstr ([]) = []
+                    |   procInstr (instr as (A.OPER{assem, src, dst, jump}) :: instrs) =  
+                        let val (ld, src') = if (contains src) then (lw (), replace src) else (nil, src)
+                            val (st, dst') = if (contains dst) then (sw (), replace dst) else (nil, dst)
+                        in
+                            ld @ [(A.OPER{assem=assem, src=src', dst=dst', jump=jump})] @ st @ procInstr(instrs)
+                        end
+                            
+                    |   procInstr (instr as (A.MOVE{assem, src, dst}) :: instrs) =  
+                        let val (ld, src') = if (src = temp) then (lw (), !spillTemp) else (nil, src)
+                            val (st, dst') = if (dst = temp) then (sw (), !spillTemp) else (nil, dst)
+                        in
+                            ld @ [(A.MOVE{assem=assem, src=src', dst=dst'})] @ st @ procInstr(instrs)
+                        end
+                    |   procInstr (instr :: instrs) = instr :: procInstr(instrs)
+                in
+                    (procInstr (instrs), spillAddr + 4)
+                end
+            val (instrs', _) = List.foldr procSpill (instrs, spillBase * 4) (M.listKeys colors)
+        in
+            (frame, instrs')
+        end
+
+
+    fun allocate (frame, instrs) = 
+        let val instrs' = MipsFrame.procEntryExit2(frame, instrs)
+            val dataflow = MakeGraph.instrs2graph instrs'
             (* val _ = Flow.debugGraph dataflow *)
             val interference = Interference.dataflow2interference dataflow
             (* val _ = Interference.printGraph interference *)
             val colors = color interference
             (* val _ = printColors colors *)
-            val instrs' = applyColors (instrs, colors)
+            
+            
+            fun colorSpilled color = color = ~1
         in
-            instrs'
+            if (M.exists colorSpilled colors) then (
+                allocate (spill (frame, instrs, M.filter colorSpilled colors)) 
+            ) else (
+                applyColors (instrs', colors)
+            )
         end
 end

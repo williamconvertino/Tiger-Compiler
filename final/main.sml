@@ -22,11 +22,10 @@ struct
 (*        val _ = app (fn s => Printtree.printtree(out,s)) stms; *)
           val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
           val instrs = List.concat(List.map (MipsGen.codegen frame) stms')
-          val proc2 = MipsFrame.procEntryExit2(frame, instrs)
 
           (* Register allocation*)
-          val coloredInstrs = RegisterAllocator.allocate(proc2)
-          (* val coloredInstrs = proc2 *)
+          val coloredInstrs = RegisterAllocator.allocate(frame, instrs)
+          (* val coloredInstrs = MipsFrame.procEntryExit2(frame, instrs) *)
 
 
           val {prolog, body=newbody, epilog} = MipsFrame.procEntryExit3(frame, coloredInstrs)

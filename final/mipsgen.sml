@@ -70,7 +70,7 @@ structure MipsGen : CODEGEN =
                         |   muncher (i, []) = []
 
                     in
-                        munchStm(T.MOVE(T.TEMP(MipsFrame.SP), T.BINOP(T.MINUS, T.TEMP(MipsFrame.SP), T.CONST(List.length args * MipsFrame.wordSize))));
+                        (* munchStm(T.MOVE(T.TEMP(MipsFrame.SP), T.BINOP(T.MINUS, T.TEMP(MipsFrame.SP), T.CONST(List.length args * MipsFrame.wordSize)))); *)
                         muncher (0, args)
                     end
 
