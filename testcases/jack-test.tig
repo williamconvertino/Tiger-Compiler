@@ -1,0 +1,18 @@
+/* define a recursive function */
+/* let
+
+function sayhi() =
+	let
+        var message := "yoyo"
+        function sayworld(s: string) = (print(message); print(s))
+    in
+        print("this is a message\n");
+        /* sayworld("wassup "); */
+        print("transmission over\n")
+    end
+
+in
+	sayhi()
+end */
+
+print("abcdef")
