@@ -102,7 +102,8 @@ struct
             fun procInstr (A.LABEL {assem, lab}, accumulator) = accumulator
             |   procInstr (A.MOVE {assem, dst, src}, (graph, moves, liveOut)) = 
                     let val moves' = Graph.addNodeIfNotExists(Graph.addNodeIfNotExists(moves, dst, dst), src, src)
-                        val moves'' = Graph.addEdge(moves', {from=src, to=dst})
+                        (* val moves'' = Graph.addEdge(moves', {from=src, to=dst}) *)
+                        val moves'' = Graph.doubleEdge(moves', src, dst)
                         val graph' = addNodes(graph, S.addList(liveOut, [src, dst]))
                         val graph'' = addEdges (graph', dst, S.subtractList(liveOut, [src, dst]))
                         val liveOut' = S.add(S.subtract(liveOut, dst), src)

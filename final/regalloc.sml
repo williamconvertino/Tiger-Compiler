@@ -21,10 +21,10 @@ struct
     fun printColors colors = List.app (fn (key) => print ((Int.toString key) ^ "=" ^ (Int.toString (M.lookup(colors, key))) ^ "\n")) (M.listKeys(colors))
 
     val mipsColors = S.fromList([0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 29, 30, 31])
-    val mipsColorable = S.subtractList(mipsColors, [0, 2, 3, 4, 5, 6, 7])
+    val mipsColorable = S.subtractList(mipsColors, [0])
 
     fun color (graph, moves) = 
-        let val numColors = S.numItems(mipsColors)
+        let val numColors = S.numItems(mipsColorable)
             val initialColors = S.foldl (fn (temp, colors) => M.insert(colors, temp, temp)) M.empty mipsColors
 
             fun simplify (graph, colors, moves) = 
@@ -89,6 +89,7 @@ struct
                                             if (linkedId > 31 andalso briggs(graph', nodeId)) then
                                                 (graph', moves'', (nodeId, linkedId) :: pairs)
                                             else (
+                                                (* if (linkedId > 31) then print ("not briggs\n") else (); *)
                                                 (graph, moves, pairs)
                                             )
                                         end
@@ -99,8 +100,9 @@ struct
                                             then (
                                                 safesquasher () 
                                             )
-                                            else 
+                                            else ( 
                                                 (graph, moves, pairs)
+                                            )
                                     end
                             in
                                 (* check to make sure node not already squashed *)
@@ -264,15 +266,15 @@ struct
             (* val _ = Interference.printGraph interference *)
             val colors = color interference
             (* val _ = printColors colors *)
-            
-            
+
             fun colorSpilled color = color = ~1
+            val (frame', instrs'') = spill (frame, instrs, M.filter colorSpilled colors)
         in
             if (M.exists colorSpilled colors) then (
-                allocate (spill (frame, instrs, M.filter colorSpilled colors)) 
+                allocate (frame', instrs'')
             ) else (
                 applyColors (instrs', colors)
             )
-            (* instrs' *)
+            (* instrs'' *)
         end
 end

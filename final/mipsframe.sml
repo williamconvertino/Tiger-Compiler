@@ -177,7 +177,7 @@ structure MipsFrame : FRAME = struct
   val argregs = [a0, a1, a2, a3]
   val argregsstr = ["a0","a1","a2","a3"]
   
-  fun string (label, str) = Symbol.name (label) ^ ": .asciiz \"" ^ str ^ "\"\n"
+  fun string (label, str) = "\t.data\n" ^ Symbol.name (label) ^ ": .asciiz \"" ^ str ^ "\"\n"
 
   fun procEntryExit2(frame, body) =
       let val (_, _, locals, _, maxArgs) = frame
@@ -210,7 +210,7 @@ structure MipsFrame : FRAME = struct
 
 
   fun procEntryExit3(frame, body) =
-    {prolog = (Symbol.name (name frame) ^ ":\n"),
+    {prolog = ("\t.text\n" ^ Symbol.name (name frame) ^ ":\n"),
           body = body,
           epilog = "jr $ra\n"}
           

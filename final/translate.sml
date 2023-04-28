@@ -147,11 +147,11 @@ structure Translate : TRANSLATE = struct
              |   trOp (A.LeOp) = Cx(fn (t,f) => T.CJUMP(T.LE, tleft, tright,t, f))
              |   trOp (A.GtOp) = Cx(fn (t,f) => T.CJUMP(T.GT, tleft, tright, t,f))
              |   trOp (A.GeOp) = Cx(fn (t,f) => T.CJUMP(T.GE, tleft, tright, t, f))
-           fun trOpStr (A.EqOp) = Ex(MipsFrame.externalCall("stringEqual",[tleft,tright]))
-             |   trOpStr (A.LtOp) = Ex(MipsFrame.externalCall("stringLtOp", [tleft,tright]))
-             |   trOpStr (A.LeOp) = Ex(MipsFrame.externalCall("stringLeOp",[tleft,tright]))
-             |   trOpStr (A.GtOp) = Ex(MipsFrame.externalCall("stringGtOp",[tleft,tright]))
-             |   trOpStr (A.GeOp) = Ex(MipsFrame.externalCall("stringGeOp",[tleft,tright]))            
+           fun trOpStr (A.EqOp) = Ex(MipsFrame.externalCall("tig_stringEqual",[tleft,tright]))
+             |   trOpStr (A.LtOp) = Ex(MipsFrame.externalCall("tig_stringLtOp", [tleft,tright]))
+             |   trOpStr (A.LeOp) = Ex(MipsFrame.externalCall("tig_stringLeOp",[tleft,tright]))
+             |   trOpStr (A.GtOp) = Ex(MipsFrame.externalCall("tig_stringGtOp",[tleft,tright]))
+             |   trOpStr (A.GeOp) = Ex(MipsFrame.externalCall("tig_stringGeOp",[tleft,tright]))            
              |   trOpStr (A.NeqOp) = Cx(fn (t,f) => T.CJUMP(T.NE, tleft, tright, t, f))
              |   trOpStr _ = (print ("error: should not reach STRING with any INT operand\n"); nop())
     in
@@ -294,7 +294,7 @@ structure Translate : TRANSLATE = struct
   fun arrayExp (arrsize, initVal) = 
     let val extraSize = T.BINOP(T.PLUS, unEx(arrsize), T.CONST(MipsFrame.wordSize))
         val r = Temp.newtemp()
-        val mallocExp = MipsFrame.externalCall("initArray", [extraSize, unEx(initVal)])
+        val mallocExp = MipsFrame.externalCall("tig_initArray", [extraSize, unEx(initVal)])
     in 
         Ex(T.ESEQ(
           rollupSeq [
@@ -365,8 +365,8 @@ structure Translate : TRANSLATE = struct
         rollupSeq ([
           T.CJUMP(T.EQ, unEx(baseAddr), T.CONST(0), nullPointerLabel, validPointerLabel),
           T.LABEL(nullPointerLabel),
-          unNx(call(Temp.namedlabel "print", [stringVar ("Error cannot dereference null pointer\n")], TOP, TOP)),
-          unNx(call(Temp.namedlabel "exit", [Ex(T.CONST(1))], TOP, TOP)),
+          unNx(call(Temp.namedlabel "tig_print", [stringVar ("Error cannot dereference null pointer\n")], TOP, TOP)),
+          unNx(call(Temp.namedlabel "tig_exit", [Ex(T.CONST(1))], TOP, TOP)),
           T.LABEL(validPointerLabel)
         ]),
         T.MEM(

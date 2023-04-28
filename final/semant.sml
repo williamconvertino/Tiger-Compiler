@@ -411,7 +411,7 @@ struct
                                     else findsym(sym, l, i+1) 
                         |   findsym (sym, [], i) = (NONE, 0)
                         fun tycheck {exp=varexp, ty=Types.RECORD(symtys, uniq)} = (
-                                case (findsym (symbol, symtys, 0)) of
+                                case (findsym (symbol, (List.rev symtys), 0)) of
                                     (SOME(ty), ind) => {exp=T.fieldVar(varexp, ind), ty=ty} |
                                     (NONE, _)       => (ErrorMsg.error pos ("field " ^ Symbol.name symbol ^ " not found in record type " ^ (Types.toString (Types.RECORD(symtys, uniq)))); {exp=T.nop(), ty=Types.IMPOSSIBILITY})
                             )
