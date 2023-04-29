@@ -312,14 +312,18 @@ structure Translate : TRANSLATE = struct
     end
 
   fun subscriptVar (baseAddr, index) =
-    let val ind = unEx(index)
-        val size = T.MEM(T.BINOP(T.MINUS, unEx(baseAddr), T.CONST(MipsFrame.wordSize)))
+    let val indTemp = Temp.newtemp()
+        val baseAddrTemp = Temp.newtemp()
+        val ind = T.TEMP(indTemp)
+        val size = T.MEM(T.BINOP(T.MINUS, T.TEMP(baseAddrTemp), T.CONST(MipsFrame.wordSize)))
         val lowerCheck = Temp.newlabel()
         val inboundLabel = Temp.newlabel()
         val outBoundLabel = Temp.newlabel()
      in
        Ex(T.ESEQ(
         rollupSeq ([
+          T.MOVE(T.TEMP(baseAddrTemp), unEx(baseAddr)),
+          T.MOVE(T.TEMP(indTemp), unEx(index)),
           T.CJUMP(T.LT, ind, size, lowerCheck, outBoundLabel),
           T.LABEL(lowerCheck),
           T.CJUMP(T.GE, ind, T.CONST(0), inboundLabel, outBoundLabel),
@@ -332,9 +336,9 @@ structure Translate : TRANSLATE = struct
         ]),
         T.MEM(
           T.BINOP(T.PLUS, 
-            unEx(baseAddr), 
+            T.TEMP(baseAddrTemp), 
             T.BINOP(T.MUL, 
-              unEx(index),
+              ind,
               T.CONST(MipsFrame.wordSize) 
             )
           )
