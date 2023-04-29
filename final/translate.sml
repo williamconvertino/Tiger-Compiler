@@ -327,8 +327,8 @@ structure Translate : TRANSLATE = struct
           T.CJUMP(T.GE, ind, T.CONST(0), inboundLabel, outBoundLabel),
           
           T.LABEL(outBoundLabel),
-          unNx(call(Temp.namedlabel "print", [stringVar ("Error array index out of bounds\n")], TOP, TOP)),
-          unNx(call(Temp.namedlabel "exit", [Ex(T.CONST(1))], TOP, TOP)),
+          unNx(call(Temp.namedlabel "tig_print", [stringVar ("Error array index out of bounds\n")], TOP, TOP)),
+          unNx(call(Temp.namedlabel "tig_exit", [Ex(T.CONST(1))], TOP, TOP)),
 
           T.LABEL(inboundLabel)
         ]),
