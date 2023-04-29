@@ -377,9 +377,11 @@ structure Translate : TRANSLATE = struct
           unNx(call(Temp.namedlabel "tig_exit", [Ex(T.CONST(1))], TOP, TOP)),
           T.LABEL(validPointerLabel)
         ]),
-        T.BINOP(T.PLUS,
-          T.TEMP(baseAddrTemp), 
-          T.CONST(index * MipsFrame.wordSize)
+        T.MEM(
+          T.BINOP(T.PLUS,
+            T.TEMP(baseAddrTemp), 
+            T.CONST(index * MipsFrame.wordSize)
+          )
         )
       ))
     end
