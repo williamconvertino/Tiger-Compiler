@@ -1,0 +1,16 @@
+let 
+    /* should raise duplicate mutual recursion error */
+    type a = int
+    type b = a
+    type a = string
+
+    /* should raise duplicate mutual recursion error */
+    function foo () = 6
+    function bar () = 3
+    function foo () = 5
+
+    /* should raise nil assignment error */
+    var x := nil
+in 
+    7
+end

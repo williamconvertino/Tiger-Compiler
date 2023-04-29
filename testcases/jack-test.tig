@@ -1,4 +1,4 @@
-let
+/* let
     type lst = {val: string, next: lst}
 
 
@@ -11,7 +11,7 @@ let
     var list1 := lst {val="hello", next=list2}
 in
     printList(list1)
-end
+end */
 
 /* let
     type tst = {val: string}
@@ -23,3 +23,22 @@ end
 in
     compare(a, b)
 end */
+
+/* let 
+in 
+    let 
+        type rectype={}
+        var a:=5 
+    in 
+    end; 5
+end */
+
+let 
+in 
+    let 
+        type rectype={}
+        var a:=5
+    in 
+    end;
+    if (2 = 3 | (5 < 10 & 7 > 2)) then 4 else 7
+end

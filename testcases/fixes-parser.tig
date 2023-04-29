@@ -1,0 +1,9 @@
+let 
+in 
+    let 
+        type rectype={}
+        var a:=5
+    in 
+    end;
+    if (2 = 3 | (5 < 10 & 7 > 2)) then 4 else 7
+end
