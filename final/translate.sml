@@ -300,14 +300,12 @@ structure Translate : TRANSLATE = struct
   
 
   fun arrayExp (arrsize, initVal) = 
-    let val extraSize = T.BINOP(T.PLUS, unEx(arrsize), T.CONST(MipsFrame.wordSize))
-        val r = Temp.newtemp()
-        val mallocExp = MipsFrame.externalCall("tig_initArray", [extraSize, unEx(initVal)])
+    let val r = Temp.newtemp()
+        val mallocExp = MipsFrame.externalCall("tig_initArray", [unEx(arrsize), unEx(initVal)])
     in 
         Ex(T.ESEQ(
           rollupSeq [
-            T.MOVE(T.TEMP(r), mallocExp),
-            T.MOVE(T.MEM(T.TEMP(r)), unEx(arrsize))
+            T.MOVE(T.TEMP(r), mallocExp)
           ],
           T.BINOP(T.PLUS, T.TEMP(r), T.CONST(MipsFrame.wordSize))
         ))
@@ -368,20 +366,20 @@ structure Translate : TRANSLATE = struct
   fun fieldVar (baseAddr, index) = 
     let val nullPointerLabel = Temp.newlabel()
         val validPointerLabel = Temp.newlabel()
+        val baseAddrTemp = Temp.newtemp()
     in
       Ex(T.ESEQ(
         rollupSeq ([
-          T.CJUMP(T.EQ, unEx(baseAddr), T.CONST(0), nullPointerLabel, validPointerLabel),
+          T.MOVE(T.TEMP(baseAddrTemp), unEx(baseAddr)),
+          T.CJUMP(T.EQ, T.TEMP(baseAddrTemp), T.CONST(0), nullPointerLabel, validPointerLabel),
           T.LABEL(nullPointerLabel),
           unNx(call(Temp.namedlabel "tig_print", [stringVar ("Error cannot dereference null pointer\n")], TOP, TOP)),
           unNx(call(Temp.namedlabel "tig_exit", [Ex(T.CONST(1))], TOP, TOP)),
           T.LABEL(validPointerLabel)
         ]),
-        T.MEM(
-          T.BINOP(T.PLUS,
-            unEx(baseAddr), 
-            T.CONST(index * MipsFrame.wordSize)
-          )
+        T.BINOP(T.PLUS,
+          T.TEMP(baseAddrTemp), 
+          T.CONST(index * MipsFrame.wordSize)
         )
       ))
     end

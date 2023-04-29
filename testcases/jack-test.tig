@@ -1,44 +1,26 @@
-/* let
-    type lst = {val: string, next: lst}
-
-
-    function printList (lst: lst) =
-        if lst = nil then print("END\n")
-        else (print(lst.val); printList(lst.next))
-
-    var list3 := lst {val="how you?", next=nil}
-    var list2 := lst {val="world", next=list3}
-    var list1 := lst {val="hello", next=list2}
-in
-    printList(list1)
-end */
-
-/* let
-    type tst = {val: string}
-
-    function compare(x: tst, y: tst) = if x = nil then print("DONE\n") else print(y.val)
-
-    var a := tst{val="hello"}
-    var b := tst{val="world"}
-in
-    compare(a, b)
-end */
-
-/* let 
-in 
-    let 
-        type rectype={}
-        var a:=5 
-    in 
-    end; 5
-end */
-
+/* correct declarations */
 let 
-in 
-    let 
-        type rectype={}
-        var a:=5
-    in 
-    end;
-    if (2 = 3 | (5 < 10 & 7 > 2)) then 4 else 7
-end
+
+    type rectype = {name:string, address:string, id: int , age: int}
+    type arrtype = array of rectype
+    
+   
+    var arr  := arrtype [5] of rectype {name="aname", address="somewhere", id=0, age=0}
+    
+    /* var rec1 := rectype {name="Kapoios", address="Kapou", id=02432, age=44}
+    var rec2 := rectype {name="Allos", dates= arrtype1 [3] of 1900} */
+    
+    in
+    
+
+    arr[3].name
+    /* arr2[3].name := "kati" */
+    /* arr2[1].age := 23; */
+    /* arr3[34] := "sfd" */
+    
+    /*rec1.name := "sdf";
+    rec2.dates[0] := 2323;
+    rec2.dates[2] := 2323 */
+    
+    end
+    
